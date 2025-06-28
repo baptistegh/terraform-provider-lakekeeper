@@ -29,13 +29,13 @@ endif
 test: ## Run unit tests.
 	go test $(TESTARGS) $(PROVIDER_SRC_DIR) $(CLIENT_SRC_DIR)
 
-fmt: tool-golangci-lint tool-terraform tool-shfmt tfproviderlint-plugin ## Format files and fix issues.
+fmt: tool-golangci-lint tool-terraform tool-shfmt ## Format files and fix issues.
 	gofmt -w -s .
 	$(GOBIN)/golangci-lint run --build-tags acceptance --fix
 	$(GOBIN)/terraform fmt -recursive -list ./examples
 	$(GOBIN)/shfmt -l -s -w ./examples
 
-lint-golangci: tool-golangci-lint tfproviderlint-plugin ## Run golangci-lint linter (same as fmt but without modifying files).
+lint-golangci: tool-golangci-lint ## Run golangci-lint linter (same as fmt but without modifying files).
 	$(GOBIN)/golangci-lint run --build-tags acceptance
 
 lint-examples-tf: tool-terraform ## Run terraform linter on examples (same as fmt but without modifying files).
@@ -85,19 +85,14 @@ testacc-settings: ## Run application settings acceptance tests against a Lakekee
 # Tool dependencies are installed into a project-local /bin folder.
 
 tool-golangci-lint:
-	@$(call install-tool, github.com/golangci/golangci-lint/cmd/golangci-lint)
+	mkdir -p $(GOBIN)
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.2.0
 
 tool-tfplugindocs:
 	@$(call install-tool, github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs)
 
 tool-shfmt:
 	@$(call install-tool, mvdan.cc/sh/v3/cmd/shfmt)
-
-tool-apicovered:
-	@$(call install-tool, ./cmd/apicovered)
-
-tool-apiunused:
-	@$(call install-tool, ./cmd/apiunused)
 
 define install-tool
 	cd tools && GOBIN=$(GOBIN) go install $(1)
@@ -109,6 +104,3 @@ tool-terraform:
 	@[ -f $(GOBIN)/terraform ] || { mkdir -p tmp; cd tmp; rm -rf terraform; git clone --branch $(TERRAFORM_VERSION) --depth 1 https://github.com/hashicorp/terraform.git; cd terraform; GOBIN=$(GOBIN) go install; cd ..; rm -rf terraform; }
 
 clean: testacc-down
-
-tfproviderlint-plugin:
-	@cd tools && go build -buildmode=plugin -o $(GOBIN)/tfproviderlint-plugin.so ./cmd/tfproviderlint-plugin
