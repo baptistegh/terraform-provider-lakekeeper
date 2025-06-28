@@ -1,0 +1,20 @@
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 3m
+
+linters-settings:
+  custom:
+    tfproviderlint:
+      path: ./bin/tfproviderlint-plugin.so
+      description: "Terraform Provider Lint Tool"
+      original-url: https://github.com/bflad/tfproviderlint
+  errcheck:
+    exclude-functions:
+      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
+
+linters:
+  enable:
+    - gofmt
+    - govet
+    - tfproviderlint

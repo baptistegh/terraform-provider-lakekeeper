@@ -1,0 +1,20 @@
+{
+  "go.testEnvVars": {
+    "TF_ACC": "1",
+    "LAKEKEEPER_ENDPOINT": "http://127.0.0.1:8080",
+    "LAKEKEEPER_OIDC_AUTH_URL": "http://127.0.0.1:8085",
+    "LAKEKEEPER_OIDC_CLIENT_ID": "",
+    "LAKEKEEPER_OIDC_CLIENT_SECRET": "",
+  },
+  "go.testFlags": [
+    "-count=1",
+    "-v",
+    "-tags=acceptance,flakey,settings",
+    "-parallel=2",
+    "-timeout",
+    "180s"
+  ],
+  "go.buildFlags": [
+    "--tags=acceptance,flakey,settings"
+  ],
+}

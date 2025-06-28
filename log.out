@@ -1,0 +1,1402 @@
+TF_ACC=1 LAKEKEEPER_ENDPOINT=http://127.0.0.1:8181 LAKEKEEPER_AUTH_URL=http://127.0.0.1:30080/realms/iceberg/protocol/openid-connect/token LAKEKEEPER_CLIENT_ID=lakekeeper-admin LAKEKEEPER_CLIENT_SECRET=KNjaj1saNq5yRidVEMdf1vI09Hm0pQaL go test --tags acceptance -v ./internal/provider/...  -timeout 40m
+=== RUN   TestProvider_OIDCAuth
+=== PAUSE TestProvider_OIDCAuth
+=== CONT  TestProvider_OIDCAuth
+runtime: goroutine stack exceeds 1000000000-byte limit
+runtime: sp=0x14020680380 stack=[0x14020680000, 0x14040680000]
+fatal error: stack overflow
+
+runtime stack:
+runtime.throw({0x10190c65f?, 0xffffffffffffffff?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/panic.go:1101 +0x38 fp=0x16f2a2d90 sp=0x16f2a2d60 pc=0x10102e748
+runtime.newstack()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/stack.go:1107 +0x45c fp=0x16f2a2ed0 sp=0x16f2a2d90 pc=0x101013a0c
+runtime.morestack()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:342 +0x70 fp=0x16f2a2ed0 sp=0x16f2a2ed0 pc=0x101034b90
+
+goroutine 170 gp=0x140005836c0 m=6 mp=0x14000500008 [running]:
+strings.LastIndex({0x1400a219b07?, 0xf?}, {0x101ac6c80?, 0x1?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/strings/strings.go:82 +0x2f0 fp=0x14020680380 sp=0x14020680380 pc=0x1010cfa10
+net/url.parseAuthority({0x1400a219b07, 0xf})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/url/url.go:589 +0x34 fp=0x14020680410 sp=0x14020680380 pc=0x101237eb4
+net/url.parse({0x1400a219b00, 0x29}, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/url/url.go:568 +0x420 fp=0x14020680470 sp=0x14020680410 pc=0x101237cd0
+net/url.Parse({0x1400a219b00, 0x29})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/url/url.go:478 +0x4c fp=0x140206804e0 sp=0x14020680470 pc=0x10123765c
+net/http.NewRequestWithContext({0x101d558c8, 0x140003f7a70}, {0x1019032c7?, 0x1019111e6?}, {0x1400a219b00?, 0x29?}, {0x0, 0x0})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/request.go:902 +0x8c fp=0x140206805e0 sp=0x140206804e0 pc=0x101310c7c
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:129 +0x70 fp=0x14020680830 sp=0x140206805e0 pc=0x101362790
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22ca80}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020680870 sp=0x14020680830 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x140206808d0 sp=0x14020680870 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22ec80, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020680e90 sp=0x140206808d0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x140206810e0 sp=0x14020680e90 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22ca10}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020681120 sp=0x140206810e0 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020681180 sp=0x14020681120 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22eb40, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020681740 sp=0x14020681180 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020681990 sp=0x14020681740 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c9a0}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x140206819d0 sp=0x14020681990 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020681a30 sp=0x140206819d0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22ea00, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020681ff0 sp=0x14020681a30 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020682240 sp=0x14020681ff0 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c930}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020682280 sp=0x14020682240 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x140206822e0 sp=0x14020682280 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e8c0, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x140206828a0 sp=0x140206822e0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020682af0 sp=0x140206828a0 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c8c0}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020682b30 sp=0x14020682af0 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020682b90 sp=0x14020682b30 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e780, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020683150 sp=0x14020682b90 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x140206833a0 sp=0x14020683150 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c850}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x140206833e0 sp=0x140206833a0 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020683440 sp=0x140206833e0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e640, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020683a00 sp=0x14020683440 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020683c50 sp=0x14020683a00 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c7e0}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020683c90 sp=0x14020683c50 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020683cf0 sp=0x14020683c90 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e500, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x140206842b0 sp=0x14020683cf0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020684500 sp=0x140206842b0 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c770}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020684540 sp=0x14020684500 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x140206845a0 sp=0x14020684540 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e3c0, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020684b60 sp=0x140206845a0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020684db0 sp=0x14020684b60 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c700}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020684df0 sp=0x14020684db0 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020684e50 sp=0x14020684df0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e280, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020685410 sp=0x14020684e50 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020685660 sp=0x14020685410 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c690}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x140206856a0 sp=0x14020685660 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020685700 sp=0x140206856a0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e140, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020685cc0 sp=0x14020685700 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x14020685f10 sp=0x14020685cc0 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x1400a22c620}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x14020685f50 sp=0x14020685f10 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x14020685fb0 sp=0x14020685f50 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x1400a22e000, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14020686570 sp=0x14020685fb0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x140206867c0 sp=0x14020686570 pc=0x101362850
+...965501 frames elided...
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x140406799b0 sp=0x14040679950 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x14000174f00, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x14040679f70 sp=0x140406799b0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067a1c0 sp=0x14040679f70 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x14000128bd0}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067a200 sp=0x1404067a1c0 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067a260 sp=0x1404067a200 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x14000174dc0, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x1404067a820 sp=0x1404067a260 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067aa70 sp=0x1404067a820 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x14000128850}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067aab0 sp=0x1404067aa70 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067ab10 sp=0x1404067aab0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x14000174c80, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x1404067b0d0 sp=0x1404067ab10 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067b320 sp=0x1404067b0d0 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x140001287e0}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067b360 sp=0x1404067b320 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067b3c0 sp=0x1404067b360 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x14000174b40, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x1404067b980 sp=0x1404067b3c0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x1?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067bbd0 sp=0x1404067b980 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x0?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x0?}, {0x101b3f600, 0x14000128770}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067bc10 sp=0x1404067bbd0 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067bc70 sp=0x1404067bc10 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x14000174500, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x1404067c230 sp=0x1404067bc70 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x13?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067c480 sp=0x1404067c230 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x38a0000032a?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x38a0000032a?}, {0x101b3f600, 0x14000128700}, 0x3ba0000039a?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067c4c0 sp=0x1404067c480 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067c520 sp=0x1404067c4c0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x140001743c0, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x1404067cae0 sp=0x1404067c520 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x2a00000001?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067cd30 sp=0x1404067cae0 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x2a0000001a?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x4a0000003a?}, {0x101b3f600, 0x14000128690}, 0x4a0000003a?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067cd70 sp=0x1404067cd30 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067cdd0 sp=0x1404067cd70 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x14000174280, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x1404067d390 sp=0x1404067cdd0 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x14000357601?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067d5e0 sp=0x1404067d390 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x14000357648?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x14000357668?}, {0x101b3f600, 0x140001281c0}, 0x140001280d0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067d620 sp=0x1404067d5e0 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067d680 sp=0x1404067d620 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x14000174000, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:297 +0xe8 fp=0x1404067dc40 sp=0x1404067d680 pc=0x101364288
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x14000128001?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067de90 sp=0x1404067dc40 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x1?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x1400030f200?}, {0x101b3f600, 0x14000128150}, 0x1400030f228?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067ded0 sp=0x1404067de90 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067df30 sp=0x1404067ded0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).login(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:189 +0x874 fp=0x1404067e480 sp=0x1404067df30 pc=0x101363224
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).sendRequest(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, 0x140003c1540, {0x0, 0x0, 0x0})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:291 +0x60 fp=0x1404067ea40 sp=0x1404067e480 pc=0x101364200
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).getRaw(0x140000a54a0, {0x101d558c8, 0x140003f7a70}, {0x1019111e6?, 0x14000218701?}, 0x0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:142 +0x130 fp=0x1404067ec90 sp=0x1404067ea40 pc=0x101362850
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).get(0x1?, {0x101d558c8?, 0x140003f7a70?}, {0x1019111e6?, 0x140003c2f30?}, {0x101b3f600, 0x140002187e0}, 0x0?)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:119 +0x34 fp=0x1404067ecd0 sp=0x1404067ec90 pc=0x1013626c4
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).GetServerInfo(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/server_info.go:20 +0x60 fp=0x1404067ed30 sp=0x1404067ecd0 pc=0x101365670
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.(*Client).login(0x140000a54a0, {0x101d558c8, 0x140003f7a70})
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:189 +0x874 fp=0x1404067f280 sp=0x1404067ed30 pc=0x101363224
+github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper.NewClient({0x101d558c8, 0x140003f7a70}, 0x14000228f00)
+	/Users/bg/Projects/terraform-provider-lakekeeper/lakekeeper/client.go:68 +0x12c fp=0x1404067f2e0 sp=0x1404067f280 pc=0x10136227c
+github.com/baptistegh/terraform-provider-lakekeeper/internal/provider.(*LakekeeperProvider).Configure.newLakekeeperClient.func1(...)
+	/Users/bg/Projects/terraform-provider-lakekeeper/internal/provider/provider.go:245
+github.com/baptistegh/terraform-provider-lakekeeper/internal/provider.(*LakekeeperProvider).Configure(0x1400025d320, {0x101d558c8, 0x140003f7a70}, {{0x14000312612, 0x6}, {{{0x101d5b958, 0x140004185a0}, {0x101bfb040, 0x140004183f0}}, {0x101d5d530, ...}}, ...}, ...)
+	/Users/bg/Projects/terraform-provider-lakekeeper/internal/provider/provider.go:203 +0x918 fp=0x1404067f480 sp=0x1404067f2e0 pc=0x1018b25a8
+github.com/hashicorp/terraform-plugin-framework/internal/fwserver.(*Server).ConfigureProvider(0x1400031a008, {0x101d558c8, 0x140003f7a70}, 0x14000228c30, 0x14000228be0)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-framework@v1.15.0/internal/fwserver/server_configureprovider.go:18 +0xdc fp=0x1404067f580 sp=0x1404067f480 pc=0x10143269c
+github.com/hashicorp/terraform-plugin-framework/internal/proto6server.(*Server).ConfigureProvider(0x1400031a008, {0x101d558c8?, 0x140003f79b0?}, 0x140000a5180)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-framework@v1.15.0/internal/proto6server/server_configureprovider.go:39 +0x280 fp=0x1404067f610 sp=0x1404067f580 pc=0x10145b390
+github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server.(*server).ConfigureProvider(0x14000318be0, {0x101d558c8?, 0x140003f6d50?}, 0x140002288c0)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.28.0/tfprotov6/tf6server/server.go:604 +0x2a4 fp=0x1404067f870 sp=0x1404067f610 pc=0x1016a4524
+github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tfplugin6._Provider_ConfigureProvider_Handler({0x101d20320, 0x14000318be0}, {0x101d558c8, 0x140003f6d50}, 0x1400021a900, 0x0)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.28.0/tfprotov6/internal/tfplugin6/tfplugin6_grpc.pb.go:633 +0x1c0 fp=0x1404067f8c0 sp=0x1404067f870 pc=0x101694ee0
+google.golang.org/grpc.(*Server).processUnaryRPC(0x1400023a000, {0x101d558c8, 0x140003f6cc0}, 0x14000326cc0, 0x140004254a0, 0x1024af640, 0x0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1405 +0xc9c fp=0x1404067fd80 sp=0x1404067f8c0 pc=0x101614abc
+google.golang.org/grpc.(*Server).handleStream(0x1400023a000, {0x101d56690, 0x140002381a0}, 0x14000326cc0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1815 +0x900 fp=0x1404067ff60 sp=0x1404067fd80 pc=0x101618ca0
+google.golang.org/grpc.(*Server).serveStreams.func2.1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1035 +0x84 fp=0x1404067ffd0 sp=0x1404067ff60 pc=0x101612b84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1404067ffd0 sp=0x1404067ffd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).serveStreams.func2 in goroutine 165
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1046 +0x138
+
+goroutine 1 gp=0x140000021c0 m=nil [chan receive]:
+runtime.gopark(0x14000245968?, 0x100fc7944?, 0x38?, 0x59?, 0x100fc74f0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400058d8f0 sp=0x1400058d8d0 pc=0x10102e868
+runtime.chanrecv(0x140000448c0, 0x0, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:664 +0x42c fp=0x1400058d970 sp=0x1400058d8f0 pc=0x100fc7aec
+runtime.chanrecv1(0x140000447e0?, 0x101d68aa0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:506 +0x14 fp=0x1400058d9a0 sp=0x1400058d970 pc=0x100fc7684
+testing.tRunner.func1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/testing/testing.go:1753 +0x43c fp=0x1400058db40 sp=0x1400058d9a0 pc=0x1010efa2c
+testing.tRunner(0x14000003500, 0x14000245c68)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/testing/testing.go:1798 +0x120 fp=0x1400058db90 sp=0x1400058db40 pc=0x1010ef570
+testing.runTests(0x1400000d878, {0x102494f20, 0x1, 0x1}, {0x14000290fa0?, 0x7?, 0x1024be500?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/testing/testing.go:2277 +0x3ec fp=0x1400058dc90 sp=0x1400058db90 pc=0x1010f213c
+testing.(*M).Run(0x140002a8d20)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/testing/testing.go:2142 +0x588 fp=0x1400058dec0 sp=0x1400058dc90 pc=0x1010f0e98
+main.main()
+	_testmain.go:45 +0x90 fp=0x1400058df40 sp=0x1400058dec0 pc=0x1018b35d0
+runtime.main()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:283 +0x284 fp=0x1400058dfd0 sp=0x1400058df40 pc=0x100ff91c4
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400058dfd0 sp=0x1400058dfd0 pc=0x101036e04
+
+goroutine 17 gp=0x14000102380 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000074790 sp=0x14000074770 pc=0x10102e868
+runtime.goparkunlock(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:441
+runtime.forcegchelper()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:348 +0xb8 fp=0x140000747d0 sp=0x14000074790 pc=0x100ff9518
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000747d0 sp=0x140000747d0 pc=0x101036e04
+created by runtime.init.7 in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:336 +0x24
+
+goroutine 18 gp=0x14000102540 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000074f60 sp=0x14000074f40 pc=0x10102e868
+runtime.goparkunlock(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:441
+runtime.bgsweep(0x14000110000)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgcsweep.go:316 +0x108 fp=0x14000074fb0 sp=0x14000074f60 pc=0x100fe2218
+runtime.gcenable.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:204 +0x28 fp=0x14000074fd0 sp=0x14000074fb0 pc=0x100fd6028
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000074fd0 sp=0x14000074fd0 pc=0x101036e04
+created by runtime.gcenable in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:204 +0x6c
+
+goroutine 19 gp=0x14000102700 m=nil [GC scavenge wait]:
+runtime.gopark(0x516e6?, 0x2aa861d8?, 0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000075760 sp=0x14000075740 pc=0x10102e868
+runtime.goparkunlock(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:441
+runtime.(*scavengerState).park(0x1024be580)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgcscavenge.go:425 +0x5c fp=0x14000075790 sp=0x14000075760 pc=0x100fdfcbc
+runtime.bgscavenge(0x14000110000)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgcscavenge.go:658 +0xac fp=0x140000757b0 sp=0x14000075790 pc=0x100fe025c
+runtime.gcenable.gowrap2()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:205 +0x28 fp=0x140000757d0 sp=0x140000757b0 pc=0x100fd5fc8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000757d0 sp=0x140000757d0 pc=0x101036e04
+created by runtime.gcenable in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:205 +0xac
+
+goroutine 2 gp=0x14000002e00 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0x101d416e0?, 0x0?, 0x40?, 0x2000000020?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400009cd90 sp=0x1400009cd70 pc=0x10102e868
+runtime.runfinq()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mfinal.go:196 +0x108 fp=0x1400009cfd0 sp=0x1400009cd90 pc=0x100fd5028
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400009cfd0 sp=0x1400009cfd0 pc=0x101036e04
+created by runtime.createfing in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mfinal.go:166 +0x80
+
+goroutine 3 gp=0x14000003180 m=nil [chan receive]:
+runtime.gopark(0x1400026b2c0?, 0x14000132018?, 0x48?, 0x8f?, 0x1011deeb8?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000078ef0 sp=0x14000078ed0 pc=0x10102e868
+runtime.chanrecv(0x14000044690, 0x0, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:664 +0x42c fp=0x14000078f70 sp=0x14000078ef0 pc=0x100fc7aec
+runtime.chanrecv1(0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:506 +0x14 fp=0x14000078fa0 sp=0x14000078f70 pc=0x100fc7684
+runtime.unique_runtime_registerUniqueMapCleanup.func2(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1796
+runtime.unique_runtime_registerUniqueMapCleanup.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1799 +0x3c fp=0x14000078fd0 sp=0x14000078fa0 pc=0x100fd924c
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000078fd0 sp=0x14000078fd0 pc=0x101036e04
+created by unique.runtime_registerUniqueMapCleanup in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1794 +0x78
+
+goroutine 4 gp=0x14000003880 m=nil [sync.WaitGroup.Wait]:
+runtime.gopark(0x1024c9a00?, 0x14000164060?, 0x0?, 0x3?, 0x1291492c8?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000511510 sp=0x140005114f0 pc=0x10102e868
+runtime.goparkunlock(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:441
+runtime.semacquire1(0x140003962d8, 0x0, 0x1, 0x0, 0x18)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/sema.go:188 +0x204 fp=0x14000511560 sp=0x14000511510 pc=0x10100dae4
+sync.runtime_SemacquireWaitGroup(0x14000003880?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/sema.go:110 +0x2c fp=0x140005115a0 sp=0x14000511560 pc=0x1010300cc
+sync.(*WaitGroup).Wait(0x140003962d0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/sync/waitgroup.go:118 +0x70 fp=0x140005115c0 sp=0x140005115a0 pc=0x101042390
+github.com/hashicorp/terraform-exec/tfexec.(*Terraform).runTerraformCmd(0x1400030cd00, {0x101d557e8, 0x1024e61a0}, 0x140004ae180)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd_default.go:73 +0x2f0 fp=0x140005116d0 sp=0x140005115c0 pc=0x1016dad60
+github.com/hashicorp/terraform-exec/tfexec.(*Terraform).Plan(0x1400030cd00, {0x101d557e8, 0x1024e61a0}, {0x140002900e0?, 0x101be6660?, 0x22?})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/plan.go:118 +0x48 fp=0x14000511720 sp=0x140005116d0 pc=0x1016ddff8
+github.com/hashicorp/terraform-plugin-testing/internal/plugintest.(*WorkingDir).CreatePlan(0x1400013c820, {0x101d558c8, 0x140004245d0}, {0x0, 0x0, 0x0})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/internal/plugintest/working_dir.go:266 +0x1e0 fp=0x14000511930 sp=0x14000511720 pc=0x101882bc0
+github.com/hashicorp/terraform-plugin-testing/helper/resource.testStepNewConfig.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/testing_new_config.go:120 +0x264 fp=0x140005119f0 sp=0x14000511930 pc=0x1018a8404
+github.com/hashicorp/terraform-plugin-testing/helper/resource.runProviderCommand({0x101d558c8, 0x140004245d0}, {0x101d5ff80, 0x140000036c0}, 0x1400013c820, 0x14000132948, 0x140005135c8)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/plugin.go:465 +0x1e18 fp=0x14000513150 sp=0x140005119f0 pc=0x10189b248
+github.com/hashicorp/terraform-plugin-testing/helper/resource.testStepNewConfig({_, _}, {_, _}, {0x0, 0x0, {0x0, 0x0, 0x0}, 0x0, ...}, ...)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/testing_new_config.go:105 +0x8ac fp=0x14000513a70 sp=0x14000513150 pc=0x1018a64cc
+github.com/hashicorp/terraform-plugin-testing/helper/resource.runNewTest({0x101d558c8, 0x140004245d0}, {0x101d5ff80, 0x140000036c0}, {0x0, 0x0, {0x0, 0x0, 0x0}, 0x0, ...}, ...)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/testing_new.go:362 +0x1dcc fp=0x140005158f0 sp=0x14000513a70 pc=0x1018a202c
+github.com/hashicorp/terraform-plugin-testing/helper/resource.Test({0x101d5ff80, 0x140000036c0}, {0x0, 0x0, {0x0, 0x0, 0x0}, 0x0, 0x0, 0x0, ...})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/testing.go:979 +0x510 fp=0x14000515c50 sp=0x140005158f0 pc=0x10189fb10
+github.com/hashicorp/terraform-plugin-testing/helper/resource.ParallelTest({0x101d5ff80, 0x140000036c0}, {0x0, 0x0, {0x0, 0x0, 0x0}, 0x0, 0x0, 0x0, ...})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/testing.go:880 +0x68 fp=0x14000515d30 sp=0x14000515c50 pc=0x10189f5d8
+github.com/baptistegh/terraform-provider-lakekeeper/internal/provider.TestProvider_OIDCAuth(0x140000036c0)
+	/Users/bg/Projects/terraform-provider-lakekeeper/internal/provider/provider_test.go:67 +0x2a0 fp=0x14000515f60 sp=0x14000515d30 pc=0x1018b2cb0
+testing.tRunner(0x140000036c0, 0x101d416a8)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/testing/testing.go:1792 +0xe4 fp=0x14000515fb0 sp=0x14000515f60 pc=0x1010ef534
+testing.(*T).Run.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/testing/testing.go:1851 +0x2c fp=0x14000515fd0 sp=0x14000515fb0 pc=0x1010f03bc
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000515fd0 sp=0x14000515fd0 pc=0x101036e04
+created by testing.(*T).Run in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/testing/testing.go:1851 +0x374
+
+goroutine 5 gp=0x14000003a40 m=nil [IO wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x100fd6490?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400009ab90 sp=0x1400009ab70 pc=0x10102e868
+runtime.netpollblock(0x1400009ac28?, 0x1077270?, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x1400009abd0 sp=0x1400009ab90 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f19d0, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x1400009ac00 sp=0x1400009abd0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x1400028e900?, 0x100fd6490?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x1400009ac30 sp=0x1400009ac00 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Accept(0x1400028e900)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:620 +0x24c fp=0x1400009ace0 sp=0x1400009ac30 pc=0x10107735c
+net.(*netFD).accept(0x1400028e900)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_unix.go:172 +0x28 fp=0x1400009ada0 sp=0x1400009ace0 pc=0x1012138c8
+net.(*TCPListener).accept(0x140002b2f00)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/tcpsock_posix.go:159 +0x24 fp=0x1400009adf0 sp=0x1400009ada0 pc=0x101228c94
+net.(*TCPListener).Accept(0x140002b2f00)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/tcpsock.go:380 +0x2c fp=0x1400009ae30 sp=0x1400009adf0 pc=0x101227f7c
+net/http.(*onceCloseListener).Accept(0x101d557e8?)
+	<autogenerated>:1 +0x30 fp=0x1400009ae50 sp=0x1400009ae30 pc=0x1013488f0
+net/http.(*Server).Serve(0x140001b4600, {0x101d54810, 0x140002b2f00})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/server.go:3424 +0x290 fp=0x1400009af80 sp=0x1400009ae50 pc=0x101322690
+net/http/httptest.(*Server).goServe.func1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/httptest/server.go:311 +0x5c fp=0x1400009afd0 sp=0x1400009af80 pc=0x10140a48c
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400009afd0 sp=0x1400009afd0 pc=0x101036e04
+created by net/http/httptest.(*Server).goServe in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/httptest/server.go:309 +0x6c
+
+goroutine 6 gp=0x14000003c00 m=nil [IO wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000124b90 sp=0x14000124b70 pc=0x10102e868
+runtime.netpollblock(0x14000124c28?, 0x1077270?, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x14000124bd0 sp=0x14000124b90 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f18b8, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x14000124c00 sp=0x14000124bd0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x1400028e980?, 0x100fbe498?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x14000124c30 sp=0x14000124c00 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Accept(0x1400028e980)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:620 +0x24c fp=0x14000124ce0 sp=0x14000124c30 pc=0x10107735c
+net.(*netFD).accept(0x1400028e980)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_unix.go:172 +0x28 fp=0x14000124da0 sp=0x14000124ce0 pc=0x1012138c8
+net.(*TCPListener).accept(0x140002b2f40)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/tcpsock_posix.go:159 +0x24 fp=0x14000124df0 sp=0x14000124da0 pc=0x101228c94
+net.(*TCPListener).Accept(0x140002b2f40)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/tcpsock.go:380 +0x2c fp=0x14000124e30 sp=0x14000124df0 pc=0x101227f7c
+net/http.(*onceCloseListener).Accept(0x140003c2c60?)
+	<autogenerated>:1 +0x30 fp=0x14000124e50 sp=0x14000124e30 pc=0x1013488f0
+net/http.(*Server).Serve(0x140001b4700, {0x101d54810, 0x140002b2f40})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/server.go:3424 +0x290 fp=0x14000124f80 sp=0x14000124e50 pc=0x101322690
+net/http/httptest.(*Server).goServe.func1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/httptest/server.go:311 +0x5c fp=0x14000124fd0 sp=0x14000124f80 pc=0x10140a48c
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000124fd0 sp=0x14000124fd0 pc=0x101036e04
+created by net/http/httptest.(*Server).goServe in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/httptest/server.go:309 +0x6c
+
+goroutine 27 gp=0x14000382000 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a62c60d?, 0x1?, 0x18?, 0x80?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000076710 sp=0x140000766f0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x140000767b0 sp=0x14000076710 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x140000767d0 sp=0x140000767b0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000767d0 sp=0x140000767d0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 26 gp=0x140003821c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a63c78a?, 0x1?, 0xb6?, 0x10?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000075f10 sp=0x14000075ef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x14000075fb0 sp=0x14000075f10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x14000075fd0 sp=0x14000075fb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000075fd0 sp=0x14000075fd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 28 gp=0x14000382380 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a63c56c?, 0x1?, 0x20?, 0x40?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400007a710 sp=0x1400007a6f0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x1400007a7b0 sp=0x1400007a710 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x1400007a7d0 sp=0x1400007a7b0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400007a7d0 sp=0x1400007a7d0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 25 gp=0x14000382540 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a62c801?, 0x3?, 0x68?, 0x3d?, 0x101d53d00?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000079f10 sp=0x14000079ef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x14000079fb0 sp=0x14000079f10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x14000079fd0 sp=0x14000079fb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000079fd0 sp=0x14000079fd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 24 gp=0x14000354000 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a62c3c6?, 0x3?, 0x6e?, 0xa4?, 0x101036e04?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400007af10 sp=0x1400007aef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x1400007afb0 sp=0x1400007af10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x1400007afd0 sp=0x1400007afb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400007afd0 sp=0x1400007afd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 102 gp=0x140003541c0 m=nil [select]:
+runtime.gopark(0x14000017fa0?, 0x2?, 0xc0?, 0x85?, 0x14000017f7c?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000017e10 sp=0x14000017df0 pc=0x10102e868
+runtime.selectgo(0x14000017fa0, 0x14000017f78, 0x0?, 0x0, 0x101d557e8?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000017f40 sp=0x14000017e10 pc=0x10100cc74
+github.com/hashicorp/terraform-exec/tfexec.writeOutput.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd.go:262 +0x90 fp=0x14000017fd0 sp=0x14000017f40 pc=0x1016daa30
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000017fd0 sp=0x14000017fd0 pc=0x101036e04
+created by github.com/hashicorp/terraform-exec/tfexec.writeOutput in goroutine 101
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd.go:261 +0xd4
+
+goroutine 15 gp=0x14000354380 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140000e36a0 sp=0x140000e3680 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x140000e36e0 sp=0x140000e36a0 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f17a0, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x140000e3710 sp=0x140000e36e0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x14000348200?, 0x14000211500?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x140000e3740 sp=0x140000e3710 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x14000348200, {0x14000211500, 0x1500, 0x1500})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x140000e37e0 sp=0x140000e3740 pc=0x101073d3c
+net.(*netFD).Read(0x14000348200, {0x14000211500?, 0x140000e3868?, 0x100fced3c?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x140000e3830 sp=0x140000e37e0 pc=0x101211e98
+net.(*conn).Read(0x1400007c648, {0x14000211500?, 0x300211500?, 0x1291495e8?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x140000e3880 sp=0x140000e3830 pc=0x101220354
+crypto/tls.(*atLeastReader).Read(0x14000132540, {0x14000211500?, 0x140000e3928?, 0x101270b84?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:809 +0x40 fp=0x140000e38d0 sp=0x140000e3880 pc=0x101270a20
+bytes.(*Buffer).ReadFrom(0x1400028db38, {0x101d4b600, 0x14000132540})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bytes/buffer.go:211 +0x90 fp=0x140000e3930 sp=0x140000e38d0 pc=0x1010db5c0
+crypto/tls.(*Conn).readFromUntil(0x1400028d888, {0x1291500c0, 0x1400007c648}, 0x140000e39d0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:831 +0xcc fp=0x140000e3970 sp=0x140000e3930 pc=0x101270bec
+crypto/tls.(*Conn).readRecordOrCCS(0x1400028d888, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:629 +0x35c fp=0x140000e3bf0 sp=0x140000e3970 pc=0x10126e39c
+crypto/tls.(*Conn).readRecord(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:591
+crypto/tls.(*Conn).Read(0x1400028d888, {0x140003ae000, 0x1000, 0x101304a54?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:1385 +0x15c fp=0x140000e3c60 sp=0x140000e3bf0 pc=0x10127426c
+bufio.(*Reader).Read(0x14000398a80, {0x140000e8820, 0x9, 0x102492520?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:245 +0x1b0 fp=0x140000e3ca0 sp=0x140000e3c60 pc=0x1010f4b10
+io.ReadAtLeast({0x101d4a800, 0x14000398a80}, {0x140000e8820, 0x9, 0x9}, 0x9)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:335 +0xa0 fp=0x140000e3cf0 sp=0x140000e3ca0 pc=0x10106aab0
+io.ReadFull(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:354
+net/http.http2readFrameHeader({0x140000e8820, 0x9, 0x1400011f140?}, {0x101d4a800?, 0x14000398a80?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:1805 +0x58 fp=0x140000e3d40 sp=0x140000e3cf0 pc=0x1012de458
+net/http.(*http2Framer).ReadFrame(0x140000e87e0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:2072 +0x74 fp=0x140000e3df0 sp=0x140000e3d40 pc=0x1012deb24
+net/http.(*http2clientConnReadLoop).run(0x140000e3f98)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:9933 +0xcc fp=0x140000e3f40 sp=0x140000e3df0 pc=0x101301a7c
+net/http.(*http2ClientConn).readLoop(0x14000382c40)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:9812 +0x74 fp=0x140000e3fb0 sp=0x140000e3f40 pc=0x101300d94
+net/http.(*http2Transport).newClientConn.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:8334 +0x28 fp=0x140000e3fd0 sp=0x140000e3fb0 pc=0x1012f9618
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000e3fd0 sp=0x140000e3fd0 pc=0x101036e04
+created by net/http.(*http2Transport).newClientConn in goroutine 14
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:8334 +0xb58
+
+goroutine 29 gp=0x14000103500 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a62c801?, 0x1?, 0xf9?, 0x8c?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000076f10 sp=0x14000076ef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x14000076fb0 sp=0x14000076f10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x14000076fd0 sp=0x14000076fb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000076fd0 sp=0x14000076fd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 30 gp=0x140001036c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a63c6b9?, 0x3?, 0x5b?, 0x3?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000077710 sp=0x140000776f0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x140000777b0 sp=0x14000077710 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x140000777d0 sp=0x140000777b0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000777d0 sp=0x140000777d0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 31 gp=0x14000103880 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a62b1de?, 0x3?, 0x18?, 0x3?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000077f10 sp=0x14000077ef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x14000077fb0 sp=0x14000077f10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x14000077fd0 sp=0x14000077fb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000077fd0 sp=0x14000077fd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 32 gp=0x14000103a40 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a62c8fb?, 0x3?, 0x6?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140000a1f10 sp=0x140000a1ef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x140000a1fb0 sp=0x140000a1f10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x140000a1fd0 sp=0x140000a1fb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000a1fd0 sp=0x140000a1fd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 49 gp=0x14000103c00 m=nil [GC worker (idle)]:
+runtime.gopark(0x8ea52a62c9f5?, 0x3?, 0x25?, 0x5d?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400049ef10 sp=0x1400049eef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x1400049efb0 sp=0x1400049ef10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x1400049efd0 sp=0x1400049efb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400049efd0 sp=0x1400049efd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 50 gp=0x14000103dc0 m=nil [GC worker (idle)]:
+runtime.gopark(0x1024e7ac0?, 0x3?, 0xed?, 0xba?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400049f710 sp=0x1400049f6f0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x1400049f7b0 sp=0x1400049f710 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x1400049f7d0 sp=0x1400049f7b0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400049f7d0 sp=0x1400049f7d0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 51 gp=0x140004a2000 m=nil [GC worker (idle)]:
+runtime.gopark(0x1024e7ac0?, 0x1?, 0x1c?, 0x1a?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400049ff10 sp=0x1400049fef0 pc=0x10102e868
+runtime.gcBgMarkWorker(0x1400013e460)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1423 +0xdc fp=0x1400049ffb0 sp=0x1400049ff10 pc=0x100fd84bc
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x28 fp=0x1400049ffd0 sp=0x1400049ffb0 pc=0x100fd83a8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400049ffd0 sp=0x1400049ffd0 pc=0x101036e04
+created by runtime.gcBgMarkStartWorkers in goroutine 4
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/mgc.go:1339 +0x140
+
+goroutine 136 gp=0x140004a2380 m=nil [select]:
+runtime.gopark(0x1400001cf80?, 0x3?, 0x8?, 0x0?, 0x1400001cf52?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400001cde0 sp=0x1400001cdc0 pc=0x10102e868
+runtime.selectgo(0x1400001cf80, 0x1400001cf4c, 0x8?, 0x0, 0x1400022c0c0?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x1400001cf10 sp=0x1400001cde0 pc=0x10100cc74
+github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:77 +0xc4 fp=0x1400001cfd0 sp=0x1400001cf10 pc=0x10164ad84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400001cfd0 sp=0x1400001cfd0 pc=0x101036e04
+created by github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream in goroutine 135
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:75 +0xdc
+
+goroutine 55 gp=0x140004a2540 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400009f6a0 sp=0x1400009f680 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x1400009f6e0 sp=0x1400009f6a0 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f1688, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x1400009f710 sp=0x1400009f6e0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x1400017e280?, 0x14000210000?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x1400009f740 sp=0x1400009f710 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x1400017e280, {0x14000210000, 0x1500, 0x1500})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x1400009f7e0 sp=0x1400009f740 pc=0x101073d3c
+net.(*netFD).Read(0x1400017e280, {0x14000210000?, 0x1400009f868?, 0x100fced3c?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x1400009f830 sp=0x1400009f7e0 pc=0x101211e98
+net.(*conn).Read(0x14000306008, {0x14000210000?, 0x30009f8e8?, 0x129328fa8?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x1400009f880 sp=0x1400009f830 pc=0x101220354
+crypto/tls.(*atLeastReader).Read(0x1400031e3c0, {0x14000210000?, 0x1400009f928?, 0x101270b84?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:809 +0x40 fp=0x1400009f8d0 sp=0x1400009f880 pc=0x101270a20
+bytes.(*Buffer).ReadFrom(0x1400028d7b8, {0x101d4b600, 0x1400031e3c0})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bytes/buffer.go:211 +0x90 fp=0x1400009f930 sp=0x1400009f8d0 pc=0x1010db5c0
+crypto/tls.(*Conn).readFromUntil(0x1400028d508, {0x1291500c0, 0x14000306008}, 0x1400009f9d0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:831 +0xcc fp=0x1400009f970 sp=0x1400009f930 pc=0x101270bec
+crypto/tls.(*Conn).readRecordOrCCS(0x1400028d508, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:629 +0x35c fp=0x1400009fbf0 sp=0x1400009f970 pc=0x10126e39c
+crypto/tls.(*Conn).readRecord(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:591
+crypto/tls.(*Conn).Read(0x1400028d508, {0x14000339000, 0x1000, 0x101304a54?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:1385 +0x15c fp=0x1400009fc60 sp=0x1400009fbf0 pc=0x10127426c
+bufio.(*Reader).Read(0x14000398420, {0x1400040c2e0, 0x9, 0x102492520?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:245 +0x1b0 fp=0x1400009fca0 sp=0x1400009fc60 pc=0x1010f4b10
+io.ReadAtLeast({0x101d4a800, 0x14000398420}, {0x1400040c2e0, 0x9, 0x9}, 0x9)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:335 +0xa0 fp=0x1400009fcf0 sp=0x1400009fca0 pc=0x10106aab0
+io.ReadFull(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:354
+net/http.http2readFrameHeader({0x1400040c2e0, 0x9, 0x303350?}, {0x101d4a800?, 0x14000398420?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:1805 +0x58 fp=0x1400009fd40 sp=0x1400009fcf0 pc=0x1012de458
+net/http.(*http2Framer).ReadFrame(0x1400040c2a0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:2072 +0x74 fp=0x1400009fdf0 sp=0x1400009fd40 pc=0x1012deb24
+net/http.(*http2clientConnReadLoop).run(0x1400009ff98)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:9933 +0xcc fp=0x1400009ff40 sp=0x1400009fdf0 pc=0x101301a7c
+net/http.(*http2ClientConn).readLoop(0x140003548c0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:9812 +0x74 fp=0x1400009ffb0 sp=0x1400009ff40 pc=0x101300d94
+net/http.(*http2Transport).newClientConn.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:8334 +0x28 fp=0x1400009ffd0 sp=0x1400009ffb0 pc=0x1012f9618
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400009ffd0 sp=0x1400009ffd0 pc=0x101036e04
+created by net/http.(*http2Transport).newClientConn in goroutine 54
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:8334 +0xb58
+
+goroutine 46 gp=0x14000354a80 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140000a06a0 sp=0x140000a0680 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x140000a06e0 sp=0x140000a06a0 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f1570, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x140000a0710 sp=0x140000a06e0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x14000348800?, 0x14000366000?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x140000a0740 sp=0x140000a0710 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x14000348800, {0x14000366000, 0xa000, 0xa000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x140000a07e0 sp=0x140000a0740 pc=0x101073d3c
+net.(*netFD).Read(0x14000348800, {0x14000366000?, 0x140000a0868?, 0x100fced3c?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x140000a0830 sp=0x140000a07e0 pc=0x101211e98
+net.(*conn).Read(0x1400012a060, {0x14000366000?, 0x300112660?, 0x1291551f8?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x140000a0880 sp=0x140000a0830 pc=0x101220354
+crypto/tls.(*atLeastReader).Read(0x1400041ec78, {0x14000366000?, 0x140000a0928?, 0x101270b84?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:809 +0x40 fp=0x140000a08d0 sp=0x140000a0880 pc=0x101270a20
+bytes.(*Buffer).ReadFrom(0x140000329b8, {0x101d4b600, 0x1400041ec78})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bytes/buffer.go:211 +0x90 fp=0x140000a0930 sp=0x140000a08d0 pc=0x1010db5c0
+crypto/tls.(*Conn).readFromUntil(0x14000032708, {0x1291500c0, 0x1400012a060}, 0x140000a09d0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:831 +0xcc fp=0x140000a0970 sp=0x140000a0930 pc=0x101270bec
+crypto/tls.(*Conn).readRecordOrCCS(0x14000032708, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:629 +0x35c fp=0x140000a0bf0 sp=0x140000a0970 pc=0x10126e39c
+crypto/tls.(*Conn).readRecord(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:591
+crypto/tls.(*Conn).Read(0x14000032708, {0x1400032a000, 0x1000, 0x101304a54?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/crypto/tls/conn.go:1385 +0x15c fp=0x140000a0c60 sp=0x140000a0bf0 pc=0x10127426c
+bufio.(*Reader).Read(0x14000056cc0, {0x140000e8900, 0x9, 0x102492520?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:245 +0x1b0 fp=0x140000a0ca0 sp=0x140000a0c60 pc=0x1010f4b10
+io.ReadAtLeast({0x101d4a800, 0x14000056cc0}, {0x140000e8900, 0x9, 0x9}, 0x9)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:335 +0xa0 fp=0x140000a0cf0 sp=0x140000a0ca0 pc=0x10106aab0
+io.ReadFull(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:354
+net/http.http2readFrameHeader({0x140000e8900, 0x9, 0x424f90?}, {0x101d4a800?, 0x14000056cc0?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:1805 +0x58 fp=0x140000a0d40 sp=0x140000a0cf0 pc=0x1012de458
+net/http.(*http2Framer).ReadFrame(0x140000e88c0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:2072 +0x74 fp=0x140000a0df0 sp=0x140000a0d40 pc=0x1012deb24
+net/http.(*http2clientConnReadLoop).run(0x140000a0f98)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:9933 +0xcc fp=0x140000a0f40 sp=0x140000a0df0 pc=0x101301a7c
+net/http.(*http2ClientConn).readLoop(0x140004a2a80)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:9812 +0x74 fp=0x140000a0fb0 sp=0x140000a0f40 pc=0x101300d94
+net/http.(*http2Transport).newClientConn.gowrap1()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:8334 +0x28 fp=0x140000a0fd0 sp=0x140000a0fb0 pc=0x1012f9618
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000a0fd0 sp=0x140000a0fd0 pc=0x101036e04
+created by net/http.(*http2Transport).newClientConn in goroutine 45
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/h2_bundle.go:8334 +0xb58
+
+goroutine 135 gp=0x14000354e00 m=nil [select]:
+runtime.gopark(0x14000589468?, 0x2?, 0x0?, 0x0?, 0x14000589464?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140005892e0 sp=0x140005892c0 pc=0x10102e868
+runtime.selectgo(0x14000589468, 0x14000589460, 0x0?, 0x0, 0x2?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000589410 sp=0x140005892e0 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*recvBufferReader).readMessageHeader(0x140002a6870, {0x1400011eee0, 0x5, 0x5})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:176 +0x78 fp=0x140005894b0 sp=0x14000589410 pc=0x1015db338
+google.golang.org/grpc/internal/transport.(*recvBufferReader).ReadMessageHeader(0x140002a6870, {0x1400011eee0?, 0x140003469c0?, 0x140003984e0?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:145 +0x6c fp=0x140005894e0 sp=0x140005894b0 pc=0x1015db08c
+google.golang.org/grpc/internal/transport.(*transportReader).ReadMessageHeader(0x140001122a0, {0x1400011eee0?, 0x0?, 0x0?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:417 +0x28 fp=0x14000589520 sp=0x140005894e0 pc=0x1015dbeb8
+google.golang.org/grpc/internal/transport.(*Stream).ReadMessageHeader(0x140002ae1b0, {0x1400011eee0, 0x5, 0x5})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:360 +0xa4 fp=0x14000589580 sp=0x14000589520 pc=0x1015dbb44
+google.golang.org/grpc.(*parser).recvMsg(0x1400011eed0, 0x10000000)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:659 +0x40 fp=0x14000589600 sp=0x14000589580 pc=0x10160d0d0
+google.golang.org/grpc.recvAndDecompress(0x1400011eed0, {0x101d4d660, 0x140003984e0}, {0x0, 0x0}, 0x10000000, 0x0, {0x0, 0x0}, 0x1)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:819 +0x60 fp=0x140005896f0 sp=0x14000589600 pc=0x10160df20
+google.golang.org/grpc.recv(0x0?, {0x1293323f0, 0x1024e61a0}, {0x101d4d660?, 0x140003984e0?}, {0x0?, 0x0?}, {0x101cc8f20, 0x14000398540}, 0x0?, ...)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:902 +0x78 fp=0x140005897a0 sp=0x140005896f0 pc=0x10160e9c8
+google.golang.org/grpc.(*serverStream).RecvMsg(0x140000e8b60, {0x101cc8f20, 0x14000398540})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/stream.go:1760 +0x118 fp=0x14000589940 sp=0x140005897a0 pc=0x101624248
+github.com/hashicorp/go-plugin/internal/plugin.(*gRPCBrokerStartStreamServer).Recv(0x1400010e710)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_broker_grpc.pb.go:120 +0x58 fp=0x14000589970 sp=0x14000589940 pc=0x1016287a8
+github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream(0x14000424f60, {0x101d5c1c8, 0x1400010e710})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:91 +0xf0 fp=0x14000589a30 sp=0x14000589970 pc=0x10164aba0
+github.com/hashicorp/go-plugin/internal/plugin._GRPCBroker_StartStream_Handler({0x101c45940?, 0x14000424f60}, {0x101d59928, 0x140000e8b60})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_broker_grpc.pb.go:101 +0xdc fp=0x14000589a70 sp=0x14000589a30 pc=0x1016286ac
+google.golang.org/grpc.(*Server).processStreamingRPC(0x1400023a000, {0x101d558c8, 0x1400011ee70}, 0x140003984e0, 0x14000425170, 0x1024a2a40, 0x0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1695 +0xebc fp=0x14000589d80 sp=0x14000589a70 pc=0x1016176fc
+google.golang.org/grpc.(*Server).handleStream(0x1400023a000, {0x101d56690, 0x140003469c0}, 0x140003984e0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1819 +0x8d4 fp=0x14000589f60 sp=0x14000589d80 pc=0x101618c74
+google.golang.org/grpc.(*Server).serveStreams.func2.1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1035 +0x84 fp=0x14000589fd0 sp=0x14000589f60 pc=0x101612b84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000589fd0 sp=0x14000589fd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).serveStreams.func2 in goroutine 146
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1046 +0x138
+
+goroutine 134 gp=0x14000354fc0 m=nil [select]:
+runtime.gopark(0x1400033f9d8?, 0x3?, 0xc0?, 0x7a?, 0x1400033f9aa?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400033f830 sp=0x1400033f810 pc=0x10102e868
+runtime.selectgo(0x1400033f9d8, 0x1400033f9a4, 0x0?, 0x0, 0x140001239a8?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x1400033f960 sp=0x1400033f830 pc=0x10100cc74
+github.com/hashicorp/go-plugin.(*grpcStdioServer).StreamStdio(0x1400025c700, 0x101bc7100?, {0x101d5b0d0, 0x14000200030})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_stdio.go:61 +0xc4 fp=0x1400033fa30 sp=0x1400033f960 pc=0x10164efc4
+github.com/hashicorp/go-plugin/internal/plugin._GRPCStdio_StreamStdio_Handler({0x101bc7100, 0x1400025c700}, {0x101d59928, 0x14000226000})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_stdio_grpc.pb.go:117 +0x11c fp=0x1400033fa70 sp=0x1400033fa30 pc=0x10162988c
+google.golang.org/grpc.(*Server).processStreamingRPC(0x1400023a000, {0x101d558c8, 0x140002ac360}, 0x14000398480, 0x14000425350, 0x1024a2a60, 0x0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1695 +0xebc fp=0x1400033fd80 sp=0x1400033fa70 pc=0x1016176fc
+google.golang.org/grpc.(*Server).handleStream(0x1400023a000, {0x101d56690, 0x140003469c0}, 0x14000398480)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1819 +0x8d4 fp=0x1400033ff60 sp=0x1400033fd80 pc=0x101618c74
+google.golang.org/grpc.(*Server).serveStreams.func2.1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1035 +0x84 fp=0x1400033ffd0 sp=0x1400033ff60 pc=0x101612b84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400033ffd0 sp=0x1400033ffd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).serveStreams.func2 in goroutine 146
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1046 +0x138
+
+goroutine 133 gp=0x14000582700 m=nil [select]:
+runtime.gopark(0x14000120f80?, 0x3?, 0xc0?, 0xc9?, 0x14000120f52?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000120de0 sp=0x14000120dc0 pc=0x10102e868
+runtime.selectgo(0x14000120f80, 0x14000120f4c, 0x14000120f78?, 0x0, 0x1400023a000?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000120f10 sp=0x14000120de0 pc=0x10100cc74
+github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:77 +0xc4 fp=0x14000120fd0 sp=0x14000120f10 pc=0x10164ad84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000120fd0 sp=0x14000120fd0 pc=0x101036e04
+created by github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream in goroutine 123
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:75 +0xdc
+
+goroutine 99 gp=0x140005828c0 m=nil [chan receive]:
+runtime.gopark(0x14000003880?, 0x100fc6f70?, 0x80?, 0x38?, 0x4?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000014ed0 sp=0x14000014eb0 pc=0x10102e868
+runtime.chanrecv(0x140004804d0, 0x0, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:664 +0x42c fp=0x14000014f50 sp=0x14000014ed0 pc=0x100fc7aec
+runtime.chanrecv1(0x5dc00001101?, 0x53c0000110b?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:506 +0x14 fp=0x14000014f80 sp=0x14000014f50 pc=0x100fc7684
+github.com/hashicorp/terraform-plugin-testing/helper/resource.runProviderCommand.func6(0x140002aab40?)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/plugin.go:441 +0x28 fp=0x14000014fb0 sp=0x14000014f80 pc=0x10189c218
+github.com/hashicorp/terraform-plugin-testing/helper/resource.runProviderCommand.gowrap4()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/plugin.go:443 +0x30 fp=0x14000014fd0 sp=0x14000014fb0 pc=0x10189c1b0
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000014fd0 sp=0x14000014fd0 pc=0x101036e04
+created by github.com/hashicorp/terraform-plugin-testing/helper/resource.runProviderCommand in goroutine 4
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.13.2/helper/resource/plugin.go:440 +0x1ca4
+
+goroutine 131 gp=0x14000355180 m=nil [select]:
+runtime.gopark(0x14000016f28?, 0x4?, 0x8?, 0xe8?, 0x14000016ea8?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000016d20 sp=0x14000016d00 pc=0x10102e868
+runtime.selectgo(0x14000016f28, 0x14000016ea0, 0x101d55900?, 0x0, 0x0?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000016e50 sp=0x14000016d20 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*http2Server).keepalive(0x140000b3d40)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:1197 +0x164 fp=0x14000016fb0 sp=0x14000016e50 pc=0x1015d5c74
+google.golang.org/grpc/internal/transport.NewServerTransport.gowrap1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:357 +0x28 fp=0x14000016fd0 sp=0x14000016fb0 pc=0x1015cf388
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000016fd0 sp=0x14000016fd0 pc=0x101036e04
+created by google.golang.org/grpc/internal/transport.NewServerTransport in goroutine 129
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:357 +0x129c
+
+goroutine 115 gp=0x14000355340 m=nil [chan receive]:
+runtime.gopark(0xcaa00000c7a?, 0xcda00000cba?, 0xba?, 0xc?, 0xcda00000cba?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000013ef0 sp=0x14000013ed0 pc=0x10102e868
+runtime.chanrecv(0x14000480540, 0x14000013fbf, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:664 +0x42c fp=0x14000013f70 sp=0x14000013ef0 pc=0x100fc7aec
+runtime.chanrecv1(0xcfa00000cea?, 0xcfa00000cea?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/chan.go:506 +0x14 fp=0x14000013fa0 sp=0x14000013f70 pc=0x100fc7684
+github.com/hashicorp/terraform-plugin-sdk/v2/plugin.tf6serverServe.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0/plugin/serve.go:214 +0x2c fp=0x14000013fd0 sp=0x14000013fa0 pc=0x10180104c
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000013fd0 sp=0x14000013fd0 pc=0x101036e04
+created by github.com/hashicorp/terraform-plugin-sdk/v2/plugin.tf6serverServe in goroutine 114
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0/plugin/serve.go:211 +0x204
+
+goroutine 114 gp=0x14000355500 m=nil [select]:
+runtime.gopark(0x1400058b990?, 0x2?, 0xc8?, 0xa6?, 0x1400058b6dc?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400058b530 sp=0x1400058b510 pc=0x10102e868
+runtime.selectgo(0x1400058b990, 0x1400058b6d8, 0x0?, 0x0, 0x0?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x1400058b660 sp=0x1400058b530 pc=0x10100cc74
+github.com/hashicorp/go-plugin.Serve(0x140002aaba0)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/server.go:503 +0x11b0 fp=0x1400058bb30 sp=0x1400058b660 pc=0x101653310
+github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server.Serve({0x1400014e1b0, 0x2a}, 0x1400041e048, {0x140002b2440, 0x3, 0x4})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.28.0/tfprotov6/tf6server/server.go:326 +0xb08 fp=0x1400058bdb0 sp=0x1400058bb30 pc=0x1016a2888
+github.com/hashicorp/terraform-plugin-sdk/v2/plugin.tf6serverServe(0x140002aab40)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0/plugin/serve.go:237 +0x464 fp=0x1400058bea0 sp=0x1400058bdb0 pc=0x101800e54
+github.com/hashicorp/terraform-plugin-sdk/v2/plugin.Serve(0x140002aab40)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0/plugin/serve.go:132 +0x274 fp=0x1400058bfb0 sp=0x1400058bea0 pc=0x1018000b4
+github.com/hashicorp/terraform-plugin-sdk/v2/plugin.DebugServe.gowrap1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0/plugin/debug.go:47 +0x28 fp=0x1400058bfd0 sp=0x1400058bfb0 pc=0x1017ffe08
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400058bfd0 sp=0x1400058bfd0 pc=0x101036e04
+created by github.com/hashicorp/terraform-plugin-sdk/v2/plugin.DebugServe in goroutine 4
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-sdk/v2@v2.37.0/plugin/debug.go:47 +0x11c
+
+goroutine 100 gp=0x140003556c0 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000121ae0 sp=0x14000121ac0 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x14000121b20 sp=0x14000121ae0 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f1340, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x14000121b50 sp=0x14000121b20 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x140000562a0?, 0x1400043b000?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x14000121b80 sp=0x14000121b50 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x140000562a0, {0x1400043b000, 0x1000, 0x1000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x14000121c20 sp=0x14000121b80 pc=0x101073d3c
+os.(*File).read(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/os/file_posix.go:29
+os.(*File).Read(0x1400007c138, {0x1400043b000?, 0x0?, 0x0?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/os/file.go:124 +0x6c fp=0x14000121c60 sp=0x14000121c20 pc=0x10107d19c
+bufio.(*Reader).fill(0x14000121ef8)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:113 +0xf8 fp=0x14000121ca0 sp=0x14000121c60 pc=0x1010f4548
+bufio.(*Reader).ReadSlice(0x14000121ef8, 0xa)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:380 +0x30 fp=0x14000121cf0 sp=0x14000121ca0 pc=0x1010f5130
+bufio.(*Reader).collectFragments(0x14000121ef8, 0xa)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:455 +0x64 fp=0x14000121db0 sp=0x14000121cf0 pc=0x1010f5534
+bufio.(*Reader).ReadBytes(0x10249ab60?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:482 +0x1c fp=0x14000121e30 sp=0x14000121db0 pc=0x1010f573c
+github.com/hashicorp/terraform-exec/tfexec.writeOutput({0x101d557e8, 0x1024e61a0}, {0x101d513c8, 0x1400007c138}, {0x101d4a580, 0x1024e61a0})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd.go:272 +0x1e4 fp=0x14000121f60 sp=0x14000121e30 pc=0x1016da844
+github.com/hashicorp/terraform-exec/tfexec.(*Terraform).runTerraformCmd.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd_default.go:62 +0x68 fp=0x14000121fd0 sp=0x14000121f60 pc=0x1016db238
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000121fd0 sp=0x14000121fd0 pc=0x101036e04
+created by github.com/hashicorp/terraform-exec/tfexec.(*Terraform).runTerraformCmd in goroutine 4
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd_default.go:60 +0x244
+
+goroutine 132 gp=0x14000355a40 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140000dd990 sp=0x140000dd970 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x140000dd9d0 sp=0x140000dd990 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x12d3ec088, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x140000dda00 sp=0x140000dd9d0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x1400017e200?, 0x14000176000?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x140000dda30 sp=0x140000dda00 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x1400017e200, {0x14000176000, 0x8000, 0x8000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x140000ddad0 sp=0x140000dda30 pc=0x101073d3c
+net.(*netFD).Read(0x1400017e200, {0x14000176000?, 0x140000ddb58?, 0x100fced3c?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x140000ddb20 sp=0x140000ddad0 pc=0x101211e98
+net.(*conn).Read(0x1400012a010, {0x14000176000?, 0x300000000?, 0x1291551f8?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x140000ddb70 sp=0x140000ddb20 pc=0x101220354
+bufio.(*Reader).Read(0x14000398240, {0x140000e89e0, 0x9, 0x101018eec?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:245 +0x1b0 fp=0x140000ddbb0 sp=0x140000ddb70 pc=0x1010f4b10
+io.ReadAtLeast({0x101d4a800, 0x14000398240}, {0x140000e89e0, 0x9, 0x9}, 0x9)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:335 +0xa0 fp=0x140000ddc00 sp=0x140000ddbb0 pc=0x10106aab0
+io.ReadFull(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:354
+golang.org/x/net/http2.readFrameHeader({0x140000e89e0, 0x9, 0x140000ddc78?}, {0x101d4a800?, 0x14000398240?})
+	/Users/bg/go/pkg/mod/golang.org/x/net@v0.40.0/http2/frame.go:242 +0x58 fp=0x140000ddc50 sp=0x140000ddc00 pc=0x1015aa918
+golang.org/x/net/http2.(*Framer).ReadFrame(0x140000e89a0)
+	/Users/bg/go/pkg/mod/golang.org/x/net@v0.40.0/http2/frame.go:506 +0x78 fp=0x140000ddd50 sp=0x140000ddc50 pc=0x1015aafe8
+google.golang.org/grpc/internal/transport.(*http2Server).HandleStreams(0x140000b3d40, {0x101d558c8, 0x1400011e7e0}, 0x1400011e810)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:657 +0xc0 fp=0x140000dde80 sp=0x140000ddd50 pc=0x1015d1ec0
+google.golang.org/grpc.(*Server).serveStreams(0x1400023a000, {0x101d557e8?, 0x1024e61a0?}, {0x101d56690, 0x140000b3d40}, {0x101d5bfa8?, 0x1400012a010?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1029 +0x2f4 fp=0x140000ddf60 sp=0x140000dde80 pc=0x101612934
+google.golang.org/grpc.(*Server).handleRawConn.func1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:964 +0x5c fp=0x140000ddfd0 sp=0x140000ddf60 pc=0x10161223c
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000ddfd0 sp=0x140000ddfd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).handleRawConn in goroutine 129
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:963 +0x1d4
+
+goroutine 101 gp=0x14000355c00 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000020ae0 sp=0x14000020ac0 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x14000020b20 sp=0x14000020ae0 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x12d3ec1a0, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x14000020b50 sp=0x14000020b20 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x140000563c0?, 0x1400032b000?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x14000020b80 sp=0x14000020b50 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x140000563c0, {0x1400032b000, 0x1000, 0x1000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x14000020c20 sp=0x14000020b80 pc=0x101073d3c
+os.(*File).read(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/os/file_posix.go:29
+os.(*File).Read(0x1400007c1d0, {0x1400032b000?, 0x0?, 0x101d4b780?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/os/file.go:124 +0x6c fp=0x14000020c60 sp=0x14000020c20 pc=0x10107d19c
+bufio.(*Reader).fill(0x14000020ef8)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:113 +0xf8 fp=0x14000020ca0 sp=0x14000020c60 pc=0x1010f4548
+bufio.(*Reader).ReadSlice(0x14000020ef8, 0xa)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:380 +0x30 fp=0x14000020cf0 sp=0x14000020ca0 pc=0x1010f5130
+bufio.(*Reader).collectFragments(0x14000020ef8, 0xa)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:455 +0x64 fp=0x14000020db0 sp=0x14000020cf0 pc=0x1010f5534
+bufio.(*Reader).ReadBytes(0x10249ab60?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:482 +0x1c fp=0x14000020e30 sp=0x14000020db0 pc=0x1010f573c
+github.com/hashicorp/terraform-exec/tfexec.writeOutput({0x101d557e8, 0x1024e61a0}, {0x101d513c8, 0x1400007c1d0}, {0x101d4a420, 0x14000291100})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd.go:272 +0x1e4 fp=0x14000020f60 sp=0x14000020e30 pc=0x1016da844
+github.com/hashicorp/terraform-exec/tfexec.(*Terraform).runTerraformCmd.func2()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd_default.go:68 +0x68 fp=0x14000020fd0 sp=0x14000020f60 pc=0x1016db108
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000020fd0 sp=0x14000020fd0 pc=0x101036e04
+created by github.com/hashicorp/terraform-exec/tfexec.(*Terraform).runTerraformCmd in goroutine 4
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd_default.go:66 +0x2e8
+
+goroutine 130 gp=0x14000502a80 m=nil [select]:
+runtime.gopark(0x14000122e88?, 0x2?, 0x0?, 0x0?, 0x14000122e54?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000122ce0 sp=0x14000122cc0 pc=0x10102e868
+runtime.selectgo(0x14000122e88, 0x14000122e50, 0x14000122e68?, 0x0, 0x1400012a010?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000122e10 sp=0x14000122ce0 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*controlBuffer).get(0x14000332080, 0x1)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/controlbuf.go:412 +0x144 fp=0x14000122eb0 sp=0x14000122e10 pc=0x1015ba874
+google.golang.org/grpc/internal/transport.(*loopyWriter).run(0x1400017e400)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/controlbuf.go:575 +0x70 fp=0x14000122f10 sp=0x14000122eb0 pc=0x1015bb0d0
+google.golang.org/grpc/internal/transport.NewServerTransport.func2()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:336 +0xc4 fp=0x14000122fd0 sp=0x14000122f10 pc=0x1015cf484
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000122fd0 sp=0x14000122fd0 pc=0x101036e04
+created by google.golang.org/grpc/internal/transport.NewServerTransport in goroutine 129
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:334 +0x125c
+
+goroutine 117 gp=0x14000502c40 m=nil [select]:
+runtime.gopark(0x14000078738?, 0x2?, 0x88?, 0xa7?, 0x1400007872c?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140000785c0 sp=0x140000785a0 pc=0x10102e868
+runtime.selectgo(0x14000078738, 0x14000078728, 0x1024cc100?, 0x0, 0x14000078748?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x140000786f0 sp=0x140000785c0 pc=0x10100cc74
+github.com/hashicorp/go-plugin.(*gRPCBrokerServer).Recv(0x14000078701?)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:128 +0x58 fp=0x14000078760 sp=0x140000786f0 pc=0x10164b098
+github.com/hashicorp/go-plugin.(*GRPCBroker).Run(0x1400043e160)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:585 +0x4c fp=0x140000787b0 sp=0x14000078760 pc=0x10164cd2c
+github.com/hashicorp/go-plugin.(*GRPCServer).Init.gowrap1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_server.go:91 +0x28 fp=0x140000787d0 sp=0x140000787b0 pc=0x10164e818
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000787d0 sp=0x140000787d0 pc=0x101036e04
+created by github.com/hashicorp/go-plugin.(*GRPCServer).Init in goroutine 114
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_server.go:91 +0x49c
+
+goroutine 120 gp=0x14000503180 m=nil [IO wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x101015634?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140000e1b30 sp=0x140000e1b10 pc=0x10102e868
+runtime.netpollblock(0x140000e1bc8?, 0x1077270?, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x140000e1b70 sp=0x140000e1b30 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f1110, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x140000e1ba0 sp=0x140000e1b70 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x14000348400?, 0x140000a4ae0?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x140000e1bd0 sp=0x140000e1ba0 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Accept(0x14000348400)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:620 +0x24c fp=0x140000e1c80 sp=0x140000e1bd0 pc=0x10107735c
+net.(*netFD).accept(0x14000348400)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_unix.go:172 +0x28 fp=0x140000e1d40 sp=0x140000e1c80 pc=0x1012138c8
+net.(*UnixListener).accept(0x140000e1d88?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/unixsock_posix.go:172 +0x20 fp=0x140000e1d70 sp=0x140000e1d40 pc=0x10122e700
+net.(*UnixListener).Accept(0x14000424360)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/unixsock.go:260 +0x2c fp=0x140000e1db0 sp=0x140000e1d70 pc=0x10122d39c
+github.com/hashicorp/go-plugin.(*rmListener).Accept(0x101d60020?)
+	<autogenerated>:1 +0x30 fp=0x140000e1dd0 sp=0x140000e1db0 pc=0x101654940
+google.golang.org/grpc.(*Server).Serve(0x1400023a000, {0x101d54fd0, 0x1400041e120})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:890 +0x3fc fp=0x140000e1f30 sp=0x140000e1dd0 pc=0x10161177c
+github.com/hashicorp/go-plugin.(*GRPCServer).Serve(0x14000130480, {0x101d54fd0?, 0x1400041e120?})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_server.go:156 +0x58 fp=0x140000e1fa0 sp=0x140000e1f30 pc=0x10164eb28
+github.com/hashicorp/go-plugin.Serve.gowrap2()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/server.go:497 +0x38 fp=0x140000e1fd0 sp=0x140000e1fa0 pc=0x101653768
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000e1fd0 sp=0x140000e1fd0 pc=0x101036e04
+created by github.com/hashicorp/go-plugin.Serve in goroutine 114
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/server.go:497 +0x112c
+
+goroutine 121 gp=0x14000503340 m=nil [select]:
+runtime.gopark(0x140004a1fa0?, 0x2?, 0xc8?, 0xa6?, 0x140004a1f7c?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140004a1e10 sp=0x140004a1df0 pc=0x10102e868
+runtime.selectgo(0x140004a1fa0, 0x140004a1f78, 0x0?, 0x0, 0x100000000000000?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x140004a1f40 sp=0x140004a1e10 pc=0x10100cc74
+github.com/hashicorp/terraform-exec/tfexec.writeOutput.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd.go:262 +0x90 fp=0x140004a1fd0 sp=0x140004a1f40 pc=0x1016daa30
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140004a1fd0 sp=0x140004a1fd0 pc=0x101036e04
+created by github.com/hashicorp/terraform-exec/tfexec.writeOutput in goroutine 100
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-exec@v0.23.0/tfexec/cmd.go:261 +0xd4
+
+goroutine 122 gp=0x14000503500 m=nil [select]:
+runtime.gopark(0x140000df9d8?, 0x3?, 0x0?, 0x0?, 0x140000df9aa?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140000df830 sp=0x140000df810 pc=0x10102e868
+runtime.selectgo(0x140000df9d8, 0x140000df9a4, 0x0?, 0x0, 0x140000219a8?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x140000df960 sp=0x140000df830 pc=0x10100cc74
+github.com/hashicorp/go-plugin.(*grpcStdioServer).StreamStdio(0x1400025c700, 0x101bc7100?, {0x101d5b0d0, 0x140003009e0})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_stdio.go:61 +0xc4 fp=0x140000dfa30 sp=0x140000df960 pc=0x10164efc4
+github.com/hashicorp/go-plugin/internal/plugin._GRPCStdio_StreamStdio_Handler({0x101bc7100, 0x1400025c700}, {0x101d59928, 0x1400040c000})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_stdio_grpc.pb.go:117 +0x11c fp=0x140000dfa70 sp=0x140000dfa30 pc=0x10162988c
+google.golang.org/grpc.(*Server).processStreamingRPC(0x1400023a000, {0x101d558c8, 0x14000380060}, 0x140002aafc0, 0x14000425350, 0x1024a2a60, 0x0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1695 +0xebc fp=0x140000dfd80 sp=0x140000dfa70 pc=0x1016176fc
+google.golang.org/grpc.(*Server).handleStream(0x1400023a000, {0x101d56690, 0x140000b3d40}, 0x140002aafc0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1819 +0x8d4 fp=0x140000dff60 sp=0x140000dfd80 pc=0x101618c74
+google.golang.org/grpc.(*Server).serveStreams.func2.1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1035 +0x84 fp=0x140000dffd0 sp=0x140000dff60 pc=0x101612b84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140000dffd0 sp=0x140000dffd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).serveStreams.func2 in goroutine 132
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1046 +0x138
+
+goroutine 123 gp=0x140005036c0 m=nil [select]:
+runtime.gopark(0x14000587468?, 0x2?, 0x0?, 0x0?, 0x14000587464?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140005872e0 sp=0x140005872c0 pc=0x10102e868
+runtime.selectgo(0x14000587468, 0x14000587460, 0x0?, 0x0, 0x2?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000587410 sp=0x140005872e0 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*recvBufferReader).readMessageHeader(0x14000030be0, {0x1400011e970, 0x5, 0x5})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:176 +0x78 fp=0x140005874b0 sp=0x14000587410 pc=0x1015db338
+google.golang.org/grpc/internal/transport.(*recvBufferReader).ReadMessageHeader(0x14000030be0, {0x1400011e970?, 0x140000b3d40?, 0x140002ab020?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:145 +0x6c fp=0x140005874e0 sp=0x140005874b0 pc=0x1015db08c
+google.golang.org/grpc/internal/transport.(*transportReader).ReadMessageHeader(0x1400030a400, {0x1400011e970?, 0x0?, 0x0?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:417 +0x28 fp=0x14000587520 sp=0x140005874e0 pc=0x1015dbeb8
+google.golang.org/grpc/internal/transport.(*Stream).ReadMessageHeader(0x140001307e0, {0x1400011e970, 0x5, 0x5})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:360 +0xa4 fp=0x14000587580 sp=0x14000587520 pc=0x1015dbb44
+google.golang.org/grpc.(*parser).recvMsg(0x1400011e960, 0x10000000)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:659 +0x40 fp=0x14000587600 sp=0x14000587580 pc=0x10160d0d0
+google.golang.org/grpc.recvAndDecompress(0x1400011e960, {0x101d4d660, 0x140002ab020}, {0x0, 0x0}, 0x10000000, 0x0, {0x0, 0x0}, 0x1)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:819 +0x60 fp=0x140005876f0 sp=0x14000587600 pc=0x10160df20
+google.golang.org/grpc.recv(0x0?, {0x1293323f0, 0x1024e61a0}, {0x101d4d660?, 0x140002ab020?}, {0x0?, 0x0?}, {0x101cc8f20, 0x14000398300}, 0x100fcb930?, ...)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:902 +0x78 fp=0x140005877a0 sp=0x140005876f0 pc=0x10160e9c8
+google.golang.org/grpc.(*serverStream).RecvMsg(0x140000e8a80, {0x101cc8f20, 0x14000398300})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/stream.go:1760 +0x118 fp=0x14000587940 sp=0x140005877a0 pc=0x101624248
+github.com/hashicorp/go-plugin/internal/plugin.(*gRPCBrokerStartStreamServer).Recv(0x1400010e4b0)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_broker_grpc.pb.go:120 +0x58 fp=0x14000587970 sp=0x14000587940 pc=0x1016287a8
+github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream(0x14000424f60, {0x101d5c1c8, 0x1400010e4b0})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:91 +0xf0 fp=0x14000587a30 sp=0x14000587970 pc=0x10164aba0
+github.com/hashicorp/go-plugin/internal/plugin._GRPCBroker_StartStream_Handler({0x101c45940?, 0x14000424f60}, {0x101d59928, 0x140000e8a80})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_broker_grpc.pb.go:101 +0xdc fp=0x14000587a70 sp=0x14000587a30 pc=0x1016286ac
+google.golang.org/grpc.(*Server).processStreamingRPC(0x1400023a000, {0x101d558c8, 0x1400011e900}, 0x140002ab020, 0x14000425170, 0x1024a2a40, 0x0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1695 +0xebc fp=0x14000587d80 sp=0x14000587a70 pc=0x1016176fc
+google.golang.org/grpc.(*Server).handleStream(0x1400023a000, {0x101d56690, 0x140000b3d40}, 0x140002ab020)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1819 +0x8d4 fp=0x14000587f60 sp=0x14000587d80 pc=0x101618c74
+google.golang.org/grpc.(*Server).serveStreams.func2.1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1035 +0x84 fp=0x14000587fd0 sp=0x14000587f60 pc=0x101612b84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000587fd0 sp=0x14000587fd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).serveStreams.func2 in goroutine 132
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1046 +0x138
+
+goroutine 128 gp=0x14000503880 m=nil [select]:
+runtime.gopark(0x14000012e88?, 0x2?, 0x0?, 0x0?, 0x14000012e54?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000012ce0 sp=0x14000012cc0 pc=0x10102e868
+runtime.selectgo(0x14000012e88, 0x14000012e50, 0x14000012e68?, 0x0, 0x140003061d0?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000012e10 sp=0x14000012ce0 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*controlBuffer).get(0x140002b3f00, 0x1)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/controlbuf.go:412 +0x144 fp=0x14000012eb0 sp=0x14000012e10 pc=0x1015ba874
+google.golang.org/grpc/internal/transport.(*loopyWriter).run(0x1400021a080)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/controlbuf.go:575 +0x70 fp=0x14000012f10 sp=0x14000012eb0 pc=0x1015bb0d0
+google.golang.org/grpc/internal/transport.NewServerTransport.func2()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:336 +0xc4 fp=0x14000012fd0 sp=0x14000012f10 pc=0x1015cf484
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000012fd0 sp=0x14000012fd0 pc=0x101036e04
+created by google.golang.org/grpc/internal/transport.NewServerTransport in goroutine 127
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:334 +0x125c
+
+goroutine 145 gp=0x14000503c00 m=nil [select]:
+runtime.gopark(0x1400049b728?, 0x4?, 0x8?, 0xe8?, 0x1400049b6a8?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400049b520 sp=0x1400049b500 pc=0x10102e868
+runtime.selectgo(0x1400049b728, 0x1400049b6a0, 0x1?, 0x0, 0x1400049b6a8?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x1400049b650 sp=0x1400049b520 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*http2Server).keepalive(0x140003469c0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:1197 +0x164 fp=0x1400049b7b0 sp=0x1400049b650 pc=0x1015d5c74
+google.golang.org/grpc/internal/transport.NewServerTransport.gowrap1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:357 +0x28 fp=0x1400049b7d0 sp=0x1400049b7b0 pc=0x1015cf388
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400049b7d0 sp=0x1400049b7d0 pc=0x101036e04
+created by google.golang.org/grpc/internal/transport.NewServerTransport in goroutine 127
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:357 +0x129c
+
+goroutine 146 gp=0x14000503dc0 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000015990 sp=0x14000015970 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x140000159d0 sp=0x14000015990 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x1292f0ff8, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x14000015a00 sp=0x140000159d0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x14000197f00?, 0x140006ee000?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x14000015a30 sp=0x14000015a00 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x14000197f00, {0x140006ee000, 0x8000, 0x8000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x14000015ad0 sp=0x14000015a30 pc=0x101073d3c
+net.(*netFD).Read(0x14000197f00, {0x140006ee000?, 0x14000015b58?, 0x100fced3c?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x14000015b20 sp=0x14000015ad0 pc=0x101211e98
+net.(*conn).Read(0x140003061d0, {0x140006ee000?, 0x300000000?, 0x129328fa8?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x14000015b70 sp=0x14000015b20 pc=0x101220354
+bufio.(*Reader).Read(0x14000115c20, {0x140004323c0, 0x9, 0x101018eec?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:245 +0x1b0 fp=0x14000015bb0 sp=0x14000015b70 pc=0x1010f4b10
+io.ReadAtLeast({0x101d4a800, 0x14000115c20}, {0x140004323c0, 0x9, 0x9}, 0x9)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:335 +0xa0 fp=0x14000015c00 sp=0x14000015bb0 pc=0x10106aab0
+io.ReadFull(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:354
+golang.org/x/net/http2.readFrameHeader({0x140004323c0, 0x9, 0x14000015c78?}, {0x101d4a800?, 0x14000115c20?})
+	/Users/bg/go/pkg/mod/golang.org/x/net@v0.40.0/http2/frame.go:242 +0x58 fp=0x14000015c50 sp=0x14000015c00 pc=0x1015aa918
+golang.org/x/net/http2.(*Framer).ReadFrame(0x14000432380)
+	/Users/bg/go/pkg/mod/golang.org/x/net@v0.40.0/http2/frame.go:506 +0x78 fp=0x14000015d50 sp=0x14000015c50 pc=0x1015aafe8
+google.golang.org/grpc/internal/transport.(*http2Server).HandleStreams(0x140003469c0, {0x101d558c8, 0x14000295350}, 0x140002953b0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:657 +0xc0 fp=0x14000015e80 sp=0x14000015d50 pc=0x1015d1ec0
+google.golang.org/grpc.(*Server).serveStreams(0x1400023a000, {0x101d557e8?, 0x1024e61a0?}, {0x101d56690, 0x140003469c0}, {0x101d5bfa8?, 0x140003061d0?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1029 +0x2f4 fp=0x14000015f60 sp=0x14000015e80 pc=0x101612934
+google.golang.org/grpc.(*Server).handleRawConn.func1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:964 +0x5c fp=0x14000015fd0 sp=0x14000015f60 pc=0x10161223c
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000015fd0 sp=0x14000015fd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).handleRawConn in goroutine 127
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:963 +0x1d4
+
+goroutine 166 gp=0x14000582c40 m=nil [select]:
+runtime.gopark(0x1400033b9d8?, 0x3?, 0x0?, 0x0?, 0x1400033b9aa?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400033b830 sp=0x1400033b810 pc=0x10102e868
+runtime.selectgo(0x1400033b9d8, 0x1400033b9a4, 0x0?, 0x0, 0x140001239a8?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x1400033b960 sp=0x1400033b830 pc=0x10100cc74
+github.com/hashicorp/go-plugin.(*grpcStdioServer).StreamStdio(0x1400025c700, 0x101bc7100?, {0x101d5b0d0, 0x140002002c0})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_stdio.go:61 +0xc4 fp=0x1400033ba30 sp=0x1400033b960 pc=0x10164efc4
+github.com/hashicorp/go-plugin/internal/plugin._GRPCStdio_StreamStdio_Handler({0x101bc7100, 0x1400025c700}, {0x101d59928, 0x14000226380})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_stdio_grpc.pb.go:117 +0x11c fp=0x1400033ba70 sp=0x1400033ba30 pc=0x10162988c
+google.golang.org/grpc.(*Server).processStreamingRPC(0x1400023a000, {0x101d558c8, 0x140003e6060}, 0x14000326780, 0x14000425350, 0x1024a2a60, 0x0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1695 +0xebc fp=0x1400033bd80 sp=0x1400033ba70 pc=0x1016176fc
+google.golang.org/grpc.(*Server).handleStream(0x1400023a000, {0x101d56690, 0x140002381a0}, 0x14000326780)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1819 +0x8d4 fp=0x1400033bf60 sp=0x1400033bd80 pc=0x101618c74
+google.golang.org/grpc.(*Server).serveStreams.func2.1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1035 +0x84 fp=0x1400033bfd0 sp=0x1400033bf60 pc=0x101612b84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400033bfd0 sp=0x1400033bfd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).serveStreams.func2 in goroutine 165
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1046 +0x138
+
+goroutine 163 gp=0x14000582e00 m=nil [select]:
+runtime.gopark(0x14000123e88?, 0x2?, 0x0?, 0x0?, 0x14000123e54?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000123ce0 sp=0x14000123cc0 pc=0x10102e868
+runtime.selectgo(0x14000123e88, 0x14000123e50, 0x14000123e68?, 0x0, 0x1400042a018?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000123e10 sp=0x14000123ce0 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*controlBuffer).get(0x140001ce040, 0x1)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/controlbuf.go:412 +0x144 fp=0x14000123eb0 sp=0x14000123e10 pc=0x1015ba874
+google.golang.org/grpc/internal/transport.(*loopyWriter).run(0x1400021a480)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/controlbuf.go:575 +0x70 fp=0x14000123f10 sp=0x14000123eb0 pc=0x1015bb0d0
+google.golang.org/grpc/internal/transport.NewServerTransport.func2()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:336 +0xc4 fp=0x14000123fd0 sp=0x14000123f10 pc=0x1015cf484
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000123fd0 sp=0x14000123fd0 pc=0x101036e04
+created by google.golang.org/grpc/internal/transport.NewServerTransport in goroutine 162
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:334 +0x125c
+
+goroutine 164 gp=0x14000582fc0 m=nil [select]:
+runtime.gopark(0x14000388f28?, 0x4?, 0x8?, 0x90?, 0x14000388ea8?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000388d20 sp=0x14000388d00 pc=0x10102e868
+runtime.selectgo(0x14000388f28, 0x14000388ea0, 0xc9a00000c7a?, 0x0, 0xc9a00000c7a?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000388e50 sp=0x14000388d20 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*http2Server).keepalive(0x140002381a0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:1197 +0x164 fp=0x14000388fb0 sp=0x14000388e50 pc=0x1015d5c74
+google.golang.org/grpc/internal/transport.NewServerTransport.gowrap1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:357 +0x28 fp=0x14000388fd0 sp=0x14000388fb0 pc=0x1015cf388
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000388fd0 sp=0x14000388fd0 pc=0x101036e04
+created by google.golang.org/grpc/internal/transport.NewServerTransport in goroutine 162
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:357 +0x129c
+
+goroutine 165 gp=0x14000583180 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140003e4990 sp=0x140003e4970 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x140003e49d0 sp=0x140003e4990 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x12d3ebf70, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x140003e4a00 sp=0x140003e49d0 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x1400021a300?, 0x140003ce000?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x140003e4a30 sp=0x140003e4a00 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x1400021a300, {0x140003ce000, 0x8000, 0x8000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x140003e4ad0 sp=0x140003e4a30 pc=0x101073d3c
+net.(*netFD).Read(0x1400021a300, {0x140003ce000?, 0x140003e4b68?, 0x100fc6cc8?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x140003e4b20 sp=0x140003e4ad0 pc=0x101211e98
+net.(*conn).Read(0x1400042a018, {0x140003ce000?, 0x169391e89?, 0x14000500008?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x140003e4b70 sp=0x140003e4b20 pc=0x101220354
+bufio.(*Reader).Read(0x140003264e0, {0x14000226200, 0x9, 0x10105d558?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:245 +0x1b0 fp=0x140003e4bb0 sp=0x140003e4b70 pc=0x1010f4b10
+io.ReadAtLeast({0x101d4a800, 0x140003264e0}, {0x14000226200, 0x9, 0x9}, 0x9)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:335 +0xa0 fp=0x140003e4c00 sp=0x140003e4bb0 pc=0x10106aab0
+io.ReadFull(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/io/io.go:354
+golang.org/x/net/http2.readFrameHeader({0x14000226200, 0x9, 0x1024be500?}, {0x101d4a800?, 0x140003264e0?})
+	/Users/bg/go/pkg/mod/golang.org/x/net@v0.40.0/http2/frame.go:242 +0x58 fp=0x140003e4c50 sp=0x140003e4c00 pc=0x1015aa918
+golang.org/x/net/http2.(*Framer).ReadFrame(0x140002261c0)
+	/Users/bg/go/pkg/mod/golang.org/x/net@v0.40.0/http2/frame.go:506 +0x78 fp=0x140003e4d50 sp=0x140003e4c50 pc=0x1015aafe8
+google.golang.org/grpc/internal/transport.(*http2Server).HandleStreams(0x140002381a0, {0x101d558c8, 0x140002ada70}, 0x140002adaa0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/http2_server.go:657 +0xc0 fp=0x140003e4e80 sp=0x140003e4d50 pc=0x1015d1ec0
+google.golang.org/grpc.(*Server).serveStreams(0x1400023a000, {0x101d557e8?, 0x1024e61a0?}, {0x101d56690, 0x140002381a0}, {0x101d5bfa8?, 0x1400042a018?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1029 +0x2f4 fp=0x140003e4f60 sp=0x140003e4e80 pc=0x101612934
+google.golang.org/grpc.(*Server).handleRawConn.func1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:964 +0x5c fp=0x140003e4fd0 sp=0x140003e4f60 pc=0x10161223c
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140003e4fd0 sp=0x140003e4fd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).handleRawConn in goroutine 162
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:963 +0x1d4
+
+goroutine 167 gp=0x14000583340 m=nil [select]:
+runtime.gopark(0x14000341468?, 0x2?, 0xaa?, 0x7?, 0x14000341464?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140003412e0 sp=0x140003412c0 pc=0x10102e868
+runtime.selectgo(0x14000341468, 0x14000341460, 0x0?, 0x0, 0x2?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000341410 sp=0x140003412e0 pc=0x10100cc74
+google.golang.org/grpc/internal/transport.(*recvBufferReader).readMessageHeader(0x14000228460, {0x140002aded0, 0x5, 0x5})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:176 +0x78 fp=0x140003414b0 sp=0x14000341410 pc=0x1015db338
+google.golang.org/grpc/internal/transport.(*recvBufferReader).ReadMessageHeader(0x14000228460, {0x140002aded0?, 0x140002381a0?, 0x140003267e0?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:145 +0x6c fp=0x140003414e0 sp=0x140003414b0 pc=0x1015db08c
+google.golang.org/grpc/internal/transport.(*transportReader).ReadMessageHeader(0x140000a4c00, {0x140002aded0?, 0xcab00000c3b?, 0xc5b00000c2b?})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:417 +0x28 fp=0x14000341520 sp=0x140003414e0 pc=0x1015dbeb8
+google.golang.org/grpc/internal/transport.(*Stream).ReadMessageHeader(0x140003c2120, {0x140002aded0, 0x5, 0x5})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/internal/transport/transport.go:360 +0xa4 fp=0x14000341580 sp=0x14000341520 pc=0x1015dbb44
+google.golang.org/grpc.(*parser).recvMsg(0x140002adec0, 0x10000000)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:659 +0x40 fp=0x14000341600 sp=0x14000341580 pc=0x10160d0d0
+google.golang.org/grpc.recvAndDecompress(0x140002adec0, {0x101d4d660, 0x140003267e0}, {0x0, 0x0}, 0x10000000, 0x0, {0x0, 0x0}, 0x1)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:819 +0x60 fp=0x140003416f0 sp=0x14000341600 pc=0x10160df20
+google.golang.org/grpc.recv(0x140003e57e8?, {0x1293323f0, 0x1024e61a0}, {0x101d4d660?, 0x140003267e0?}, {0x0?, 0x0?}, {0x101cc8f20, 0x14000326840}, 0x100fd2bdc?, ...)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/rpc_util.go:902 +0x78 fp=0x140003417a0 sp=0x140003416f0 pc=0x10160e9c8
+google.golang.org/grpc.(*serverStream).RecvMsg(0x140002262a0, {0x101cc8f20, 0x14000326840})
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/stream.go:1760 +0x118 fp=0x14000341940 sp=0x140003417a0 pc=0x101624248
+github.com/hashicorp/go-plugin/internal/plugin.(*gRPCBrokerStartStreamServer).Recv(0x14000200280)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_broker_grpc.pb.go:120 +0x58 fp=0x14000341970 sp=0x14000341940 pc=0x1016287a8
+github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream(0x14000424f60, {0x101d5c1c8, 0x14000200280})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:91 +0xf0 fp=0x14000341a30 sp=0x14000341970 pc=0x10164aba0
+github.com/hashicorp/go-plugin/internal/plugin._GRPCBroker_StartStream_Handler({0x101c45940?, 0x14000424f60}, {0x101d59928, 0x140002262a0})
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/internal/plugin/grpc_broker_grpc.pb.go:101 +0xdc fp=0x14000341a70 sp=0x14000341a30 pc=0x1016286ac
+google.golang.org/grpc.(*Server).processStreamingRPC(0x1400023a000, {0x101d558c8, 0x140002ade60}, 0x140003267e0, 0x14000425170, 0x1024a2a40, 0x0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1695 +0xebc fp=0x14000341d80 sp=0x14000341a70 pc=0x1016176fc
+google.golang.org/grpc.(*Server).handleStream(0x1400023a000, {0x101d56690, 0x140002381a0}, 0x140003267e0)
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1819 +0x8d4 fp=0x14000341f60 sp=0x14000341d80 pc=0x101618c74
+google.golang.org/grpc.(*Server).serveStreams.func2.1()
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1035 +0x84 fp=0x14000341fd0 sp=0x14000341f60 pc=0x101612b84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000341fd0 sp=0x14000341fd0 pc=0x101036e04
+created by google.golang.org/grpc.(*Server).serveStreams.func2 in goroutine 165
+	/Users/bg/go/pkg/mod/google.golang.org/grpc@v1.72.1/server.go:1046 +0x138
+
+goroutine 168 gp=0x14000583500 m=nil [select]:
+runtime.gopark(0x14000389780?, 0x3?, 0xe8?, 0x93?, 0x14000389752?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140003895e0 sp=0x140003895c0 pc=0x10102e868
+runtime.selectgo(0x14000389780, 0x1400038974c, 0x101d56690?, 0x0, 0x1400023a000?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000389710 sp=0x140003895e0 pc=0x10100cc74
+github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream.func1()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:77 +0xc4 fp=0x140003897d0 sp=0x14000389710 pc=0x10164ad84
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140003897d0 sp=0x140003897d0 pc=0x101036e04
+created by github.com/hashicorp/go-plugin.(*gRPCBrokerServer).StartStream in goroutine 167
+	/Users/bg/go/pkg/mod/github.com/hashicorp/go-plugin@v1.6.3/grpc_broker.go:75 +0xdc
+
+goroutine 171 gp=0x14000583880 m=nil [select]:
+runtime.gopark(0x14000388778?, 0x2?, 0x40?, 0x86?, 0x14000388774?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000388600 sp=0x140003885e0 pc=0x10102e868
+runtime.selectgo(0x14000388778, 0x14000388770, 0x140000a4b00?, 0x0, 0x101d53230?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x14000388730 sp=0x14000388600 pc=0x10100cc74
+github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server.mergeStop({0x101d55900?, 0x14000228b40?}, 0x14000201b80, 0x14000480a10)
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.28.0/tfprotov6/tf6server/server.go:430 +0x64 fp=0x140003887a0 sp=0x14000388730 pc=0x1016a2aa4
+github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server.(*server).stoppableContext.gowrap2()
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.28.0/tfprotov6/tf6server/server.go:448 +0x34 fp=0x140003887d0 sp=0x140003887a0 pc=0x1016a2ce4
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x140003887d0 sp=0x140003887d0 pc=0x101036e04
+created by github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server.(*server).stoppableContext in goroutine 170
+	/Users/bg/go/pkg/mod/github.com/hashicorp/terraform-plugin-go@v0.28.0/tfprotov6/tf6server/server.go:448 +0x150
+
+goroutine 137 gp=0x140004a3880 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x14000125ac0 sp=0x14000125aa0 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x14000125b00 sp=0x14000125ac0 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x12d3ebe58, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x14000125b30 sp=0x14000125b00 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x1400021b580?, 0x14000139000?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x14000125b60 sp=0x14000125b30 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x1400021b580, {0x14000139000, 0x1000, 0x1000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x14000125c00 sp=0x14000125b60 pc=0x101073d3c
+net.(*netFD).Read(0x1400021b580, {0x14000139000?, 0x80?, 0x8?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x14000125c50 sp=0x14000125c00 pc=0x101211e98
+net.(*conn).Read(0x1400012a018, {0x14000139000?, 0x0?, 0x14000125d28?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x14000125ca0 sp=0x14000125c50 pc=0x101220354
+net/http.(*persistConn).Read(0x14000417c20, {0x14000139000?, 0x101d4a3d8?, 0x102493480?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/transport.go:2122 +0x4c fp=0x14000125d00 sp=0x14000125ca0 pc=0x101335d1c
+bufio.(*Reader).fill(0x14000398720)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:113 +0xf8 fp=0x14000125d40 sp=0x14000125d00 pc=0x1010f4548
+bufio.(*Reader).Peek(0x14000398720, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:152 +0x60 fp=0x14000125d60 sp=0x14000125d40 pc=0x1010f46b0
+net/http.(*persistConn).readLoop(0x14000417c20)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/transport.go:2275 +0x12c fp=0x14000125fb0 sp=0x14000125d60 pc=0x1013369cc
+net/http.(*Transport).dialConn.gowrap2()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/transport.go:1944 +0x28 fp=0x14000125fd0 sp=0x14000125fb0 pc=0x1013352f8
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000125fd0 sp=0x14000125fd0 pc=0x101036e04
+created by net/http.(*Transport).dialConn in goroutine 172
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/transport.go:1944 +0x11c4
+
+goroutine 138 gp=0x14000382700 m=nil [select]:
+runtime.gopark(0x1400001df38?, 0x2?, 0xc0?, 0x36?, 0x1400001dee4?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x1400001dd70 sp=0x1400001dd50 pc=0x10102e868
+runtime.selectgo(0x1400001df38, 0x1400001dee0, 0x14000332440?, 0x0, 0x14000419620?, 0x1)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/select.go:351 +0x6c4 fp=0x1400001dea0 sp=0x1400001dd70 pc=0x10100cc74
+net/http.(*persistConn).writeLoop(0x14000417c20)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/transport.go:2590 +0x9c fp=0x1400001dfb0 sp=0x1400001dea0 pc=0x1013380dc
+net/http.(*Transport).dialConn.gowrap3()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/transport.go:1945 +0x28 fp=0x1400001dfd0 sp=0x1400001dfb0 pc=0x101335298
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x1400001dfd0 sp=0x1400001dfd0 pc=0x101036e04
+created by net/http.(*Transport).dialConn in goroutine 172
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/transport.go:1945 +0x120c
+
+goroutine 174 gp=0x140004a3a40 m=nil [IO wait]:
+runtime.gopark(0xffffffffffffffff?, 0xffffffffffffffff?, 0x23?, 0x0?, 0x1010526a0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/proc.go:435 +0xc8 fp=0x140004598e0 sp=0x140004598c0 pc=0x10102e868
+runtime.netpollblock(0x0?, 0x0?, 0x0?)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:575 +0x158 fp=0x14000459920 sp=0x140004598e0 pc=0x100ff2718
+internal/poll.runtime_pollWait(0x12d3ebd40, 0x72)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/netpoll.go:351 +0xa0 fp=0x14000459950 sp=0x14000459920 pc=0x10102da20
+internal/poll.(*pollDesc).wait(0x1400021b600?, 0x14000428000?, 0x0)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:84 +0x28 fp=0x14000459980 sp=0x14000459950 pc=0x101072a88
+internal/poll.(*pollDesc).waitRead(...)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0x1400021b600, {0x14000428000, 0x1000, 0x1000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/internal/poll/fd_unix.go:165 +0x1fc fp=0x14000459a20 sp=0x14000459980 pc=0x101073d3c
+net.(*netFD).Read(0x1400021b600, {0x14000428000?, 0x14000459ab8?, 0x1013185dc?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/fd_posix.go:55 +0x28 fp=0x14000459a70 sp=0x14000459a20 pc=0x101211e98
+net.(*conn).Read(0x1400042a0a8, {0x14000428000?, 0x72?, 0x14000419140?})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/net.go:194 +0x34 fp=0x14000459ac0 sp=0x14000459a70 pc=0x101220354
+net/http.(*connReader).Read(0x140004191a0, {0x14000428000, 0x1000, 0x1000})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/server.go:798 +0x234 fp=0x14000459b20 sp=0x14000459ac0 pc=0x1013187e4
+bufio.(*Reader).fill(0x14000327320)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:113 +0xf8 fp=0x14000459b60 sp=0x14000459b20 pc=0x1010f4548
+bufio.(*Reader).Peek(0x14000327320, 0x4)
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/bufio/bufio.go:152 +0x60 fp=0x14000459b80 sp=0x14000459b60 pc=0x1010f46b0
+net/http.(*conn).serve(0x140003c2c60, {0x101d558c8, 0x1400011e0c0})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/server.go:2137 +0x664 fp=0x14000459fa0 sp=0x14000459b80 pc=0x10131d984
+net/http.(*Server).Serve.gowrap3()
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/server.go:3454 +0x30 fp=0x14000459fd0 sp=0x14000459fa0 pc=0x101322a20
+runtime.goexit({})
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/runtime/asm_arm64.s:1223 +0x4 fp=0x14000459fd0 sp=0x14000459fd0 pc=0x101036e04
+created by net/http.(*Server).Serve in goroutine 6
+	/opt/homebrew/Cellar/go/1.24.1/libexec/src/net/http/server.go:3454 +0x3d8
+FAIL	github.com/baptistegh/terraform-provider-lakekeeper/internal/provider	26.412s
+FAIL
