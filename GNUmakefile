@@ -1,0 +1,114 @@
+default: reviewable
+
+reviewable: build fmt generate test ## Run before committing.
+
+GOBIN = $(shell pwd)/bin
+PROVIDER_SRC_DIR := ./internal/provider/...
+CLIENT_SRC_DIR := ./lakekeeper
+TERRAFORM_PLUGIN_DIR ?= ~/.terraform.d/plugins/terraform.local/x/lakekeeper/99.99.99
+TERRAFORM_PLATFORM_DIR ?= darwin_amd64
+CONTAINER_COMPOSE_ENGINE ?= $(shell docker compose version >/dev/null 2>&1 && echo 'docker compose' || echo 'docker-compose')
+
+build: ## Build the provider binary.
+	go mod tidy
+	GOBIN=$(GOBIN) go install
+
+local: build ## Build and Install the provider locally
+	mkdir -p $(TERRAFORM_PLUGIN_DIR)/$(TERRAFORM_PLATFORM_DIR)
+	cp -f $(GOBIN)/terraform-provider-lakekeeper $(TERRAFORM_PLUGIN_DIR)/$(TERRAFORM_PLATFORM_DIR)/terraform-provider-lakekeeper
+
+generate: tool-tfplugindocs ## Generate files to be checked in.
+	@# Setting empty environment variables to work around issue: https://github.com/hashicorp/terraform-plugin-docs/issues/12
+	@# Setting the PATH so that tfplugindocs uses the same terraform binary as other targets here, and to resolve a "Error: Incompatible provider version" error on M1 macs.
+	PATH="$(GOBIN):$(PATH)" $(GOBIN)/tfplugindocs generate -provider-name terraform-provider-lakekeeper
+
+ifdef RUN
+TESTARGS += -test.run $(RUN)
+endif
+
+test: ## Run unit tests.
+	go test $(TESTARGS) $(PROVIDER_SRC_DIR) $(CLIENT_SRC_DIR)
+
+fmt: tool-golangci-lint tool-terraform tool-shfmt tfproviderlint-plugin ## Format files and fix issues.
+	gofmt -w -s .
+	$(GOBIN)/golangci-lint run --build-tags acceptance --fix
+	$(GOBIN)/terraform fmt -recursive -list ./examples
+	$(GOBIN)/shfmt -l -s -w ./examples
+
+lint-golangci: tool-golangci-lint tfproviderlint-plugin ## Run golangci-lint linter (same as fmt but without modifying files).
+	$(GOBIN)/golangci-lint run --build-tags acceptance
+
+lint-examples-tf: tool-terraform ## Run terraform linter on examples (same as fmt but without modifying files).
+	$(GOBIN)/terraform fmt -recursive -check ./examples
+
+lint-examples-sh: tool-shfmt ## Run shell linter on examples (same as fmt but without modifying files).
+	$(GOBIN)/shfmt -l -s -d ./examples
+
+lint-generated: generate ## Check that "make generate" was called. Note this only works if the git workspace is clean.
+	@echo "Checking git status"
+	@[ -z "$(shell git status --short)" ] || { \
+		echo "Error: Files should have been generated:"; \
+		git status --short; echo "Diff:"; \
+		git --no-pager diff HEAD; \
+		echo "Run \"make generate\" and try again"; \
+		exit 1; \
+	}
+
+apicovered: tool-apicovered ## Run an analysis tool to estimate the Lakekeeper API coverage.
+	@$(GOBIN)/apicovered ./lakekeeper
+
+apiunused: tool-apiunused ## Run an analysis tool to output unused parts of the client-go package.
+	@$(GOBIN)/apiunused ./lakekeeper
+
+LAKEKEEPER_ENDPOINT ?= http://127.0.0.1:8181
+LAKEKEEPER_AUTH_URL ?= http://127.0.0.1:30080/realms/iceberg/protocol/openid-connect/token
+LAKEKEEPER_CLIENT_ID ?= lakekeeper-admin
+LAKEKEEPER_CLIENT_SECRET ?= KNjaj1saNq5yRidVEMdf1vI09Hm0pQaL
+
+testacc-up: ## Launch a Lakekeeper instance.
+	$(CONTAINER_COMPOSE_ENGINE) up -d
+	LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) ./scripts/await-healthy.sh
+
+testacc-down: ## Teardown a Lakekeeper instance.
+	$(CONTAINER_COMPOSE_ENGINE) down --volumes
+
+testacc: ## Run acceptance tests against a Lakekeeper instance.
+	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test --tags acceptance -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
+
+testacc-flakey: ## Run flakey acceptance tests against a Lakekeeper instance.
+	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test --tags flakey -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
+
+testacc-settings: ## Run application settings acceptance tests against a Lakekeeper instance.
+	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test --tags settings -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
+
+# TOOLS
+# Tool dependencies are installed into a project-local /bin folder.
+
+tool-golangci-lint:
+	@$(call install-tool, github.com/golangci/golangci-lint/cmd/golangci-lint)
+
+tool-tfplugindocs:
+	@$(call install-tool, github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs)
+
+tool-shfmt:
+	@$(call install-tool, mvdan.cc/sh/v3/cmd/shfmt)
+
+tool-apicovered:
+	@$(call install-tool, ./cmd/apicovered)
+
+tool-apiunused:
+	@$(call install-tool, ./cmd/apiunused)
+
+define install-tool
+	cd tools && GOBIN=$(GOBIN) go install $(1)
+endef
+
+TERRAFORM_VERSION = v1.1.4
+tool-terraform:
+	@# See https://github.com/hashicorp/terraform/issues/30356
+	@[ -f $(GOBIN)/terraform ] || { mkdir -p tmp; cd tmp; rm -rf terraform; git clone --branch $(TERRAFORM_VERSION) --depth 1 https://github.com/hashicorp/terraform.git; cd terraform; GOBIN=$(GOBIN) go install; cd ..; rm -rf terraform; }
+
+clean: testacc-down
+
+tfproviderlint-plugin:
+	@cd tools && go build -buildmode=plugin -o $(GOBIN)/tfproviderlint-plugin.so ./cmd/tfproviderlint-plugin
