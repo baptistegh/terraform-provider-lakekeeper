@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -27,6 +29,16 @@ func main() {
 		// -provider-name flag or set its value to the updated provider name.
 		Address: "terraform.local/baptistegh/lakekeeper",
 		Debug:   debug,
+	}
+
+	args := os.Args[1:]
+
+	if len(args) > 0 {
+		if args[0] == "version" {
+			fmt.Printf("version=%s, commit=%s, date=%s\n", version, commit, date)
+			return
+		}
+		log.Fatalf("Command does not exist: %v, the only command accepted is `version`", args)
 	}
 
 	err := providerserver.Serve(context.Background(), provider.New(version), opts)
