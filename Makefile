@@ -31,12 +31,12 @@ test: ## Run unit tests.
 
 fmt: tool-golangci-lint tool-terraform tool-shfmt ## Format files and fix issues.
 	gofmt -s -w -e .
-	$(GOBIN)/golangci-lint run --fix
+	$(GOBIN)/golangci-lint run --build-tags acceptance --fix
 	$(GOBIN)/terraform fmt -recursive -list ./examples
 	$(GOBIN)/shfmt -l -s -w ./examples
 
 lint-golangci: tool-golangci-lint ## Run golangci-lint linter (same as fmt but without modifying files).
-	$(GOBIN)/golangci-lint run
+	$(GOBIN)/golangci-lint run --build-tags acceptance
 
 lint-examples-tf: tool-terraform ## Run terraform linter on examples (same as fmt but without modifying files).
 	$(GOBIN)/terraform fmt -recursive -check ./examples
@@ -54,14 +54,14 @@ lint-generated: generate ## Check that "make generate" was called. Note this onl
 		exit 1; \
 	}
 
-LAKEKEEPER_ENDPOINT ?= http://127.0.0.1:8181
-LAKEKEEPER_AUTH_URL ?= http://127.0.0.1:30080/realms/iceberg/protocol/openid-connect/token
+LAKEKEEPER_ENDPOINT ?= http://localhost:8181
+LAKEKEEPER_AUTH_URL ?= http://localhost:30080/realms/iceberg/protocol/openid-connect/token
 LAKEKEEPER_CLIENT_ID ?= lakekeeper-admin
 LAKEKEEPER_CLIENT_SECRET ?= KNjaj1saNq5yRidVEMdf1vI09Hm0pQaL
 
 testacc-up: ## Launch a Lakekeeper instance.
 	cd run; $(CONTAINER_COMPOSE_ENGINE) up -d
-	LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) ./scripts/await-healthy.sh
+	LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) ./scripts/await-healthy.sh
 
 testacc-down: ## Teardown a Lakekeeper instance.
 	cd run; $(CONTAINER_COMPOSE_ENGINE) down --volumes

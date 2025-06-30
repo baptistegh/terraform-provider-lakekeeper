@@ -10,13 +10,15 @@ services:
       - LAKEKEEPER__PG_ENCRYPTION_KEY=This-is-NOT-Secure!
       - LAKEKEEPER__PG_DATABASE_URL_READ=postgresql://postgres:postgres@db:5432/postgres
       - LAKEKEEPER__PG_DATABASE_URL_WRITE=postgresql://postgres:postgres@db:5432/postgres
-      - LAKEKEEPER__AUTHZ_BACKEND=allowall
+      - LAKEKEEPER__AUTHZ_BACKEND=openfga
+      - LAKEKEEPER__OPENFGA__ENDPOINT=http://openfga:8081
       # Externally taken from environment variables if set
-      - LAKEKEEPER__OPENID_PROVIDER_URI
-      - LAKEKEEPER__OPENID_AUDIENCE
-      - LAKEKEEPER__OPENID_ADDITIONAL_ISSUERS
-      - LAKEKEEPER__UI__OPENID_CLIENT_ID
-      - LAKEKEEPER__UI__OPENID_SCOPE
+      - LAKEKEEPER__OPENID_PROVIDER_URI=http://keycloak:8080/realms/iceberg
+      - LAKEKEEPER__OPENID_ADDITIONAL_ISSUERS=http://localhost:30080/realms/iceberg
+      - LAKEKEEPER__OPENID_AUDIENCE=lakekeeper
+      - LAKEKEEPER__UI__OPENID_PROVIDER_URI=http://localhost:30080/realms/iceberg
+      - LAKEKEEPER__UI__OPENID_CLIENT_ID=lakekeeper
+      - RUST_LOG=info
     command: ["serve"]
     healthcheck:
       test: [ "CMD", "/home/nonroot/lakekeeper", "healthcheck" ]
@@ -35,11 +37,20 @@ services:
   migrate:
     image: *lakekeeper-image
     pull_policy: *lakekeeper-pull-policy
-    environment: *lakekeeper-environment
+    environment:
+      - LAKEKEEPER__PG_ENCRYPTION_KEY=This-is-NOT-Secure!
+      - LAKEKEEPER__PG_DATABASE_URL_READ=postgresql://postgres:postgres@db:5432/postgres
+      - LAKEKEEPER__PG_DATABASE_URL_WRITE=postgresql://postgres:postgres@db:5432/postgres
+      - LAKEKEEPER__AUTHZ_BACKEND=openfga
+      - LAKEKEEPER__OPENFGA__ENDPOINT=http://openfga:8081
     restart: "no"
     command: [ "migrate" ]
     depends_on:
       db:
+        condition: service_healthy
+      openfga:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     networks:
       iceberg_net:
@@ -60,6 +71,59 @@ services:
       - volume-lakekeeper:/bitnami/postgresql
     networks:
       iceberg_net:
+  
+  openfga-db:
+    image: bitnami/postgresql:16.3.0
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -p 5432 -d postgres" ]
+      interval: 2s
+      timeout: 10s
+      retries: 2
+      start_period: 10s
+    networks:
+      iceberg_net:
+  
+  openfga-migrate:
+    image: openfga/openfga:v1.8
+    command: migrate
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:postgres@openfga-db:5432/postgres?sslmode=disable
+    networks:
+      iceberg_net:
+    depends_on:
+      openfga-db:
+        condition: service_healthy
+
+  openfga:
+    depends_on:
+      openfga-db:
+        condition: service_healthy
+      openfga-migrate:
+        condition: service_completed_successfully
+    image: openfga/openfga:v1.8
+    command: run
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:postgres@openfga-db:5432/postgres?sslmode=disable
+      - OPENFGA_DATASTORE_MAX_OPEN_CONNS=50
+      - OPENFGA_PLAYGROUND_ENABLED=false
+    networks:
+      iceberg_net:
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/usr/local/bin/grpc_health_probe",
+          "-addr=openfga:8081"
+        ]
+      interval: 5s
+      timeout: 30s
+      retries: 3
   
   keycloak:
     image: quay.io/keycloak/keycloak:26.0.7

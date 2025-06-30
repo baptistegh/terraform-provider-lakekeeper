@@ -1,0 +1,20 @@
+{
+  "go.testEnvVars": {
+    "TF_ACC": "1",
+    "LAKEKEEPER_ENDPOINT": "http://localhost:8181",
+    "LAKEKEEPER_AUTH_URL": "http://localhost:30080/realms/iceberg/protocol/openid-connect/token",
+    "LAKEKEEPER_CLIENT_ID": "lakekeeper-admin",
+    "LAKEKEEPER_CLIENT_SECRET": "KNjaj1saNq5yRidVEMdf1vI09Hm0pQaL"
+  },
+  "go.testFlags": [
+    "-count=1",
+    "-v",
+    "-tags=acceptance,flakey,settings",
+    "-parallel=2",
+    "-timeout",
+    "180s"
+  ],
+  "go.buildFlags": [
+    "--tags=acceptance,flakey,settings"
+  ],
+}

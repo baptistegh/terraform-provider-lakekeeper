@@ -20,17 +20,17 @@ func init() {
 	registerDataSource(NewLakekeeperProjectDataSource)
 }
 
-// NewlakekeeperApplicationDataSource is a helper function to simplify the provider implementation.
+// NewLakekeeperProjectDataSource is a helper function to simplify the provider implementation.
 func NewLakekeeperProjectDataSource() datasource.DataSource {
 	return &LakekeeperProjectDataSource{}
 }
 
-// lakekeeperMetadataDataSource is the data source implementation.
+// LakekeeperProjectDataSource is the data source implementation.
 type LakekeeperProjectDataSource struct {
 	client *lakekeeper.Client
 }
 
-// lakekeeperMetadataDataSourceModel describes the data source data model.
+// LakekeeperProjectDataSourceModel describes the data source data model.
 type LakekeeperProjectDataSourceModel struct {
 	ID   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
@@ -46,7 +46,7 @@ func (d *LakekeeperProjectDataSource) Schema(_ context.Context, _ datasource.Sch
 	resp.Schema = schema.Schema{
 		MarkdownDescription: `The ` + "`lakekeeper_project`" + ` data source retrieves information about a lakekeeper project.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_default_project)`,
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_project_by_id)`,
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -84,21 +84,23 @@ func (d *LakekeeperProjectDataSource) Read(ctx context.Context, req datasource.R
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// Make API call to read applications
-	if !state.Name.IsUnknown() {
+
+	// Make API call to read project
+	if !state.Name.IsNull() {
 		var err error
 		project, err = d.client.GetProjectByName(ctx, state.Name.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server project: %s", err.Error()))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project: %s", err.Error()))
 			return
 		}
 	}
 
-	if !state.ID.IsUnknown() {
+	// Giving an ID is taking over by Name
+	if !state.ID.IsNull() {
 		var err error
 		project, err = d.client.GetProjectByID(ctx, state.ID.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server project: %s", err.Error()))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project: %s", err.Error()))
 			return
 		}
 	}

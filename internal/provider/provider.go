@@ -31,9 +31,9 @@ type LakekeeperProviderModel struct {
 	AuthURL          types.String `tfsdk:"auth_url"`
 	ClientID         types.String `tfsdk:"client_id"`
 	ClientSecret     types.String `tfsdk:"client_secret"`
+	Scope            types.String `tfsdk:"scope"`
 	CACertFile       types.String `tfsdk:"cacert_file"`
 	Insecure         types.Bool   `tfsdk:"insecure"`
-	InitialLogin     types.Bool   `tfsdk:"initial_login"`
 	InitialBootstrap types.Bool   `tfsdk:"initial_bootstrap"`
 }
 
@@ -62,21 +62,25 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Lakekeeper base url",
-				Required:            true,
+				MarkdownDescription: "Lakekeeper endpoint",
+				Optional:            true,
 			},
 			"auth_url": schema.StringAttribute{
 				MarkdownDescription: "OIDC Token endpoint",
-				Required:            true,
+				Optional:            true,
 			},
 			"client_id": schema.StringAttribute{
 				MarkdownDescription: "OIDC Client ID",
-				Required:            true,
+				Optional:            true,
 			},
 			"client_secret": schema.StringAttribute{
 				MarkdownDescription: "OIDC Client Secret",
-				Required:            true,
+				Optional:            true,
 				Sensitive:           true,
+			},
+			"scope": schema.StringAttribute{
+				MarkdownDescription: "OIDC Scope",
+				Optional:            true,
 			},
 			"cacert_file": schema.StringAttribute{
 				MarkdownDescription: "This is a file containing the ca cert to verify the lakekeeper instance. This is available for use when working with a locally-issued or self-signed certificate chain.",
@@ -86,12 +90,8 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				MarkdownDescription: "When set to true this disables SSL verification of the connection to the Lakekeeper instance.",
 				Optional:            true,
 			},
-			"initial_login": schema.BoolAttribute{
-				MarkdownDescription: "When set to true ...",
-				Optional:            true,
-			},
 			"initial_bootstrap": schema.BoolAttribute{
-				MarkdownDescription: "When set to true ...",
+				MarkdownDescription: "When set to true, the provider will try to bootstrap the serve first.",
 				Optional:            true,
 			},
 		},
@@ -115,7 +115,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		)
 	}
 
-	if config.Endpoint.IsUnknown() {
+	if config.AuthURL.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("auth_url"),
 			"Unknown OIDC authenticate URL",
@@ -124,7 +124,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		)
 	}
 
-	if config.Endpoint.IsUnknown() {
+	if config.ClientID.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("client_id"),
 			"Unknown OIDC authenticate endpoint",
@@ -133,7 +133,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		)
 	}
 
-	if config.Endpoint.IsUnknown() {
+	if config.ClientSecret.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("client_secret"),
 			"Unknown OIDC authenticate endpoint",
@@ -142,21 +142,12 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		)
 	}
 
-	if config.CACertFile.IsUnknown() {
+	if config.Scope.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
-			path.Root("cacert_file"),
-			"Unknown Lakekeeper CA Certificate File",
-			"The provider cannot create the Lakekeeper API client as there is an unknown configuration value for the Lakekeeper CA Certificate File. "+
-				"Either apply the source of the value first, set the token attribute value statically in the configuration.",
-		)
-	}
-
-	if config.Insecure.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("insecure"),
-			"Unknown Lakekeeper Insecure Flag Value",
-			"The provider cannot create the Lakekeeper API client as there is an unknown configuration value for the Lakekeeper Insecure flag. "+
-				"Either apply the source of the value first, set the token attribute value statically in the configuration.",
+			path.Root("scope"),
+			"Unknown OIDC authenticate endpoint",
+			"The provider cannot create the Lakekeeper API client as there is an unknow configuration value for the OIDC authenticate endpoint. "+
+				"Either apply the source of the value first, set the scope attribute value statically in the configuration.",
 		)
 	}
 
@@ -172,9 +163,11 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 			AuthURL:      os.Getenv("LAKEKEEPER_AUTH_URL"),
 			ClientID:     os.Getenv("LAKEKEEPER_CLIENT_ID"),
 			ClientSecret: os.Getenv("LAKEKEEPER_CLIENT_SECRET"),
+			Scope:        "lakekeeper",
 		},
-		CACertFile: "",
-		Insecure:   false,
+		CACertFile:       "",
+		Insecure:         false,
+		InitialBootstrap: true,
 	}
 
 	if !config.Endpoint.IsNull() {
@@ -191,12 +184,20 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		evaluatedConfig.ClientCredentials.ClientSecret = config.ClientSecret.ValueString()
 	}
 
+	if !config.Scope.IsNull() {
+		evaluatedConfig.ClientCredentials.Scope = config.Scope.ValueString()
+	}
+
 	if !config.CACertFile.IsNull() {
 		evaluatedConfig.CACertFile = config.CACertFile.ValueString()
 	}
 
 	if !config.Insecure.IsNull() {
 		evaluatedConfig.Insecure = config.Insecure.ValueBool()
+	}
+
+	if !config.InitialBootstrap.IsNull() {
+		evaluatedConfig.InitialBootstrap = config.InitialBootstrap.ValueBool()
 	}
 
 	clientFactory := newLakekeeperClient(evaluatedConfig, req.TerraformVersion, p.version)

@@ -1,6 +1,8 @@
 package lakekeeper
 
-import "context"
+import (
+	"context"
+)
 
 type ServerInfo struct {
 	AuthzBackend                 string   `json:"authz-backend"`
@@ -14,9 +16,9 @@ type ServerInfo struct {
 	Queues                       []string `json:"queues"`
 }
 
-func (lakekeeperClient *Client) GetServerInfo(ctx context.Context) (*ServerInfo, error) {
+func (client *Client) GetServerInfo(ctx context.Context) (*ServerInfo, error) {
 	var serverInfo ServerInfo
-	err := lakekeeperClient.get(ctx, "/management/v1/info", &serverInfo, nil)
+	err := client.get(ctx, "/management/v1/info", &serverInfo, nil)
 	if err != nil {
 		return nil, err
 	}

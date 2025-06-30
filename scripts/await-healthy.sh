@@ -18,6 +18,13 @@ done
 echo
 echo "Lakekeeper is healthy at $LAKEKEEPER_ENDPOINT"
 
-# Print the version, since it is useful debugging information.
-curl --silent --show-error "$LAKEKEEPER_ENDPOINT/management/v1/info"
+# Get token
+echo "Getting OIDC access token for Lakekeeper"
+TOKEN=$(curl --silent --show-error --fail \
+  --data "scope=lakekeeper&grant_type=client_credentials&client_id=$LAKEKEEPER_CLIENT_ID&client_secret=$LAKEKEEPER_CLIENT_SECRET" \
+  "$LAKEKEEPER_AUTH_URL" | jq -r '.access_token')
+
+# Print the server info, since it is useful debugging information.
+echo "Lakekeeper server info:"
+curl --fail --show-error --silent -H "Authorization: Bearer $TOKEN" "$LAKEKEEPER_ENDPOINT/management/v1/info"
 echo

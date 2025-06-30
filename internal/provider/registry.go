@@ -16,6 +16,6 @@ func registerDataSource(fn func() datasource.DataSource) {
 }
 
 // registerResource may be called during package initialization to register a new resource with the provider.
-//func registerResource(fn func() resource.Resource) {
-//	allResources = append(allResources, fn)
-//}
+func registerResource(fn func() resource.Resource) {
+	allResources = append(allResources, fn)
+}
