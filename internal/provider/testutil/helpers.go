@@ -5,6 +5,7 @@ package testutil
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -50,4 +51,23 @@ func CreateProject(t *testing.T) *lakekeeper.Project {
 	})
 
 	return project
+}
+
+// CreateUser is a test helper for creating a user.
+func CreateUser(t *testing.T, id string) *lakekeeper.User {
+	t.Helper()
+
+	name := acctest.RandomWithPrefix("acctest")
+	user, err := TestLakekeeperClient.NewUser(context.Background(), id, fmt.Sprintf("%s@test.com", name), name, "human", false)
+	if err != nil {
+		t.Fatalf("could not create test user: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := TestLakekeeperClient.DeleteUser(context.Background(), id); err != nil {
+			t.Fatalf("could not cleanup test user: %v", err)
+		}
+	})
+
+	return user
 }

@@ -3,6 +3,7 @@ module github.com/baptistegh/terraform-provider-lakekeeper
 go 1.24.1
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/hashicorp/errwrap v1.1.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/go-version v1.7.0
