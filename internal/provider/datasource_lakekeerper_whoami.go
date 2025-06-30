@@ -30,17 +30,6 @@ type LakekeeperWhoamiDataSource struct {
 	client *lakekeeper.Client
 }
 
-// LakekeeperWhoamiDataSourceModel describes the data source data model.
-type LakekeeperWhoamiDataSourceModel struct {
-	ID              types.String `tfsdk:"id"`
-	Name            types.String `tfsdk:"name"`
-	Email           types.String `tfsdk:"email"`
-	UserType        types.String `tfsdk:"user_type"`
-	CreatedAt       types.String `tfsdk:"created_at"`
-	UpdatedAt       types.String `tfsdk:"updated_at"`
-	LastUpdatedWith types.String `tfsdk:"last_updated_with"`
-}
-
 // Metadata returns the data source type name.
 func (d *LakekeeperWhoamiDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_whoami"
@@ -98,7 +87,7 @@ func (d *LakekeeperWhoamiDataSource) Configure(_ context.Context, req datasource
 
 // Read refreshes the Terraform state with the latest data.
 func (d *LakekeeperWhoamiDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state LakekeeperWhoamiDataSourceModel
+	var state LakekeeperUserDataSourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
