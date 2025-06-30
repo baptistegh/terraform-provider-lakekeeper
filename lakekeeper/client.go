@@ -144,6 +144,24 @@ func (client *Client) get(ctx context.Context, path string, resource interface{}
 	return json.Unmarshal(body, resource)
 }
 
+// can be added when some resources will have project_id as attributes
+// func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, error) {
+// 	resourceUrl := client.config.BaseURL + path
+//
+// 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	request.Header.Set("X-Project-ID", projectID)
+//
+// 	resp, _, err := client.sendRequest(ctx, request, body)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp, err
+// }
+
 func (client *Client) post(ctx context.Context, path string, body []byte) ([]byte, error) {
 	resourceUrl := client.config.BaseURL + path
 

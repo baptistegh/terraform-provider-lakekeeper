@@ -62,24 +62,24 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Lakekeeper endpoint",
+				MarkdownDescription: "Lakekeeper endpoint. This is the base URL of the Lakekeeper instance, e.g. `https://lakekeeper.example.com`. It can also be set using the `LAKEKEEPER_ENDPOINT` environment variable.",
 				Optional:            true,
 			},
 			"auth_url": schema.StringAttribute{
-				MarkdownDescription: "OIDC Token endpoint",
+				MarkdownDescription: "OIDC Token endpoint. This is the URL of the OIDC authentication endpoint, e.g. `https://auth.example.com/oauth2/token`. It can also be set using the `LAKEKEEPER_AUTH_URL` environment variable.",
 				Optional:            true,
 			},
 			"client_id": schema.StringAttribute{
-				MarkdownDescription: "OIDC Client ID",
+				MarkdownDescription: "OIDC Client ID. This is the client ID used to authenticate with the OIDC provider, e.g. `my-client-id`. It can also be set using the `LAKEKEEPER_CLIENT_ID` environment variable.",
 				Optional:            true,
 			},
 			"client_secret": schema.StringAttribute{
-				MarkdownDescription: "OIDC Client Secret",
+				MarkdownDescription: "OIDC Client Secret. This is the client secret used to authenticate with the OIDC provider, e.g. `my-client-secret`. It can also be set using the `LAKEKEEPER_CLIENT_SECRET` environment variable.",
 				Optional:            true,
 				Sensitive:           true,
 			},
 			"scope": schema.StringAttribute{
-				MarkdownDescription: "OIDC Scope",
+				MarkdownDescription: "OIDC Scope. This is the scope used to request the OIDC token, e.g. `lakekeeper`.",
 				Optional:            true,
 			},
 			"cacert_file": schema.StringAttribute{
@@ -91,7 +91,7 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				Optional:            true,
 			},
 			"initial_bootstrap": schema.BoolAttribute{
-				MarkdownDescription: "When set to true, the provider will try to bootstrap the serve first.",
+				MarkdownDescription: "When set to true, the provider will try to bootstrap the serve first. default: `true`.",
 				Optional:            true,
 			},
 		},
