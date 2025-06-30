@@ -132,6 +132,10 @@ func (r *lakekeeperProjectResource) Read(ctx context.Context, req resource.ReadR
 
 // Updates updates the resource in-place.
 func (r *lakekeeperProjectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	resp.Diagnostics.AddError(
+		"Provider Error, report upstream",
+		"Somehow the resource was requested to perform an in-place upgrade which is not possible.",
+	)
 }
 
 // Deletes removes the resource.

@@ -84,7 +84,8 @@ func NewClient(ctx context.Context, config *Config) (*Client, error) {
 		return nil, fmt.Errorf("error getting server info: %s", err)
 	}
 
-	if !serverInfo.Bootstrapped && config.InitialBootstrap {
+	client.bootstrapped = serverInfo.Bootstrapped
+	if !client.bootstrapped && config.InitialBootstrap {
 		err := client.bootstrap(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("error bootstrapping server: %s", err)

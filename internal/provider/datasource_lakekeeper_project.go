@@ -50,14 +50,12 @@ func (d *LakekeeperProjectDataSource) Schema(_ context.Context, _ datasource.Sch
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the project, it can be computed if the project name if used to find",
+				MarkdownDescription: "The ID of the project",
 				Computed:            true,
-				Optional:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The project name, if the Name and the ID is given, the project will be found by ID",
-				Computed:            true,
-				Optional:            true,
+				MarkdownDescription: "The project name, it is used to identify the project.",
+				Required:            true,
 			},
 		},
 	}
@@ -89,16 +87,6 @@ func (d *LakekeeperProjectDataSource) Read(ctx context.Context, req datasource.R
 	if !state.Name.IsNull() {
 		var err error
 		project, err = d.client.GetProjectByName(ctx, state.Name.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project: %s", err.Error()))
-			return
-		}
-	}
-
-	// Giving an ID is taking over by Name
-	if !state.ID.IsNull() {
-		var err error
-		project, err = d.client.GetProjectByID(ctx, state.ID.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project: %s", err.Error()))
 			return
