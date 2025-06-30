@@ -20,17 +20,17 @@ func init() {
 	registerDataSource(NewLakekeeperServerInfoDataSource)
 }
 
-// NewlakekeeperApplicationDataSource is a helper function to simplify the provider implementation.
+// NewLakekeeperServerInfoDataSource is a helper function to simplify the provider implementation.
 func NewLakekeeperServerInfoDataSource() datasource.DataSource {
 	return &lakekeeperServerInfoDataSource{}
 }
 
-// lakekeeperMetadataDataSource is the data source implementation.
+// lakekeeperServerInfoDataSourceModel is the data source implementation.
 type lakekeeperServerInfoDataSource struct {
 	client *lakekeeper.Client
 }
 
-// lakekeeperMetadataDataSourceModel describes the data source data model.
+// lakekeeperServerInfoDataSourceModel describes the data source data model.
 type lakekeeperServerInfoDataSourceModel struct {
 	AuthzBackend                 types.String   `tfsdk:"authz_backend"`
 	Bootstrapped                 types.Bool     `tfsdk:"bootstrapped"`

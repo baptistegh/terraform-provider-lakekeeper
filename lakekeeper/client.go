@@ -28,6 +28,7 @@ type Config struct {
 	CACertFile        string
 	ClientTimeout     int
 	UserAgent         string
+	InitialBootstrap  bool
 }
 
 type Client struct {
@@ -44,9 +45,15 @@ type ClientCredentials struct {
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
 	GrantType    string `json:"grant_type"`
+	Scope        string `json:"scope"`
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	TokenType    string `json:"token_type"`
+}
+
+type BootstrapRequest struct {
+	AcceptTerms bool `json:"accept-terms-of-use"`
+	IsOperator  bool `json:"is-operator"`
 }
 
 func NewClient(ctx context.Context, config *Config) (*Client, error) {
@@ -59,39 +66,40 @@ func NewClient(ctx context.Context, config *Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to create http client: %v", err)
 	}
 
-	lakekeeperClient := Client{
+	client := Client{
 		config:     config,
 		httpClient: httpClient,
 	}
 
-	serverInfo, err := lakekeeperClient.GetServerInfo(ctx)
+	if !client.initialLogin {
+		err := client.login(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("error logging in: %s", err)
+		}
+		client.initialLogin = true
+	}
+
+	serverInfo, err := client.GetServerInfo(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting server info: %s", err)
 	}
 
-	if !lakekeeperClient.initialLogin {
-		err := lakekeeperClient.login(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("error logging in: %s", err)
-		}
-		lakekeeperClient.initialLogin = true
-	}
-
-	if !serverInfo.Bootstrapped {
-		err := lakekeeperClient.bootstrap(ctx)
+	client.bootstrapped = serverInfo.Bootstrapped
+	if !client.bootstrapped && config.InitialBootstrap {
+		err := client.bootstrap(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("error bootstrapping server: %s", err)
 		}
-		lakekeeperClient.bootstrapped = true
+		client.bootstrapped = true
 	}
 
 	if tfLog, ok := os.LookupEnv("TF_LOG"); ok {
 		if tfLog == "DEBUG" {
-			lakekeeperClient.debug = true
+			client.debug = true
 		}
 	}
 
-	return &lakekeeperClient, nil
+	return &client, nil
 }
 
 func newHttpClient(tlsInsecureSkipVerify bool, clientTimeout int, caCert string) (*http.Client, error) {
@@ -128,16 +136,63 @@ func newHttpClient(tlsInsecureSkipVerify bool, clientTimeout int, caCert string)
 	return httpClient, nil
 }
 
-func (lakekeeperClient *Client) get(ctx context.Context, path string, resource interface{}, params map[string]string) error {
-	body, err := lakekeeperClient.getRaw(ctx, path, params)
+func (client *Client) get(ctx context.Context, path string, resource interface{}, params map[string]string) error {
+	body, err := client.getRaw(ctx, path, params)
 	if err != nil {
 		return err
 	}
 	return json.Unmarshal(body, resource)
 }
 
-func (lakekeeperClient *Client) getRaw(ctx context.Context, path string, params map[string]string) ([]byte, error) {
-	resourceUrl := lakekeeperClient.config.BaseURL + path
+// can be added when some resources will have project_id as attributes
+// func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, error) {
+// 	resourceUrl := client.config.BaseURL + path
+//
+// 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	request.Header.Set("X-Project-ID", projectID)
+//
+// 	resp, _, err := client.sendRequest(ctx, request, body)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp, err
+// }
+
+func (client *Client) post(ctx context.Context, path string, body []byte) ([]byte, error) {
+	resourceUrl := client.config.BaseURL + path
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, _, err := client.sendRequest(ctx, request, body)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
+}
+
+func (client *Client) delete(ctx context.Context, path string) error {
+	resourceUrl := client.config.BaseURL + path
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, resourceUrl, nil)
+	if err != nil {
+		return err
+	}
+	_, _, err = client.sendRequest(ctx, request, nil)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (client *Client) getRaw(ctx context.Context, path string, params map[string]string) ([]byte, error) {
+	resourceUrl := client.config.BaseURL + path
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, resourceUrl, nil)
 	if err != nil {
@@ -152,33 +207,34 @@ func (lakekeeperClient *Client) getRaw(ctx context.Context, path string, params 
 		request.URL.RawQuery = query.Encode()
 	}
 
-	body, _, err := lakekeeperClient.sendRequest(ctx, request, nil)
+	body, _, err := client.sendRequest(ctx, request, nil)
 	return body, err
 }
 
-func (lakekeeperClient *Client) login(ctx context.Context) error {
-	accessTokenData := lakekeeperClient.getAuthenticationFormData()
+func (client *Client) login(ctx context.Context) error {
+	accessTokenData := client.getAuthenticationFormData()
 
 	tflog.Debug(ctx, "Login request", map[string]interface{}{
 		"request": accessTokenData.Encode(),
 	})
-	accessTokenRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, lakekeeperClient.config.ClientCredentials.AuthURL, strings.NewReader(accessTokenData.Encode()))
+
+	accessTokenRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, client.config.ClientCredentials.AuthURL, strings.NewReader(accessTokenData.Encode()))
 	if err != nil {
 		return err
 	}
 
 	accessTokenRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if lakekeeperClient.config.UserAgent != "" {
-		accessTokenRequest.Header.Set("User-Agent", lakekeeperClient.config.UserAgent)
+	if client.config.UserAgent != "" {
+		accessTokenRequest.Header.Set("User-Agent", client.config.UserAgent)
 	}
 
-	accessTokenResponse, err := lakekeeperClient.httpClient.Do(accessTokenRequest)
+	accessTokenResponse, err := client.httpClient.Do(accessTokenRequest)
 	if err != nil {
 		return err
 	}
 	if accessTokenResponse.StatusCode != http.StatusOK {
-		return fmt.Errorf("error sending POST request to %s: %s", lakekeeperClient.config.ClientCredentials.AuthURL, accessTokenResponse.Status)
+		return fmt.Errorf("error sending POST request to %s: %s", client.config.ClientCredentials.AuthURL, accessTokenResponse.Status)
 	}
 
 	defer accessTokenResponse.Body.Close()
@@ -195,11 +251,11 @@ func (lakekeeperClient *Client) login(ctx context.Context) error {
 		return err
 	}
 
-	lakekeeperClient.config.ClientCredentials.AccessToken = clientCredentials.AccessToken
-	lakekeeperClient.config.ClientCredentials.RefreshToken = clientCredentials.RefreshToken
-	lakekeeperClient.config.ClientCredentials.TokenType = clientCredentials.TokenType
+	client.config.ClientCredentials.AccessToken = clientCredentials.AccessToken
+	client.config.ClientCredentials.RefreshToken = clientCredentials.RefreshToken
+	client.config.ClientCredentials.TokenType = clientCredentials.TokenType
 
-	info, err := lakekeeperClient.GetServerInfo(ctx)
+	info, err := client.GetServerInfo(ctx)
 	if err != nil {
 		return err
 	}
@@ -209,30 +265,30 @@ func (lakekeeperClient *Client) login(ctx context.Context) error {
 		return err
 	}
 
-	lakekeeperClient.version = v
+	client.version = v
 
 	return nil
 }
 
-func (lakekeeperClient *Client) refresh(ctx context.Context) error {
-	refreshTokenData := lakekeeperClient.getAuthenticationFormData()
+func (client *Client) refresh(ctx context.Context) error {
+	refreshTokenData := client.getAuthenticationFormData()
 
 	tflog.Debug(ctx, "Refresh request", map[string]interface{}{
 		"request": refreshTokenData.Encode(),
 	})
 
-	refreshTokenRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, lakekeeperClient.config.ClientCredentials.AuthURL, strings.NewReader(refreshTokenData.Encode()))
+	refreshTokenRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, client.config.ClientCredentials.AuthURL, strings.NewReader(refreshTokenData.Encode()))
 	if err != nil {
 		return err
 	}
 
 	refreshTokenRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if lakekeeperClient.config.UserAgent != "" {
-		refreshTokenRequest.Header.Set("User-Agent", lakekeeperClient.config.UserAgent)
+	if client.config.UserAgent != "" {
+		refreshTokenRequest.Header.Set("User-Agent", client.config.UserAgent)
 	}
 
-	refreshTokenResponse, err := lakekeeperClient.httpClient.Do(refreshTokenRequest)
+	refreshTokenResponse, err := client.httpClient.Do(refreshTokenRequest)
 	if err != nil {
 		return err
 	}
@@ -248,7 +304,7 @@ func (lakekeeperClient *Client) refresh(ctx context.Context) error {
 	if refreshTokenResponse.StatusCode == http.StatusBadRequest {
 		tflog.Debug(ctx, "Unexpected 400, attempting to log in again")
 
-		return lakekeeperClient.login(ctx)
+		return client.login(ctx)
 	}
 
 	var clientCredentials ClientCredentials
@@ -257,39 +313,25 @@ func (lakekeeperClient *Client) refresh(ctx context.Context) error {
 		return err
 	}
 
-	lakekeeperClient.config.ClientCredentials.AccessToken = clientCredentials.AccessToken
-	lakekeeperClient.config.ClientCredentials.RefreshToken = clientCredentials.RefreshToken
-	lakekeeperClient.config.ClientCredentials.TokenType = clientCredentials.TokenType
+	client.config.ClientCredentials.AccessToken = clientCredentials.AccessToken
+	client.config.ClientCredentials.RefreshToken = clientCredentials.RefreshToken
+	client.config.ClientCredentials.TokenType = clientCredentials.TokenType
 
 	return nil
 }
 
-func (lakekeeperClient *Client) bootstrap(ctx context.Context) error {
-	bootstrapData := `{"accept-terms-of-use":true,"is-operator":true}`
+func (client *Client) bootstrap(ctx context.Context) error {
+	bootstrapData, err := json.Marshal(BootstrapRequest{AcceptTerms: true, IsOperator: true})
+	if err != nil {
+		return fmt.Errorf("error creating bootstrap request, %s", err.Error())
+	}
 
-	tflog.Debug(ctx, "Bootstrap request", map[string]interface{}{
-		"request": bootstrapData,
-	})
-	bootstrapRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, lakekeeperClient.config.BaseURL+"/management/v1/bootstrap", strings.NewReader(bootstrapData))
+	_, err = client.post(ctx, "/management/v1/bootstrap", bootstrapData)
 	if err != nil {
 		return err
 	}
 
-	bootstrapRequest.Header.Set("Content-Type", "application/json")
-
-	if lakekeeperClient.config.UserAgent != "" {
-		bootstrapRequest.Header.Set("User-Agent", lakekeeperClient.config.UserAgent)
-	}
-
-	bootstrapResponse, err := lakekeeperClient.httpClient.Do(bootstrapRequest)
-	if err != nil {
-		return err
-	}
-	if bootstrapResponse.StatusCode != http.StatusNotModified {
-		return fmt.Errorf("error sending POST request to %s: %s", lakekeeperClient.config.BaseURL+"/management/v1/bootstrap", bootstrapResponse.Status)
-	}
-
-	lakekeeperClient.bootstrapped = true
+	client.bootstrapped = true
 
 	return nil
 }
@@ -298,7 +340,7 @@ func (lakekeeperClient *Client) bootstrap(ctx context.Context) error {
 *
 Sends an HTTP request and refreshes credentials on 403 or 401 errors
 */
-func (lakekeeperClient *Client) sendRequest(ctx context.Context, request *http.Request, body []byte) ([]byte, string, error) {
+func (client *Client) sendRequest(ctx context.Context, request *http.Request, body []byte) ([]byte, string, error) {
 	requestMethod := request.Method
 	requestPath := request.URL.Path
 
@@ -311,12 +353,11 @@ func (lakekeeperClient *Client) sendRequest(ctx context.Context, request *http.R
 		request.Body = io.NopCloser(bytes.NewReader(body))
 		requestLogArgs["body"] = string(body)
 	}
-
 	tflog.Debug(ctx, "Sending request", requestLogArgs)
 
-	lakekeeperClient.addRequestHeaders(request)
+	client.addRequestHeaders(request)
 
-	response, err := lakekeeperClient.httpClient.Do(request)
+	response, err := client.httpClient.Do(request)
 	if err != nil {
 		return nil, "", fmt.Errorf("error sending request: %v", err)
 	}
@@ -329,17 +370,17 @@ func (lakekeeperClient *Client) sendRequest(ctx context.Context, request *http.R
 			"status": response.Status,
 		})
 
-		err := lakekeeperClient.refresh(ctx)
+		err := client.refresh(ctx)
 		if err != nil {
 			return nil, "", fmt.Errorf("error refreshing credentials: %s", err)
 		}
 
-		lakekeeperClient.addRequestHeaders(request)
+		client.addRequestHeaders(request)
 
 		if body != nil {
 			request.Body = io.NopCloser(bytes.NewReader(body))
 		}
-		response, err = lakekeeperClient.httpClient.Do(request)
+		response, err = client.httpClient.Do(request)
 		if err != nil {
 			return nil, "", fmt.Errorf("error sending request after refresh: %v", err)
 		}
@@ -355,7 +396,7 @@ func (lakekeeperClient *Client) sendRequest(ctx context.Context, request *http.R
 		"status": response.Status,
 	}
 
-	if len(responseBody) != 0 && request.URL.Path != "/auth/admin/serverinfo" {
+	if len(responseBody) != 0 {
 		responseLogArgs["body"] = string(responseBody)
 	}
 
@@ -377,24 +418,25 @@ func (lakekeeperClient *Client) sendRequest(ctx context.Context, request *http.R
 	return responseBody, response.Header.Get("Location"), nil
 }
 
-func (lakekeeperClient *Client) getAuthenticationFormData() url.Values {
+func (client *Client) getAuthenticationFormData() url.Values {
 	authenticationFormData := url.Values{}
-	authenticationFormData.Set("client_id", lakekeeperClient.config.ClientCredentials.ClientID)
-	authenticationFormData.Set("client_secret", lakekeeperClient.config.ClientCredentials.ClientSecret)
-	authenticationFormData.Set("grant_type", lakekeeperClient.config.ClientCredentials.GrantType)
+	authenticationFormData.Set("client_id", client.config.ClientCredentials.ClientID)
+	authenticationFormData.Set("client_secret", client.config.ClientCredentials.ClientSecret)
+	authenticationFormData.Set("grant_type", client.config.ClientCredentials.GrantType)
+	authenticationFormData.Set("scope", client.config.ClientCredentials.Scope)
 
 	return authenticationFormData
 }
 
-func (lakekeeperClient *Client) addRequestHeaders(request *http.Request) {
-	tokenType := lakekeeperClient.config.ClientCredentials.TokenType
-	accessToken := lakekeeperClient.config.ClientCredentials.AccessToken
+func (client *Client) addRequestHeaders(request *http.Request) {
+	tokenType := client.config.ClientCredentials.TokenType
+	accessToken := client.config.ClientCredentials.AccessToken
 
 	request.Header.Set("Authorization", fmt.Sprintf("%s %s", tokenType, accessToken))
 	request.Header.Set("Accept", "application/json")
 
-	if lakekeeperClient.config.UserAgent != "" {
-		request.Header.Set("User-Agent", lakekeeperClient.config.UserAgent)
+	if client.config.UserAgent != "" {
+		request.Header.Set("User-Agent", client.config.UserAgent)
 	}
 
 	if request.Header.Get("Content-type") == "" && (request.Method == http.MethodPost || request.Method == http.MethodPut || request.Method == http.MethodDelete) {
