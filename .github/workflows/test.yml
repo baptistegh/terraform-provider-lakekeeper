@@ -57,8 +57,8 @@ jobs:
             (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
 
   # Run acceptance tests in a matrix with Terraform CLI versions
-  test:
-    name: Terraform Provider Acceptance Tests
+  test-unit:
+    name: Terraform Provider Unit Tests
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -83,7 +83,47 @@ jobs:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       - run: go mod download
-      - env:
-          TF_ACC: "1"
-        run: go test -v -cover ./internal/provider/
+      - run: go test -v -cover ./internal/provider/ ./lakekeeper
+        timeout-minutes: 10
+
+  # Run acceptance tests in a matrix with Terraform CLI versions
+  test-acceptance:
+    name: Terraform Provider Acceptance Tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        # list whatever Terraform versions here you would like to support
+        terraform:
+          - '1.0.*'
+          - '1.1.*'
+          - '1.2.*'
+          - '1.3.*'
+          - '1.4.*'
+    env:
+      LAKEKEEPER_ENDPOINT: http://localhost:8181
+      LAKEKEEPER_AUTH_URL: http://localhost:30080/realms/iceberg/protocol/openid-connect/token
+      LAKEKEEPER_CLIENT_ID: lakekeeper-admin
+      LAKEKEEPER_CLIENT_SECRET: KNjaj1saNq5yRidVEMdf1vI09Hm0pQaL
+      TF_ACC: 1
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ matrix.terraform }}
+          terraform_wrapper: false
+      - run: go mod download
+      - name: Starting Lakekeeper instance (and third parties)
+        run: make testacc-up
+      - run: |
+          echo "Waiting for Lakekeeper to be healthy"
+          ./scripts/await-healthy.sh
+      - run: go test -v -cover --tags acceptance -v ./internal/provider/
         timeout-minutes: 10
