@@ -32,12 +32,13 @@ type Config struct {
 }
 
 type Client struct {
-	config       *Config
-	version      *version.Version
-	httpClient   *http.Client
-	debug        bool
-	initialLogin bool
-	bootstrapped bool
+	config           *Config
+	version          *version.Version
+	httpClient       *http.Client
+	debug            bool
+	initialLogin     bool
+	bootstrapped     bool
+	defaultProjectID string
 }
 
 type ClientCredentials struct {
@@ -55,6 +56,8 @@ type BootstrapRequest struct {
 	AcceptTerms bool `json:"accept-terms-of-use"`
 	IsOperator  bool `json:"is-operator"`
 }
+
+const projectIDHeader = "x-project-id"
 
 func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	if config.ClientCredentials.GrantType == "" {
@@ -85,6 +88,7 @@ func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	}
 
 	client.bootstrapped = serverInfo.Bootstrapped
+	client.defaultProjectID = serverInfo.DefaultProjectID
 	if !client.bootstrapped && config.InitialBootstrap {
 		err := client.bootstrap(ctx)
 		if err != nil {
@@ -137,7 +141,15 @@ func newHttpClient(tlsInsecureSkipVerify bool, clientTimeout int, caCert string)
 }
 
 func (client *Client) get(ctx context.Context, path string, resource interface{}, params map[string]string) error {
-	body, err := client.getRaw(ctx, path, params)
+	body, err := client.getRaw(ctx, path, client.defaultProjectID, params)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, resource)
+}
+
+func (client *Client) getWithProjectID(ctx context.Context, path, projectID string, resource interface{}, params map[string]string) error {
+	body, err := client.getRaw(ctx, path, projectID, params)
 	if err != nil {
 		return err
 	}
@@ -170,7 +182,7 @@ func (client *Client) post(ctx context.Context, path string, body []byte) ([]byt
 		return nil, err
 	}
 
-	resp, _, err := client.sendRequest(ctx, request, body)
+	resp, _, err := client.sendRequest(ctx, request, client.defaultProjectID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -184,14 +196,14 @@ func (client *Client) delete(ctx context.Context, path string) error {
 	if err != nil {
 		return err
 	}
-	_, _, err = client.sendRequest(ctx, request, nil)
+	_, _, err = client.sendRequest(ctx, request, client.defaultProjectID, nil)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (client *Client) getRaw(ctx context.Context, path string, params map[string]string) ([]byte, error) {
+func (client *Client) getRaw(ctx context.Context, path string, projectID string, params map[string]string) ([]byte, error) {
 	resourceUrl := client.config.BaseURL + path
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, resourceUrl, nil)
@@ -207,7 +219,7 @@ func (client *Client) getRaw(ctx context.Context, path string, params map[string
 		request.URL.RawQuery = query.Encode()
 	}
 
-	body, _, err := client.sendRequest(ctx, request, nil)
+	body, _, err := client.sendRequest(ctx, request, projectID, nil)
 	return body, err
 }
 
@@ -340,7 +352,7 @@ func (client *Client) bootstrap(ctx context.Context) error {
 *
 Sends an HTTP request and refreshes credentials on 403 or 401 errors
 */
-func (client *Client) sendRequest(ctx context.Context, request *http.Request, body []byte) ([]byte, string, error) {
+func (client *Client) sendRequest(ctx context.Context, request *http.Request, projectID string, body []byte) ([]byte, string, error) {
 	requestMethod := request.Method
 	requestPath := request.URL.Path
 
@@ -356,6 +368,7 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, bo
 	tflog.Debug(ctx, "Sending request", requestLogArgs)
 
 	client.addRequestHeaders(request)
+	client.setProjectIDHeader(request, projectID)
 
 	response, err := client.httpClient.Do(request)
 	if err != nil {
@@ -441,6 +454,12 @@ func (client *Client) addRequestHeaders(request *http.Request) {
 
 	if request.Header.Get("Content-type") == "" && (request.Method == http.MethodPost || request.Method == http.MethodPut || request.Method == http.MethodDelete) {
 		request.Header.Set("Content-type", "application/json")
+	}
+}
+
+func (client *Client) setProjectIDHeader(request *http.Request, projectID string) {
+	if projectID != "" {
+		request.Header.Set(projectIDHeader, projectID)
 	}
 }
 
