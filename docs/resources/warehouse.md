@@ -21,13 +21,97 @@ The `lakekeeper_warehouse` resource allows to manage the lifecycle of a lakekeep
 ### Required
 
 - `active` (Boolean) Whether the warehouse is active.
+- `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
 - `name` (String) Name of the warehouse.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
+- `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
 
 ### Optional
 
 - `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
+- `storage_credential` (Attributes) The credentials used to access the storage. This is required for the warehouse to be able to access the storage profile. (see [below for nested schema](#nestedatt--storage_credential))
 
 ### Read-Only
 
 - `id` (String) The ID the warehouse.
+
+<a id="nestedatt--delete_profile"></a>
+### Nested Schema for `delete_profile`
+
+Required:
+
+- `type` (String)
+
+Optional:
+
+- `expiration_seconds` (Number)
+
+
+<a id="nestedatt--storage_profile"></a>
+### Nested Schema for `storage_profile`
+
+Required:
+
+- `type` (String) The type of the storage profile. Supported values are `gcs`, `adls`, and `s3`.
+
+Optional:
+
+- `account_name` (String) The account name for ADLS storage profile. Required if type is `adls`.
+- `allow_alternative_protocols` (Boolean) Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.
+- `assume_role_arn` (String) Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile
+- `authority_host` (String) The authority host for ADLS storage profile. Defaults to `https://login.microsoftonline.com`.
+- `aws_kms_key_arn` (String) ARN of the KMS key used to encrypt the S3 bucket, if any.
+- `bucket` (String) The bucket name for the storage profile. Required if type is `gcs` or `s3`.
+- `endpoint` (String) Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`
+- `filesystem` (String) Name of the adls filesystem, in blobstorage also known as container. Required if type is `adls`.
+- `flavor` (String) S3 flavor to use. Defaults to `aws`.
+- `host` (String) The host for ADLS storage profile. Defaults to `dfs.core.windows.net`.
+- `key_prefix` (String) Subpath in the filesystem to use.
+- `path_style_access` (Boolean) Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.
+- `push_s3_delete_disabled` (Boolean) Controls whether the `s3.delete-enabled=false` flag is sent to clients.
+- `region` (String) Region to use for S3 requests. Required if type is `s3`.
+- `remote_signing_url_style` (String) S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.
+- `sas_token_validity_seconds` (Number) The validity of the sts tokens in seconds. Default is `3600`.
+- `sts_enabled` (Boolean) Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.
+- `sts_role_arn` (String)
+- `sts_token_validity_seconds` (Number) The validity of the STS tokens in seconds. Default is `3600`.
+
+
+<a id="nestedatt--storage_credential"></a>
+### Nested Schema for `storage_credential`
+
+Required:
+
+- `type` (String)
+
+Optional:
+
+- `access_key_id` (String, Sensitive)
+- `account_id` (String)
+- `aws_access_key_id` (String, Sensitive)
+- `aws_secret_access_key` (String, Sensitive)
+- `az_key` (String, Sensitive)
+- `client_id` (String)
+- `client_secret` (String)
+- `external_id` (String)
+- `key` (Attributes) (see [below for nested schema](#nestedatt--storage_credential--key))
+- `secret_access_key` (String, Sensitive)
+- `tenant_id` (String)
+- `token` (String, Sensitive)
+
+<a id="nestedatt--storage_credential--key"></a>
+### Nested Schema for `storage_credential.key`
+
+Required:
+
+- `auth_provider_x509_cert_url` (String)
+- `auth_uri` (String)
+- `client_email` (String)
+- `client_id` (String)
+- `client_x509_cert_url` (String)
+- `private_key` (String, Sensitive)
+- `private_key_id` (String)
+- `project_id` (String)
+- `token_uri` (String)
+- `type` (String)
+- `universe_domain` (String)

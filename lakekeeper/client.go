@@ -156,23 +156,18 @@ func (client *Client) getWithProjectID(ctx context.Context, path, projectID stri
 	return json.Unmarshal(body, resource)
 }
 
-// can be added when some resources will have project_id as attributes
-// func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, error) {
-// 	resourceUrl := client.config.BaseURL + path
-//
-// 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	request.Header.Set("X-Project-ID", projectID)
-//
-// 	resp, _, err := client.sendRequest(ctx, request, body)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return resp, err
-// }
+func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, error) {
+	resourceUrl := client.config.BaseURL + path
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, _, err := client.sendRequest(ctx, request, projectID, body)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
+}
 
 func (client *Client) post(ctx context.Context, path string, body []byte) ([]byte, error) {
 	resourceUrl := client.config.BaseURL + path
@@ -197,6 +192,20 @@ func (client *Client) delete(ctx context.Context, path string) error {
 		return err
 	}
 	_, _, err = client.sendRequest(ctx, request, client.defaultProjectID, nil)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (client *Client) deleteWithProjectID(ctx context.Context, path, projectID string) error {
+	resourceUrl := client.config.BaseURL + path
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, resourceUrl, nil)
+	if err != nil {
+		return err
+	}
+	_, _, err = client.sendRequest(ctx, request, projectID, nil)
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var ValidStorageProfileTypes = []string{"adls", "s3", "gcs"}
+
 type StorageProfile interface {
 	IsStorageProfile()
 }
@@ -54,11 +56,11 @@ func (s StorageProfileGCS) GetType() string {
 
 func (StorageProfileGCS) IsStorageProfile() {}
 
-type StorageProfileWrapper struct {
+type storageProfileWrapper struct {
 	StorageProfile StorageProfile
 }
 
-func (w *StorageProfileWrapper) UnmarshalJSON(data []byte) error {
+func (w *storageProfileWrapper) UnmarshalJSON(data []byte) error {
 	var raw map[string]any
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -90,7 +92,7 @@ func (w *StorageProfileWrapper) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (w StorageProfileWrapper) MarshalJSON() ([]byte, error) {
+func (w storageProfileWrapper) MarshalJSON() ([]byte, error) {
 	if w.StorageProfile == nil {
 		return []byte("null"), nil
 	}

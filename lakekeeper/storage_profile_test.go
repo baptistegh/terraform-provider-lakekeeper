@@ -6,7 +6,7 @@ import (
 )
 
 func TestStorageProfileWrapper_S3_MarshalJSON(t *testing.T) {
-	given := StorageProfileWrapper{
+	given := storageProfileWrapper{
 		StorageProfile: StorageProfileS3{
 			Type:       "s3",
 			Bucket:     "test-bucket",
@@ -17,7 +17,7 @@ func TestStorageProfileWrapper_S3_MarshalJSON(t *testing.T) {
 
 	r, err := json.Marshal(given)
 	if err != nil {
-		t.Fatalf("failed to marshal StorageProfileWrapper: %v", err)
+		t.Fatalf("failed to marshal storageProfileWrapper: %v", err)
 	}
 
 	expected := `{"type":"s3","bucket":"test-bucket","region":"us-west-2","sts-enabled":false}`
@@ -28,7 +28,7 @@ func TestStorageProfileWrapper_S3_MarshalJSON(t *testing.T) {
 }
 
 func TestStorageProfileWrapper_GCS_MarshalJSON(t *testing.T) {
-	given := StorageProfileWrapper{
+	given := storageProfileWrapper{
 		StorageProfile: StorageProfileGCS{
 			Type:   "gcs",
 			Bucket: "test-bucket",
@@ -49,9 +49,9 @@ func TestStorageProfileWrapper_GCS_MarshalJSON(t *testing.T) {
 
 func TestStorageProfileWrapper_ADLS_UnmarshalJSON(t *testing.T) {
 	expected := `{"type":"adls","account-name":"test-account","allow-alternative-protocols":false,"authority-host":"","filesystem":"test-filesystem","host":"","key-prefix":"","sas-token-validity-seconds":0}`
-	var given StorageProfileWrapper
+	var given storageProfileWrapper
 	if err := json.Unmarshal([]byte(expected), &given); err != nil {
-		t.Fatalf("failed to unmarshal StorageProfileWrapper: %v", err)
+		t.Fatalf("failed to unmarshal storageProfileWrapper, %v", err)
 	}
 
 	switch given.StorageProfile.(type) {
@@ -64,7 +64,7 @@ func TestStorageProfileWrapper_ADLS_UnmarshalJSON(t *testing.T) {
 
 func TestStorageProfileWrapper_S3_UnmarshalJSON(t *testing.T) {
 	expected := `{"type":"s3","bucket":"test-bucket","region":"us-west-2","sts-enabled":false}`
-	var given StorageProfileWrapper
+	var given storageProfileWrapper
 	if err := json.Unmarshal([]byte(expected), &given); err != nil {
 		t.Fatalf("failed to unmarshal Warehouse: %v", err)
 	}
@@ -79,9 +79,9 @@ func TestStorageProfileWrapper_S3_UnmarshalJSON(t *testing.T) {
 
 func TestStorageProfileWrapper_GCS_UnmarshalJSON(t *testing.T) {
 	expected := `{"type":"gcs","bucket":"test-bucket"}`
-	var given StorageProfileWrapper
+	var given storageProfileWrapper
 	if err := json.Unmarshal([]byte(expected), &given); err != nil {
-		t.Fatalf("failed to unmarshal StorageProfileWrapper: %v", err)
+		t.Fatalf("failed to unmarshal storageProfileWrapper, %v", err)
 	}
 
 	switch given.StorageProfile.(type) {
