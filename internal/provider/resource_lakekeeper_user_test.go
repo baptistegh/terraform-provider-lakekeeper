@@ -6,9 +6,11 @@ package provider
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -75,6 +77,55 @@ func TestAccLakekeeperUser_basic(t *testing.T) {
 				ResourceName:      "lakekeeper_user.foo",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccLakekeeperUser_invalidID(t *testing.T) {
+
+	rName := acctest.RandString(8)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create user with wrong ID
+			{
+				Config: fmt.Sprintf(`				
+				resource "lakekeeper_user" "failed" {
+				  id = "%s"
+				  name = "%s"
+				  email = "%s@local.local"
+				  user_type = "human"
+				}
+				`, "fake-id", rName, rName),
+				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+			},
+		},
+	})
+}
+
+func TestAccLakekeeperUser_invalidType(t *testing.T) {
+
+	index := acctest.RandIntRange(0, len(lakekeeper.ValidUserIDPPrefixes))
+	rID := fmt.Sprintf("%s~%s", lakekeeper.ValidUserIDPPrefixes[index], acctest.RandString(12))
+	rName := acctest.RandString(8)
+	rType := acctest.RandString(8)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Create user with wrong ID
+			{
+				Config: fmt.Sprintf(`				
+				resource "lakekeeper_user" "failed" {
+				  id = "%s"
+				  name = "%s"
+				  email = "%s@local.local"
+				  user_type = "%s"
+				}
+				`, rID, rName, rName, rType),
+				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
 		},
 	})
