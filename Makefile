@@ -32,14 +32,14 @@ test: ## Run unit tests.
 fmt: tool-golangci-lint tool-terraform tool-shfmt ## Format files and fix issues.
 	gofmt -s -w -e .
 	$(GOBIN)/golangci-lint run --build-tags acceptance --fix
-	$(GOBIN)/terraform fmt -recursive -list ./examples
+	$(GOBIN)/terraform fmt -recursive -list ./examples ./playground
 	$(GOBIN)/shfmt -l -s -w ./examples
 
 lint-golangci: tool-golangci-lint ## Run golangci-lint linter (same as fmt but without modifying files).
 	$(GOBIN)/golangci-lint run --build-tags acceptance
 
 lint-examples-tf: tool-terraform ## Run terraform linter on examples (same as fmt but without modifying files).
-	$(GOBIN)/terraform fmt -recursive -check ./examples
+	$(GOBIN)/terraform fmt -recursive -check -diff ./examples ./playground
 
 lint-examples-sh: tool-shfmt ## Run shell linter on examples (same as fmt but without modifying files).
 	$(GOBIN)/shfmt -l -s -d ./examples
@@ -92,7 +92,7 @@ define install-tool
 	cd tools && GOBIN=$(GOBIN) go install $(1)
 endef
 
-TERRAFORM_VERSION = v1.1.4
+TERRAFORM_VERSION = v1.9.8
 tool-terraform:
 	@# See https://github.com/hashicorp/terraform/issues/30356
 	@[ -f $(GOBIN)/terraform ] || { mkdir -p tmp; cd tmp; rm -rf terraform; git clone --branch $(TERRAFORM_VERSION) --depth 1 https://github.com/hashicorp/terraform.git; cd terraform; GOBIN=$(GOBIN) go install; cd ../..; rm -rf tmp; }
