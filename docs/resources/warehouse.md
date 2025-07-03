@@ -21,31 +21,20 @@ The `lakekeeper_warehouse` resource allows to manage the lifecycle of a lakekeep
 ### Required
 
 - `active` (Boolean) Whether the warehouse is active.
-- `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
 - `name` (String) Name of the warehouse.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
 - `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
 
 ### Optional
 
+- `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
 - `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
 - `storage_credential` (Attributes) The credentials used to access the storage. This is required for the warehouse to be able to access the storage profile. (see [below for nested schema](#nestedatt--storage_credential))
 
 ### Read-Only
 
-- `id` (String) The ID the warehouse.
-
-<a id="nestedatt--delete_profile"></a>
-### Nested Schema for `delete_profile`
-
-Required:
-
-- `type` (String)
-
-Optional:
-
-- `expiration_seconds` (Number)
-
+- `id` (String) The internale ID the warehouse. In the form: <project_id>:<warehouse_id>
+- `warehouse_id` (String) The ID the warehouse.
 
 <a id="nestedatt--storage_profile"></a>
 ### Nested Schema for `storage_profile`
@@ -77,6 +66,15 @@ Optional:
 - `sts_token_validity_seconds` (Number) The validity of the STS tokens in seconds. Default is `3600`.
 
 
+<a id="nestedatt--delete_profile"></a>
+### Nested Schema for `delete_profile`
+
+Optional:
+
+- `expiration_seconds` (Number)
+- `type` (String)
+
+
 <a id="nestedatt--storage_credential"></a>
 ### Nested Schema for `storage_credential`
 
@@ -88,8 +86,6 @@ Optional:
 
 - `access_key_id` (String, Sensitive)
 - `account_id` (String)
-- `aws_access_key_id` (String, Sensitive)
-- `aws_secret_access_key` (String, Sensitive)
 - `az_key` (String, Sensitive)
 - `client_id` (String)
 - `client_secret` (String)

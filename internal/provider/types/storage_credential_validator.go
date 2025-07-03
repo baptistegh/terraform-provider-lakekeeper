@@ -1,4 +1,4 @@
-package provider
+package types
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func (v storageCredentialValidator) ValidateObject(ctx context.Context, req vali
 		return
 	}
 
-	var profile = storageCredentialModel{}
+	var profile = StorageCredentialModel{}
 
 	diags := val.As(ctx, &profile, basetypes.ObjectAsOptions{})
 	resp.Diagnostics.Append(diags...)
@@ -127,7 +127,7 @@ func (v storageCredentialValidator) ValidateObject(ctx context.Context, req vali
 		resp.Diagnostics.AddAttributeError(
 			path.Root("type"),
 			"Unsupported storage credential type",
-			fmt.Sprintf("The given type '%s' is not supported. Valid %v", profile.Type.ValueString(), validStorageCredentialTypes),
+			fmt.Sprintf("The given type '%s' is not supported. Valid %v", profile.Type.ValueString(), ValidStorageCredentialTypes),
 		)
 	}
 }

@@ -8,7 +8,7 @@ import (
 var ValidDeleteProfileTypes = []string{"soft", "hard"}
 
 type DeleteProfile interface {
-	IsDeleteProfile()
+	GetDeleteProfileType() string
 }
 
 type SoftDeleteProfile struct {
@@ -16,19 +16,23 @@ type SoftDeleteProfile struct {
 	ExpiredSeconds int32  `json:"expired-seconds"`
 }
 
-func (SoftDeleteProfile) IsDeleteProfile() {}
+func (SoftDeleteProfile) GetDeleteProfileType() string {
+	return "soft"
+}
 
 type HardDeleteProfile struct {
 	Type string `json:"type"`
 }
 
-func (HardDeleteProfile) IsDeleteProfile() {}
+func (HardDeleteProfile) GetDeleteProfileType() string {
+	return "hard"
+}
 
-type deleteProfileWrapper struct {
+type DeleteProfileWrapper struct {
 	DeleteProfile DeleteProfile
 }
 
-func (w *deleteProfileWrapper) UnmarshalJSON(data []byte) error {
+func (w *DeleteProfileWrapper) UnmarshalJSON(data []byte) error {
 	var raw map[string]any
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -54,7 +58,7 @@ func (w *deleteProfileWrapper) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (w deleteProfileWrapper) MarshalJSON() ([]byte, error) {
+func (w DeleteProfileWrapper) MarshalJSON() ([]byte, error) {
 	if w.DeleteProfile == nil {
 		return nil, nil
 	}

@@ -1,10 +1,10 @@
-package provider
+package types
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -27,7 +27,7 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 		return
 	}
 
-	var profile = storageProfileModel{}
+	var profile = StorageProfileModel{}
 
 	diags := val.As(ctx, &profile, basetypes.ObjectAsOptions{})
 	resp.Diagnostics.Append(diags...)
@@ -100,7 +100,7 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 		resp.Diagnostics.AddAttributeError(
 			path.Root("type"),
 			"Unsupported storage profile type",
-			fmt.Sprintf("The given type '%s' is not supported. Valid %v", profile.Type.ValueString(), lakekeeper.ValidStorageProfileTypes),
+			fmt.Sprintf("The given type '%s' is not supported. Valid %v", profile.Type.ValueString(), storage.ValidStorageProfileTypes),
 		)
 	}
 }

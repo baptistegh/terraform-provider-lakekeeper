@@ -1,14 +1,53 @@
-package provider
+package types
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
+
+type DeleteProfileModel struct {
+	Type              types.String `tfsdk:"type"`
+	ExpirationSeconds types.Int32  `tfsdk:"expiration_seconds"`
+}
+
+func (d DeleteProfileModel) AttributeTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"type":               types.StringType,
+		"expiration_seconds": types.Int32Type,
+	}
+}
+
+func DeleteProfileSchema() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		MarkdownDescription: "The delete profile for the warehouse. It can be either a soft or hard delete profile.",
+		Optional:            true,
+		Computed:            true,
+		Attributes: map[string]schema.Attribute{
+			"type": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("soft", "hard"),
+				},
+				Default: stringdefault.StaticString("hard"),
+			},
+			"expiration_seconds": schema.Int32Attribute{
+				Optional: true,
+			},
+		},
+		Validators: []validator.Object{deleteProfileValidator{}},
+	}
+}
 
 type deleteProfileValidator struct{}
 
@@ -27,7 +66,7 @@ func (v deleteProfileValidator) ValidateObject(ctx context.Context, req validato
 		return
 	}
 
-	var profile = deleteProfileModel{}
+	var profile = DeleteProfileModel{}
 
 	diags := val.As(ctx, &profile, basetypes.ObjectAsOptions{})
 	resp.Diagnostics.Append(diags...)

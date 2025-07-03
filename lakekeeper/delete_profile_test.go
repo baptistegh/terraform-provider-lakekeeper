@@ -6,7 +6,7 @@ import (
 )
 
 func TestDeleteProfileWrapper_Soft_MarshalJSON(t *testing.T) {
-	given := deleteProfileWrapper{
+	given := DeleteProfileWrapper{
 		DeleteProfile: SoftDeleteProfile{
 			Type:           "soft",
 			ExpiredSeconds: 3600,
@@ -15,7 +15,7 @@ func TestDeleteProfileWrapper_Soft_MarshalJSON(t *testing.T) {
 
 	r, err := json.Marshal(given)
 	if err != nil {
-		t.Fatalf("failed to marshal deleteProfileWrapper: %v", err)
+		t.Fatalf("failed to marshal DeleteProfileWrapper: %v", err)
 	}
 
 	expected := `{"type":"soft","expired-seconds":3600}`
@@ -26,7 +26,7 @@ func TestDeleteProfileWrapper_Soft_MarshalJSON(t *testing.T) {
 }
 
 func TestDeleteProfileWrapper_Hard_MarshalJSON(t *testing.T) {
-	given := deleteProfileWrapper{
+	given := DeleteProfileWrapper{
 		DeleteProfile: HardDeleteProfile{
 			Type: "hard",
 		},
@@ -46,7 +46,7 @@ func TestDeleteProfileWrapper_Hard_MarshalJSON(t *testing.T) {
 
 func TestDeleteProfileWrapper_Soft_UnmarshalJSON(t *testing.T) {
 	expected := `{"type":"soft","expired-seconds":3600}`
-	var given deleteProfileWrapper
+	var given DeleteProfileWrapper
 	if err := json.Unmarshal([]byte(expected), &given); err != nil {
 		t.Fatalf("failed to unmarshal delete profile, %v", err)
 	}
@@ -61,9 +61,9 @@ func TestDeleteProfileWrapper_Soft_UnmarshalJSON(t *testing.T) {
 
 func TestDeleteProfileWrapper_Hard_UnmarshalJSON(t *testing.T) {
 	expected := `{"type":"hard"}`
-	var given deleteProfileWrapper
+	var given DeleteProfileWrapper
 	if err := json.Unmarshal([]byte(expected), &given); err != nil {
-		t.Fatalf("failed to unmarshal deleteProfileWrapper, %v", err)
+		t.Fatalf("failed to unmarshal DeleteProfileWrapper, %v", err)
 	}
 
 	switch given.DeleteProfile.(type) {
