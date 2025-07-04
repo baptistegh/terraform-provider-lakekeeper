@@ -165,8 +165,9 @@ func (r *lakekeeperRoleResource) Read(ctx context.Context, req resource.ReadRequ
 	state.ID = types.StringValue(fmt.Sprintf("%s:%s", role.ProjectID, role.ID))
 
 	state.Name = types.StringValue(role.Name)
-	state.Description = types.StringPointerValue(role.Description)
 	state.CreatedAt = types.StringValue(role.CreatedAt)
+
+	state.Description = types.StringPointerValue(role.Description)
 	state.UpdatedAt = types.StringPointerValue(role.UpdatedAt)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

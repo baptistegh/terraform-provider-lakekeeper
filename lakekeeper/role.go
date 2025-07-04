@@ -8,7 +8,7 @@ import (
 
 type Role struct {
 	ID          string  `json:"id"`
-	ProjectID   string  `json:"-"`
+	ProjectID   string  `json:"project-id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`
 
@@ -31,9 +31,18 @@ type RoleUpdateRequest struct {
 	Description string `json:"description,omitempty"`
 }
 
-func (client *Client) GetRoleByID(ctx context.Context, roleID string, projectID string) (*Role, error) {
+type RoleSearchResponse struct {
+	NextPageToken string  `json:"next-page-token"`
+	Roles         []*Role `json:"roles"`
+}
+
+func (r Role) String() string {
+	return fmt.Sprintf("{id:%s,project_id:%s,name:%s}", r.ID, r.ProjectID, r.Name)
+}
+
+func (client *Client) GetRoleByID(ctx context.Context, roleID string, projectID string) (*Role, *ApiError) {
 	if roleID == "" {
-		return nil, fmt.Errorf("role id can not be empty")
+		return nil, ApiErrorFromError("role id can not be empty")
 	}
 	var role Role
 
@@ -42,20 +51,43 @@ func (client *Client) GetRoleByID(ctx context.Context, roleID string, projectID 
 	}
 
 	// populate project id if it is not in the response (api deprecated field)
-	if role.ProjectID == "" {
-		if projectID == "" {
-			role.ProjectID = client.defaultProjectID
-		} else {
-			role.ProjectID = projectID
-		}
+	if projectID == "" {
+		role.ProjectID = client.defaultProjectID
+	} else {
+		role.ProjectID = projectID
 	}
 
 	return &role, nil
 }
 
-func (client *Client) NewRole(ctx context.Context, request *RoleCreateRequest) (*Role, error) {
+func (client *Client) GetRoleByName(ctx context.Context, name, projectID string) (*Role, *ApiError) {
+	if name == "" {
+		return nil, ApiErrorFromError("could not find role with empty name")
+	}
+
+	var roles RoleSearchResponse
+	if respErr := client.getWithProjectID(ctx, "/management/v1/role", projectID, &roles, map[string]string{"name": name}); respErr != nil {
+		return nil, respErr
+	}
+
+	for _, role := range roles.Roles {
+		if role.Name == name {
+			// populate project id if it is not in the response (api deprecated field)
+			if projectID == "" {
+				role.ProjectID = client.defaultProjectID
+			} else {
+				role.ProjectID = projectID
+			}
+			return role, nil
+		}
+	}
+
+	return nil, ApiErrorFromError("did not find role with name %s in project %s", name, projectID)
+}
+
+func (client *Client) NewRole(ctx context.Context, request *RoleCreateRequest) (*Role, *ApiError) {
 	if request.Name == "" {
-		return nil, fmt.Errorf("role name must be defined")
+		return nil, ApiErrorFromError("role name must be defined")
 	}
 
 	evaluatedProjectID := client.defaultProjectID
@@ -65,17 +97,17 @@ func (client *Client) NewRole(ctx context.Context, request *RoleCreateRequest) (
 
 	body, err := json.Marshal(request)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal role creation request, %v", err)
+		return nil, ApiErrorFromError("could not marshal role creation request, %v", err)
 	}
 
-	resp, err := client.postWithProjectID(ctx, "/management/v1/role", evaluatedProjectID, body)
-	if err != nil {
-		return nil, err
+	resp, apiErr := client.postWithProjectID(ctx, "/management/v1/role", evaluatedProjectID, body)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	var role Role
 	if err := json.Unmarshal(resp, &role); err != nil {
-		return nil, fmt.Errorf("role %s is created but the create response could not be decoded, %v", request.Name, err)
+		return nil, ApiErrorFromError("role %s is created but the create response could not be decoded, %v", request.Name, err)
 	}
 
 	if role.ProjectID == "" {
@@ -85,9 +117,9 @@ func (client *Client) NewRole(ctx context.Context, request *RoleCreateRequest) (
 	return &role, nil
 }
 
-func (client *Client) DeteleteRoleByID(ctx context.Context, roleID, projectID string) error {
+func (client *Client) DeteleteRoleByID(ctx context.Context, roleID, projectID string) *ApiError {
 	if roleID == "" {
-		return fmt.Errorf("could not delete role with empty ID")
+		return ApiErrorFromError("could not delete role with empty ID")
 	}
 
 	if err := client.deleteWithProjectID(ctx, "/management/v1/role/"+roleID, projectID); err != nil {
@@ -97,13 +129,13 @@ func (client *Client) DeteleteRoleByID(ctx context.Context, roleID, projectID st
 	return nil
 }
 
-func (client *Client) UpdateRole(ctx context.Context, request *RoleUpdateRequest) (*Role, error) {
+func (client *Client) UpdateRole(ctx context.Context, request *RoleUpdateRequest) (*Role, *ApiError) {
 	if request.ID == "" {
-		return nil, fmt.Errorf("role id must be defined")
+		return nil, ApiErrorFromError("role id must be defined")
 	}
 
 	if request.Name == "" {
-		return nil, fmt.Errorf("role name must be defined")
+		return nil, ApiErrorFromError("role name must be defined")
 	}
 
 	evaluatedProjectID := client.defaultProjectID
@@ -113,17 +145,17 @@ func (client *Client) UpdateRole(ctx context.Context, request *RoleUpdateRequest
 
 	body, err := json.Marshal(request)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal role update request, %v", err)
+		return nil, ApiErrorFromError("could not marshal role update request, %v", err)
 	}
 
-	resp, err := client.postWithProjectID(ctx, "/management/v1/role/"+request.ID, evaluatedProjectID, body)
-	if err != nil {
-		return nil, err
+	resp, apiErr := client.postWithProjectID(ctx, "/management/v1/role/"+request.ID, evaluatedProjectID, body)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	var role Role
 	if err := json.Unmarshal(resp, &role); err != nil {
-		return nil, fmt.Errorf("role %s is updated but the update response could not be decoded, %v", request.Name, err)
+		return nil, ApiErrorFromError("role %s is updated but the update response could not be decoded, %v", request.Name, err)
 	}
 
 	if role.ProjectID == "" {
