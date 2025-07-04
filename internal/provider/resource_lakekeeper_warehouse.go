@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
@@ -205,9 +204,4 @@ func (r *lakekeeperWarehouseResource) Delete(ctx context.Context, req resource.D
 	}
 
 	resp.State.RemoveResource(ctx)
-}
-
-func splitInternalID(s types.String) (string, string) {
-	splitted := strings.Split(s.ValueString(), ":")
-	return splitted[0], splitted[1]
 }

@@ -379,7 +379,6 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, pr
 	if err != nil {
 		return nil, ApiErrorFromError("error sending request %v", err)
 	}
-	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
 		tflog.Debug(ctx, "Got error response", map[string]any{
@@ -387,12 +386,9 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, pr
 		})
 
 		apiError := ApiErrorFromResponse(response)
-		if !client.config.HandleTokenExpiration {
-			return nil, apiError
-		}
 
 		// Token could have expired
-		if apiError.IsAuthError() {
+		if apiError.IsAuthError() && client.config.HandleTokenExpiration {
 			tflog.Debug(ctx, "Got unexpected response, attempting refresh", map[string]any{
 				"status": response.Status,
 			})
@@ -402,6 +398,8 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, pr
 				return nil, err
 			}
 			defer response.Body.Close()
+		} else {
+			return nil, apiError
 		}
 	}
 
@@ -442,7 +440,6 @@ func (client *Client) handleTokenRefresh(ctx context.Context, request *http.Requ
 	}
 
 	if response.StatusCode >= 400 {
-		defer response.Body.Close()
 		return nil, ApiErrorFromResponse(response)
 	}
 

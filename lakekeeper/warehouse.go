@@ -61,8 +61,9 @@ func (client *Client) GetWarehouseByID(ctx context.Context, projectID string, wa
 	if warehouse.ProjectID == "" {
 		if projectID == "" {
 			warehouse.ProjectID = client.defaultProjectID
+		} else {
+			warehouse.ProjectID = projectID
 		}
-		warehouse.ProjectID = projectID
 	}
 
 	return &warehouse, nil

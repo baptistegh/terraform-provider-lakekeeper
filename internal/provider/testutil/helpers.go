@@ -54,6 +54,29 @@ func CreateProject(t *testing.T) *lakekeeper.Project {
 	return project
 }
 
+// CreateRole is a test helper for creating a role.
+func CreateRole(t *testing.T, projectID string) *lakekeeper.Role {
+	t.Helper()
+
+	request := lakekeeper.RoleCreateRequest{
+		Name:        acctest.RandString(8),
+		Description: acctest.RandString(32),
+		ProjectID:   projectID,
+	}
+	role, err := TestLakekeeperClient.NewRole(context.Background(), &request)
+	if err != nil {
+		t.Fatalf("could not create test role: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := TestLakekeeperClient.DeteleteRoleByID(context.Background(), role.ID, role.ProjectID); err != nil {
+			t.Fatalf("could not cleanup test role: %v", err)
+		}
+	})
+
+	return role
+}
+
 // CreateUser is a test helper for creating a user.
 func CreateUser(t *testing.T, id string) *lakekeeper.User {
 	t.Helper()
