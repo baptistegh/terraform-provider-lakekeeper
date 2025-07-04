@@ -3,7 +3,6 @@ package types
 import (
 	"regexp"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -159,33 +158,4 @@ func StorageProfileSchema() schema.SingleNestedAttribute {
 		Validators: []validator.Object{storageProfileValidator{}},
 	}
 
-}
-
-func (m *StorageProfileModel) RefreshFromSettings(s storage.StorageProfile) {
-	if s == nil {
-		return
-	}
-	m.Type = types.StringValue(s.GetStorageType())
-
-	switch sp := s.(type) {
-	case storage.StorageProfileADLS:
-
-	case storage.StorageProfileGCS:
-
-	case storage.StorageProfileS3:
-		m.Bucket = types.StringValue(sp.Bucket)
-		m.Region = types.StringValue(sp.Region)
-		m.AssumeRoleARN = types.StringPointerValue(sp.AssumeRoleARN)
-		m.AWSKMSKeyARN = types.StringPointerValue(sp.AWSKMSKeyARN)
-		m.Endpoint = types.StringPointerValue(sp.Endpoint)
-		m.Flavor = types.StringPointerValue(sp.Flavor)
-		m.PathStyleAccess = types.BoolPointerValue(sp.PathStyleAccess)
-		m.PushS3DeleteDisabled = types.BoolPointerValue(sp.PushS3DeleteDisabled)
-		m.RemoteSigningURLStyle = types.StringPointerValue(sp.RemoteSigningURLStyle)
-		m.STSEnabled = types.BoolValue(sp.STSEnabled)
-		m.STSRoleARN = types.StringPointerValue(sp.STSRoleARN)
-		m.STSTokenValiditySeconds = types.Int64PointerValue(sp.STSTokenValiditySeconds)
-		m.AllowAlternativeProtocols = types.BoolValue(sp.AllowAlternativeProtocols)
-		m.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
-	}
 }

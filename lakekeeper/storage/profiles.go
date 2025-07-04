@@ -19,14 +19,14 @@ type StorageProfile interface {
 }
 
 type StorageProfileADLS struct {
-	Type                      string `json:"type"`
-	AccountName               string `json:"account-name"`
-	AllowAlternativeProtocols bool   `json:"allow-alternative-protocols,omitempty"`
-	AuthorityHost             string `json:"authority-host,omitempty"`
-	Filesystem                string `json:"filesystem"`
-	Host                      string `json:"host,omitempty"`
-	KeyPrefix                 string `json:"key-prefix,omitempty"`
-	SASTokenValiditySeconds   int64  `json:"sas-token-validity-seconds,omitempty"`
+	Type                      string  `json:"type"`
+	AccountName               string  `json:"account-name"`
+	AllowAlternativeProtocols bool    `json:"allow-alternative-protocols,omitempty"`
+	AuthorityHost             *string `json:"authority-host,omitempty"`
+	Filesystem                string  `json:"filesystem"`
+	Host                      *string `json:"host,omitempty"`
+	KeyPrefix                 *string `json:"key-prefix,omitempty"`
+	SASTokenValiditySeconds   *int64  `json:"sas-token-validity-seconds,omitempty"`
 }
 
 func (StorageProfileADLS) GetStorageType() string {
@@ -73,9 +73,9 @@ func NewStorageProfileS3(bucket, region string, stsEnabled bool) *StorageProfile
 }
 
 type StorageProfileGCS struct {
-	Type      string `json:"type"`
-	Bucket    string `json:"bucket"`
-	KeyPrefix string `json:"key-prefix,omitempty"`
+	Type      string  `json:"type"`
+	Bucket    string  `json:"bucket"`
+	KeyPrefix *string `json:"key-prefix,omitempty"`
 }
 
 func (s StorageProfileGCS) GetStorageType() string {

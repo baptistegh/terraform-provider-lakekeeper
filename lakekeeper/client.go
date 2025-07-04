@@ -140,7 +140,7 @@ func newHttpClient(tlsInsecureSkipVerify bool, clientTimeout int, caCert string)
 	return httpClient, nil
 }
 
-func (client *Client) get(ctx context.Context, path string, resource interface{}, params map[string]string) error {
+func (client *Client) get(ctx context.Context, path string, resource any, params map[string]string) error {
 	body, err := client.getRaw(ctx, path, client.defaultProjectID, params)
 	if err != nil {
 		return err
@@ -148,7 +148,7 @@ func (client *Client) get(ctx context.Context, path string, resource interface{}
 	return json.Unmarshal(body, resource)
 }
 
-func (client *Client) getWithProjectID(ctx context.Context, path, projectID string, resource interface{}, params map[string]string) error {
+func (client *Client) getWithProjectID(ctx context.Context, path, projectID string, resource any, params map[string]string) error {
 	body, err := client.getRaw(ctx, path, projectID, params)
 	if err != nil {
 		return err
@@ -232,10 +232,11 @@ func (client *Client) getRaw(ctx context.Context, path string, projectID string,
 	return body, err
 }
 
+// login gets a token from IDP and stores it for next uses
 func (client *Client) login(ctx context.Context) error {
 	accessTokenData := client.getAuthenticationFormData()
 
-	tflog.Debug(ctx, "Login request", map[string]interface{}{
+	tflog.Debug(ctx, "Login request", map[string]any{
 		"request": accessTokenData.Encode(),
 	})
 
@@ -262,7 +263,7 @@ func (client *Client) login(ctx context.Context) error {
 
 	body, _ := io.ReadAll(accessTokenResponse.Body)
 
-	tflog.Debug(ctx, "Login response", map[string]interface{}{
+	tflog.Debug(ctx, "Login response", map[string]any{
 		"response": string(body),
 	})
 
@@ -291,10 +292,11 @@ func (client *Client) login(ctx context.Context) error {
 	return nil
 }
 
+// refresh refreshes the client token
 func (client *Client) refresh(ctx context.Context) error {
 	refreshTokenData := client.getAuthenticationFormData()
 
-	tflog.Debug(ctx, "Refresh request", map[string]interface{}{
+	tflog.Debug(ctx, "Refresh request", map[string]any{
 		"request": refreshTokenData.Encode(),
 	})
 
@@ -318,7 +320,7 @@ func (client *Client) refresh(ctx context.Context) error {
 
 	body, _ := io.ReadAll(refreshTokenResponse.Body)
 
-	tflog.Debug(ctx, "Refresh response", map[string]interface{}{
+	tflog.Debug(ctx, "Refresh response", map[string]any{
 		"response": string(body),
 	})
 
@@ -357,15 +359,12 @@ func (client *Client) bootstrap(ctx context.Context) error {
 	return nil
 }
 
-/*
-*
-Sends an HTTP request and refreshes credentials on 403 or 401 errors
-*/
+// sendRequest sends an HTTP request and refreshes credentials on 403 or 401 errors
 func (client *Client) sendRequest(ctx context.Context, request *http.Request, projectID string, body []byte) ([]byte, string, error) {
 	requestMethod := request.Method
 	requestPath := request.URL.Path
 
-	requestLogArgs := map[string]interface{}{
+	requestLogArgs := map[string]any{
 		"method": requestMethod,
 		"path":   requestPath,
 	}
@@ -386,9 +385,8 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, pr
 	defer response.Body.Close()
 
 	// Unauthorized: Token could have expired
-	// Forbidden: After creating a realm, following GETs for the realm return 403 until you refresh
 	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
-		tflog.Debug(ctx, "Got unexpected response, attempting refresh", map[string]interface{}{
+		tflog.Debug(ctx, "Got unexpected response, attempting refresh", map[string]any{
 			"status": response.Status,
 		})
 
@@ -414,7 +412,7 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, pr
 		return nil, "", err
 	}
 
-	responseLogArgs := map[string]interface{}{
+	responseLogArgs := map[string]any{
 		"status": response.Status,
 	}
 

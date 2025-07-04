@@ -21,6 +21,10 @@ import (
 var (
 	_ resource.Resource              = &lakekeeperWarehouseResource{}
 	_ resource.ResourceWithConfigure = &lakekeeperWarehouseResource{}
+
+	// Lakekeeper API does not give storage credentials on GET
+	// we can't activate the import on warehouse for now
+	// _ resource.ResourceWithImportState = &lakekeeperWarehouseResource{}
 )
 
 func init() {
@@ -133,12 +137,14 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 
 	warehouse, err := r.client.NewWarehouse(ctx, request)
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create warehouse: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred",
+			fmt.Sprintf("Unable to create warehouse: %s", err.Error()))
 		return
 	}
 
-	state.RefreshFromSettings(&resp.Diagnostics, warehouse)
-	if resp.Diagnostics.HasError() {
+	diags := state.RefreshFromSettings(warehouse)
+	if diags.HasError() {
+		resp.Diagnostics = append(resp.Diagnostics, diags...)
 		return
 	}
 
@@ -163,8 +169,9 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	state.RefreshFromSettings(&resp.Diagnostics, warehouse)
-	if resp.Diagnostics.HasError() {
+	diags := state.RefreshFromSettings(warehouse)
+	if diags.HasError() {
+		resp.Diagnostics = append(resp.Diagnostics, diags...)
 		return
 	}
 

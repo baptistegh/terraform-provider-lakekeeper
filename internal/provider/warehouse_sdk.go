@@ -48,7 +48,7 @@ func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeep
 	return req, nil
 }
 
-func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(diags *diag.Diagnostics, w *lakekeeper.Warehouse) {
+func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *lakekeeper.Warehouse) diag.Diagnostics {
 	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)
@@ -56,9 +56,76 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(diags *diag.Diagn
 	m.Active = types.BoolValue(w.IsActive())
 	m.Name = types.StringValue(w.Name)
 
-	m.refreshStorageProfile(diags, w.StorageProfileWrapper)
-	m.refreshStorageCredential(w.StorageCredentialWrapper)
-	m.refreshDeleteProfile(diags, w.DeleteProfileWrapper)
+	diags := diag.Diagnostics{}
+	const errorMessage = "Error refreshing warehouse state"
+
+	if w.StorageProfileWrapper == nil || w.StorageProfileWrapper.StorageProfile == nil {
+		m.StorageProfile = nil
+		diags.AddError(errorMessage, "Storage profile must be defined")
+	} else {
+		m.StorageProfile = &tftypes.StorageProfileModel{}
+		storageProfile := w.StorageProfileWrapper.StorageProfile
+
+		switch sp := storageProfile.(type) {
+		case storage.StorageProfileADLS:
+			m.StorageProfile.Type = types.StringValue(sp.GetStorageType())
+			m.StorageProfile.AccountName = types.StringValue(sp.AccountName)
+			m.StorageProfile.AllowAlternativeProtocols = types.BoolValue(sp.AllowAlternativeProtocols)
+			m.StorageProfile.AuthorityHost = types.StringPointerValue(sp.AuthorityHost)
+			m.StorageProfile.Filesystem = types.StringValue(sp.Filesystem)
+			m.StorageProfile.Host = types.StringPointerValue(sp.Host)
+			m.StorageProfile.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
+			m.StorageProfile.SASTokenValiditySeconds = types.Int64PointerValue(sp.SASTokenValiditySeconds)
+		case storage.StorageProfileGCS:
+			m.StorageProfile.Type = types.StringValue(sp.GetStorageType())
+			m.StorageProfile.Bucket = types.StringValue(sp.Bucket)
+			m.StorageProfile.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
+		case storage.StorageProfileS3:
+			m.StorageProfile.Type = types.StringValue(sp.GetStorageType())
+			m.StorageProfile.AllowAlternativeProtocols = types.BoolValue(sp.AllowAlternativeProtocols)
+			m.StorageProfile.AssumeRoleARN = types.StringPointerValue(sp.AssumeRoleARN)
+			m.StorageProfile.AWSKMSKeyARN = types.StringPointerValue(sp.AWSKMSKeyARN)
+			m.StorageProfile.Bucket = types.StringValue(sp.Bucket)
+			m.StorageProfile.Endpoint = types.StringPointerValue(sp.Endpoint)
+			m.StorageProfile.Flavor = types.StringPointerValue(sp.Flavor)
+			m.StorageProfile.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
+			m.StorageProfile.PathStyleAccess = types.BoolPointerValue(sp.PathStyleAccess)
+			m.StorageProfile.PushS3DeleteDisabled = types.BoolPointerValue(sp.PushS3DeleteDisabled)
+			m.StorageProfile.Region = types.StringValue(sp.Region)
+			m.StorageProfile.RemoteSigningURLStyle = types.StringPointerValue(sp.RemoteSigningURLStyle)
+			m.StorageProfile.STSEnabled = types.BoolValue(sp.STSEnabled)
+			m.StorageProfile.STSRoleARN = types.StringPointerValue(sp.STSRoleARN)
+			m.StorageProfile.STSTokenValiditySeconds = types.Int64PointerValue(sp.STSTokenValiditySeconds)
+		default:
+			diags.AddError(errorMessage, fmt.Sprintf("Incorrect storage profile type: %T, valid: [s3,adls,gcs]", sp))
+		}
+	}
+
+	if w.DeleteProfileWrapper == nil || w.DeleteProfileWrapper.DeleteProfile == nil {
+		m.DeleteProfile = nil
+	} else {
+		m.DeleteProfile = &tftypes.DeleteProfileModel{}
+		switch deleteProfile := w.DeleteProfileWrapper.DeleteProfile.(type) {
+		case lakekeeper.SoftDeleteProfile:
+			m.DeleteProfile = &tftypes.DeleteProfileModel{
+				Type:              types.StringValue("soft"),
+				ExpirationSeconds: types.Int32Value(deleteProfile.ExpiredSeconds),
+			}
+		case lakekeeper.HardDeleteProfile:
+			m.DeleteProfile = &tftypes.DeleteProfileModel{
+				Type: types.StringValue("hard"),
+			}
+		default:
+			diags.AddError(errorMessage, fmt.Sprintf("Incorrect delete profile type: %T, valid: [soft,hard]", deleteProfile))
+		}
+	}
+
+	// Lakekeeper API does not give delete-profile on GET, it can't be refreshed
+	if (w.StorageCredentialWrapper == nil || w.StorageCredentialWrapper.StorageCredential == nil) && m.StorageCredential == nil {
+		diags.AddError(errorMessage, "Storage credential must be defined")
+	}
+
+	return diags
 }
 
 func (m *lakekeeperWarehouseResourceModel) DeleteProfileSettings() (lakekeeper.DeleteProfile, error) {
@@ -138,46 +205,4 @@ func (m *lakekeeperWarehouseResourceModel) StorageCredentialSettings() (credenti
 	default:
 		return nil, fmt.Errorf("incorrect storage credential definition, type must be one of %v, got %s", tftypes.ValidStorageCredentialTypes, storageType)
 	}
-}
-
-func (m *lakekeeperWarehouseResourceModel) refreshDeleteProfile(diags *diag.Diagnostics, d *lakekeeper.DeleteProfileWrapper) {
-	if d == nil {
-		m.DeleteProfile = nil
-		return
-	}
-	switch profile := d.DeleteProfile.(type) {
-	case lakekeeper.SoftDeleteProfile:
-		m.DeleteProfile = &tftypes.DeleteProfileModel{
-			Type:              types.StringValue("soft"),
-			ExpirationSeconds: types.Int32Value(profile.ExpiredSeconds),
-		}
-	case lakekeeper.HardDeleteProfile:
-		m.DeleteProfile = &tftypes.DeleteProfileModel{
-			Type: types.StringValue("hard"),
-		}
-	default:
-		diags.AddError("Error converting model to state", fmt.Sprintf("Incorrect delete profile type: %T, valid: [soft,hard]", d))
-	}
-}
-
-func (m *lakekeeperWarehouseResourceModel) refreshStorageProfile(diags *diag.Diagnostics, d *storage.StorageProfileWrapper) {
-	if d == nil {
-		diags.AddError("Error converting model to state", "Incorrect storage profile: must be defined")
-		m.StorageProfile = nil
-		return
-	}
-	if m.StorageProfile == nil {
-		m.StorageProfile = &tftypes.StorageProfileModel{}
-	}
-	m.StorageProfile.RefreshFromSettings(d.StorageProfile)
-}
-
-func (m *lakekeeperWarehouseResourceModel) refreshStorageCredential(d *credential.StorageCredentialWrapper) {
-	if d == nil {
-		return
-	}
-	if m.StorageCredential == nil {
-		m.StorageCredential = &tftypes.StorageCredentialModel{}
-	}
-	m.StorageCredential.RefreshFromSettings(d.StorageCredential)
 }

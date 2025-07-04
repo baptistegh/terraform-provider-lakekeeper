@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage/credential"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -124,17 +123,5 @@ func StorageCredentialSchema() schema.SingleNestedAttribute {
 			},
 		},
 		Validators: []validator.Object{storageCredentialValidator{}},
-	}
-}
-
-func (m *StorageCredentialModel) RefreshFromSettings(s credential.StorageCredential) {
-	if s == nil {
-		return
-	}
-	switch sp := s.(type) {
-	case credential.S3CredentialAccessKey:
-		m.Type = types.StringValue("s3_access_key")
-		m.AccessKeyID = types.StringValue(sp.AWSAccessKeyID)
-		m.SecretAccessKey = types.StringValue(sp.AWSSecretAccessKey)
 	}
 }
