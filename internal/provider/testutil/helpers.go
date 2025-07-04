@@ -21,7 +21,8 @@ var testLakekeeperConfig = lakekeeper.Config{
 		ClientSecret: os.Getenv("LAKEKEEPER_CLIENT_SECRET"),
 		Scope:        "lakekeeper",
 	},
-	InitialBootstrap: true,
+	InitialBootstrap:      true,
+	HandleTokenExpiration: true,
 }
 
 var TestLakekeeperClient *lakekeeper.Client

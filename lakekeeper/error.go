@@ -1,28 +1,56 @@
 package lakekeeper
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
-
-	"github.com/hashicorp/errwrap"
 )
 
 type ApiError struct {
-	Code    int
-	Message string
+	Status     string         `json:"-"`
+	StatusCode int            `json:"-"`
+	Message    string         `json:"-"`
+	Response   *ErrorResponse `json:"error"`
+}
+
+type ErrorResponse struct {
+	Code    int      `json:"code"`
+	Message string   `json:"message"`
+	Stack   []string `json:"stack"`
+	Type    string   `json:"type"`
 }
 
 func (e *ApiError) Error() string {
-	return e.Message
+	if e.Response == nil {
+		return fmt.Sprintf("unexpected error response: %s", e.Status)
+	}
+	return fmt.Sprintf("api error, code=%d message=%s type=%s", e.Response.Code, e.Response.Message, e.Response.Type)
 }
 
-func ErrorIs404(err error) bool {
-	lakekeeperError, ok := errwrap.GetType(err, &ApiError{}).(*ApiError)
-
-	return ok && lakekeeperError != nil && lakekeeperError.Code == http.StatusNotFound
+func (e *ApiError) IsAuthError() bool {
+	return e.StatusCode == http.StatusUnauthorized || e.StatusCode == http.StatusForbidden
 }
 
-func ErrorIs409(err error) bool {
-	lakekeeperError, ok := errwrap.GetType(err, &ApiError{}).(*ApiError)
+func ApiErrorFromResponse(response *http.Response) *ApiError {
+	apiErr := ApiError{}
+	apiErr.Status = response.Status
+	apiErr.StatusCode = response.StatusCode
 
-	return ok && lakekeeperError != nil && lakekeeperError.Code == http.StatusConflict
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return &apiErr
+	}
+
+	if len(responseBody) > 0 {
+		_ = json.Unmarshal(responseBody, &apiErr)
+	}
+
+	return &apiErr
+}
+
+func ApiErrorFromError(format string, a ...any) *ApiError {
+	return &ApiError{
+		Message: fmt.Sprintf(format, a...),
+	}
 }

@@ -119,9 +119,9 @@ func (client *Client) NewWarehouse(ctx context.Context, r *WarehouseCreateOption
 		return nil, fmt.Errorf("could not marshal warehouse creation request, %s", err.Error())
 	}
 
-	resp, err := client.postWithProjectID(ctx, "/management/v1/warehouse", evaluatedProjectID, body)
-	if err != nil {
-		return nil, err
+	resp, apiErr := client.postWithProjectID(ctx, "/management/v1/warehouse", evaluatedProjectID, body)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 	var wResp WarehouseCreateResponse
 	if err := json.Unmarshal(resp, &wResp); err != nil {
