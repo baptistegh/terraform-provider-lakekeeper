@@ -35,6 +35,7 @@ provider "lakekeeper" {
 - `client_id` (String) OIDC Client ID. This is the client ID used to authenticate with the OIDC provider, e.g. `my-client-id`. It can also be set using the `LAKEKEEPER_CLIENT_ID` environment variable.
 - `client_secret` (String, Sensitive) OIDC Client Secret. This is the client secret used to authenticate with the OIDC provider, e.g. `my-client-secret`. It can also be set using the `LAKEKEEPER_CLIENT_SECRET` environment variable.
 - `endpoint` (String) Lakekeeper endpoint. This is the base URL of the Lakekeeper instance, e.g. `https://lakekeeper.example.com`. It can also be set using the `LAKEKEEPER_ENDPOINT` environment variable.
+- `handle_token_expiration` (Boolean) When set to true, the provider will try to refresh the token if Lakekeeper API sends 401/403 HTTP Status Codes. default: `true`.
 - `initial_bootstrap` (Boolean) When set to true, the provider will try to bootstrap the serve first. default: `true`.
 - `insecure` (Boolean) When set to true this disables SSL verification of the connection to the Lakekeeper instance.
 - `scope` (String) OIDC Scope. This is the scope used to request the OIDC token, e.g. `lakekeeper`.
