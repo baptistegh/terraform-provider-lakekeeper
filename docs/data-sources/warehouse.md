@@ -4,12 +4,15 @@ page_title: "lakekeeper_warehouse Data Source - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
   The lakekeeper_warehouse data source retrieves information a lakekeeper warehouse.
+  Currently the datasource can only read from the default project
   Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse
 ---
 
 # lakekeeper_warehouse (Data Source)
 
 The `lakekeeper_warehouse` data source retrieves information a lakekeeper warehouse.
+
+**Currently the datasource can only read from the default project**
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)
 
@@ -22,15 +25,12 @@ The `lakekeeper_warehouse` data source retrieves information a lakekeeper wareho
 
 - `name` (String) Name of the warehouse.
 
-### Optional
-
-- `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
-- `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
-
 ### Read-Only
 
 - `active` (Boolean) Whether the warehouse is active.
+- `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
 - `id` (String) The internale ID the warehouse. In the form: <project_id>:<warehouse_id>
+- `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
 - `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
 - `warehouse_id` (String) The ID the warehouse.
@@ -38,7 +38,7 @@ The `lakekeeper_warehouse` data source retrieves information a lakekeeper wareho
 <a id="nestedatt--delete_profile"></a>
 ### Nested Schema for `delete_profile`
 
-Optional:
+Read-Only:
 
 - `expiration_seconds` (Number)
 - `type` (String)

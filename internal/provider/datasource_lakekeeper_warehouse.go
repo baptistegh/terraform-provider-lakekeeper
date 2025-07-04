@@ -55,6 +55,8 @@ func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.S
 	resp.Schema = schema.Schema{
 		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_warehouse`" + ` data source retrieves information a lakekeeper warehouse.
 
+**Currently the datasource can only read from the default project**
+
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)`),
 
 		Attributes: map[string]schema.Attribute{
@@ -73,9 +75,10 @@ func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.S
 			},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "The project ID to which the warehouse belongs. If not provided, the default project will be used.",
-				Optional:            true,
-				Computed:            true,
-				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
+				// Currently the datasource can only read from the default project.
+				// Optional:            true,
+				Computed:   true,
+				Validators: []validator.String{stringvalidator.LengthAtLeast(1)},
 			},
 			"protected": schema.BoolAttribute{
 				MarkdownDescription: "Whether the warehouse is protected from being deleted.",
@@ -86,7 +89,7 @@ func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.S
 				Computed:            true,
 			},
 			"storage_profile": tftypes.StorageProfileDatasourceSchema(),
-			"delete_profile":  tftypes.DeleteProfileSchema(),
+			"delete_profile":  tftypes.DeleteProfileDatasourceSchema(),
 		},
 	}
 }

@@ -7,8 +7,9 @@ import (
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	rschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,13 +28,13 @@ func (d DeleteProfileModel) AttributeTypes() map[string]attr.Type {
 	}
 }
 
-func DeleteProfileSchema() schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
+func DeleteProfileResourceSchema() rschema.SingleNestedAttribute {
+	return rschema.SingleNestedAttribute{
 		MarkdownDescription: "The delete profile for the warehouse. It can be either a soft or hard delete profile.",
 		Optional:            true,
 		Computed:            true,
-		Attributes: map[string]schema.Attribute{
-			"type": schema.StringAttribute{
+		Attributes: map[string]rschema.Attribute{
+			"type": rschema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				Validators: []validator.String{
@@ -41,8 +42,27 @@ func DeleteProfileSchema() schema.SingleNestedAttribute {
 				},
 				Default: stringdefault.StaticString("hard"),
 			},
-			"expiration_seconds": schema.Int32Attribute{
+			"expiration_seconds": rschema.Int32Attribute{
 				Optional: true,
+			},
+		},
+		Validators: []validator.Object{deleteProfileValidator{}},
+	}
+}
+
+func DeleteProfileDatasourceSchema() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		MarkdownDescription: "The delete profile for the warehouse. It can be either a soft or hard delete profile.",
+		Computed:            true,
+		Attributes: map[string]dschema.Attribute{
+			"type": dschema.StringAttribute{
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("soft", "hard"),
+				},
+			},
+			"expiration_seconds": dschema.Int32Attribute{
+				Computed: true,
 			},
 		},
 		Validators: []validator.Object{deleteProfileValidator{}},

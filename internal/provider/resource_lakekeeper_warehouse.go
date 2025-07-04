@@ -92,7 +92,7 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 				Required:            true,
 			},
 			"storage_profile":    tftypes.StorageProfileResourceSchema(),
-			"delete_profile":     tftypes.DeleteProfileSchema(),
+			"delete_profile":     tftypes.DeleteProfileResourceSchema(),
 			"storage_credential": tftypes.StorageCredentialSchema(),
 		},
 	}
