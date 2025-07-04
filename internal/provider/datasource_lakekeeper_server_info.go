@@ -90,7 +90,7 @@ func (d *lakekeeperServerInfoDataSource) Schema(_ context.Context, _ datasource.
 			},
 			"queues": schema.ListAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "",
+				MarkdownDescription: "", // TODO: add description
 				Computed:            true,
 			},
 		},
