@@ -25,7 +25,10 @@ type UserCreateRequest struct {
 	UpdateIfExists bool   `json:"update-if-exists"`
 }
 
-var ValidUserTypes = []string{"human", "application"}
+var (
+	ValidUserTypes       = []string{"human", "application"}
+	ValidUserIDPPrefixes = []string{"oidc", "kubernetes"}
+)
 
 func (client *Client) Whoami(ctx context.Context) (*User, error) {
 	var user User

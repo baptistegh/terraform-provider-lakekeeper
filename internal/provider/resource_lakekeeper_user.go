@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -49,6 +51,12 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 			"id": schema.StringAttribute{
 				MarkdownDescription: `The ID of the user. The id must be identical to the subject in JWT tokens, prefixed with` + "`<idp-identifier>~`" + `. For example: ` + "`oidc~1234567890`" + ` for OIDC users or kubernetes~1234567890 for Kubernetes users.`,
 				Required:            true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(fmt.Sprintf("^(%s).+$", strings.Join(lakekeeper.ValidUserIDPPrefixes, "|"))),
+						"The id must be prefixed with `<idp-identifier>~`. `<idp-identifier>` can be `oidc` or `kubernetes`.",
+					),
+				},
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the user.",
