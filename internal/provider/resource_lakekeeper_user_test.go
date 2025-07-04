@@ -19,7 +19,8 @@ import (
 
 func TestAccLakekeeperUser_basic(t *testing.T) {
 
-	rID := fmt.Sprintf("oidc~%s", acctest.RandString(8))
+	index := acctest.RandIntRange(0, len(lakekeeper.ValidUserIDPPrefixes))
+	rID := fmt.Sprintf("%s~%s", lakekeeper.ValidUserIDPPrefixes[index], acctest.RandString(12))
 	rName := acctest.RandString(8)
 	rUpdatedName := acctest.RandString(12)
 
@@ -59,14 +60,14 @@ func TestAccLakekeeperUser_basic(t *testing.T) {
 				  id = "%s"
 				  name = "%s"
 				  email = "%s@local.local"
-				  user_type = "human"
+				  user_type = "application"
 				}
 				`, rID, rUpdatedName, rUpdatedName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("lakekeeper_user.foo", "id", rID),
 					resource.TestCheckResourceAttr("lakekeeper_user.foo", "name", rUpdatedName),
 					resource.TestCheckResourceAttr("lakekeeper_user.foo", "email", rUpdatedName+"@local.local"),
-					resource.TestCheckResourceAttr("lakekeeper_user.foo", "user_type", "human"),
+					resource.TestCheckResourceAttr("lakekeeper_user.foo", "user_type", "application"),
 					resource.TestCheckResourceAttr("lakekeeper_user.foo", "last_updated_with", "create-endpoint"),
 					resource.TestCheckResourceAttrSet("lakekeeper_user.foo", "updated_at"),
 					resource.TestCheckResourceAttrSet("lakekeeper_user.foo", "created_at"),
@@ -85,6 +86,7 @@ func TestAccLakekeeperUser_basic(t *testing.T) {
 func TestAccLakekeeperUser_invalidID(t *testing.T) {
 
 	rName := acctest.RandString(8)
+	rID := acctest.RandString(12)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -98,7 +100,7 @@ func TestAccLakekeeperUser_invalidID(t *testing.T) {
 				  email = "%s@local.local"
 				  user_type = "human"
 				}
-				`, "fake-id", rName, rName),
+				`, rID, rName, rName),
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
 			},
 		},
@@ -115,7 +117,7 @@ func TestAccLakekeeperUser_invalidType(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create user with wrong ID
+			// Create user with wrong type
 			{
 				Config: fmt.Sprintf(`				
 				resource "lakekeeper_user" "failed" {
@@ -126,6 +128,17 @@ func TestAccLakekeeperUser_invalidType(t *testing.T) {
 				}
 				`, rID, rName, rName, rType),
 				ExpectError: regexp.MustCompile("Invalid Attribute Value Match"),
+			},
+			// Create user without type
+			{
+				Config: fmt.Sprintf(`			
+				resource "lakekeeper_user" "failed" {
+				  id = "%s"
+				  name = "%s"
+				  email = "%s@local.local"
+				}
+				`, rID, rName, rName),
+				ExpectError: regexp.MustCompile("required"),
 			},
 		},
 	})
