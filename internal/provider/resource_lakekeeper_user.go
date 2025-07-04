@@ -157,15 +157,24 @@ func (r *lakekeeperUserResource) Read(ctx context.Context, req resource.ReadRequ
 // Updates updates the resource in-place.
 func (r *lakekeeperUserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var state LakekeeperUserDataSourceModel
+	var plan LakekeeperUserDataSourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	// Read Terraform state data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	user, err := r.client.NewUser(ctx, state.ID.ValueString(), state.Email.ValueString(), state.Name.ValueString(), state.UserType.ValueString(), true)
+	if state.ID.IsNull() || state.ID.IsUnknown() || state.ID.ValueString() == "" {
+		resp.Diagnostics.AddError("Incorrect resource definition", "Resource was requested to perform an in-place upgrade with a null ID.")
+		return
+	}
+
+	user, err := r.client.NewUser(ctx, state.ID.ValueString(), plan.Email.ValueString(), plan.Name.ValueString(), plan.UserType.ValueString(), true)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update user: %s", err.Error()))
 		return

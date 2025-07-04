@@ -99,3 +99,4 @@ tool-terraform:
 
 clean: testacc-down
 	go clean -testcache
+	rm -rf bin/
