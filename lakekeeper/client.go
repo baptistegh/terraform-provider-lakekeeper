@@ -32,12 +32,13 @@ type Config struct {
 }
 
 type Client struct {
-	config       *Config
-	version      *version.Version
-	httpClient   *http.Client
-	debug        bool
-	initialLogin bool
-	bootstrapped bool
+	config           *Config
+	version          *version.Version
+	httpClient       *http.Client
+	debug            bool
+	initialLogin     bool
+	bootstrapped     bool
+	defaultProjectID string
 }
 
 type ClientCredentials struct {
@@ -55,6 +56,8 @@ type BootstrapRequest struct {
 	AcceptTerms bool `json:"accept-terms-of-use"`
 	IsOperator  bool `json:"is-operator"`
 }
+
+const projectIDHeader = "x-project-id"
 
 func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	if config.ClientCredentials.GrantType == "" {
@@ -85,6 +88,7 @@ func NewClient(ctx context.Context, config *Config) (*Client, error) {
 	}
 
 	client.bootstrapped = serverInfo.Bootstrapped
+	client.defaultProjectID = serverInfo.DefaultProjectID
 	if !client.bootstrapped && config.InitialBootstrap {
 		err := client.bootstrap(ctx)
 		if err != nil {
@@ -136,31 +140,34 @@ func newHttpClient(tlsInsecureSkipVerify bool, clientTimeout int, caCert string)
 	return httpClient, nil
 }
 
-func (client *Client) get(ctx context.Context, path string, resource interface{}, params map[string]string) error {
-	body, err := client.getRaw(ctx, path, params)
+func (client *Client) get(ctx context.Context, path string, resource any, params map[string]string) error {
+	body, err := client.getRaw(ctx, path, client.defaultProjectID, params)
 	if err != nil {
 		return err
 	}
 	return json.Unmarshal(body, resource)
 }
 
-// can be added when some resources will have project_id as attributes
-// func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, error) {
-// 	resourceUrl := client.config.BaseURL + path
-//
-// 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	request.Header.Set("X-Project-ID", projectID)
-//
-// 	resp, _, err := client.sendRequest(ctx, request, body)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return resp, err
-// }
+func (client *Client) getWithProjectID(ctx context.Context, path, projectID string, resource any, params map[string]string) error {
+	body, err := client.getRaw(ctx, path, projectID, params)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, resource)
+}
+
+func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, error) {
+	resourceUrl := client.config.BaseURL + path
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, _, err := client.sendRequest(ctx, request, projectID, body)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
+}
 
 func (client *Client) post(ctx context.Context, path string, body []byte) ([]byte, error) {
 	resourceUrl := client.config.BaseURL + path
@@ -170,7 +177,7 @@ func (client *Client) post(ctx context.Context, path string, body []byte) ([]byt
 		return nil, err
 	}
 
-	resp, _, err := client.sendRequest(ctx, request, body)
+	resp, _, err := client.sendRequest(ctx, request, client.defaultProjectID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -184,14 +191,28 @@ func (client *Client) delete(ctx context.Context, path string) error {
 	if err != nil {
 		return err
 	}
-	_, _, err = client.sendRequest(ctx, request, nil)
+	_, _, err = client.sendRequest(ctx, request, client.defaultProjectID, nil)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (client *Client) getRaw(ctx context.Context, path string, params map[string]string) ([]byte, error) {
+func (client *Client) deleteWithProjectID(ctx context.Context, path, projectID string) error {
+	resourceUrl := client.config.BaseURL + path
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, resourceUrl, nil)
+	if err != nil {
+		return err
+	}
+	_, _, err = client.sendRequest(ctx, request, projectID, nil)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (client *Client) getRaw(ctx context.Context, path string, projectID string, params map[string]string) ([]byte, error) {
 	resourceUrl := client.config.BaseURL + path
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, resourceUrl, nil)
@@ -207,14 +228,15 @@ func (client *Client) getRaw(ctx context.Context, path string, params map[string
 		request.URL.RawQuery = query.Encode()
 	}
 
-	body, _, err := client.sendRequest(ctx, request, nil)
+	body, _, err := client.sendRequest(ctx, request, projectID, nil)
 	return body, err
 }
 
+// login gets a token from IDP and stores it for next uses
 func (client *Client) login(ctx context.Context) error {
 	accessTokenData := client.getAuthenticationFormData()
 
-	tflog.Debug(ctx, "Login request", map[string]interface{}{
+	tflog.Debug(ctx, "Login request", map[string]any{
 		"request": accessTokenData.Encode(),
 	})
 
@@ -241,7 +263,7 @@ func (client *Client) login(ctx context.Context) error {
 
 	body, _ := io.ReadAll(accessTokenResponse.Body)
 
-	tflog.Debug(ctx, "Login response", map[string]interface{}{
+	tflog.Debug(ctx, "Login response", map[string]any{
 		"response": string(body),
 	})
 
@@ -270,10 +292,11 @@ func (client *Client) login(ctx context.Context) error {
 	return nil
 }
 
+// refresh refreshes the client token
 func (client *Client) refresh(ctx context.Context) error {
 	refreshTokenData := client.getAuthenticationFormData()
 
-	tflog.Debug(ctx, "Refresh request", map[string]interface{}{
+	tflog.Debug(ctx, "Refresh request", map[string]any{
 		"request": refreshTokenData.Encode(),
 	})
 
@@ -297,7 +320,7 @@ func (client *Client) refresh(ctx context.Context) error {
 
 	body, _ := io.ReadAll(refreshTokenResponse.Body)
 
-	tflog.Debug(ctx, "Refresh response", map[string]interface{}{
+	tflog.Debug(ctx, "Refresh response", map[string]any{
 		"response": string(body),
 	})
 
@@ -336,15 +359,12 @@ func (client *Client) bootstrap(ctx context.Context) error {
 	return nil
 }
 
-/*
-*
-Sends an HTTP request and refreshes credentials on 403 or 401 errors
-*/
-func (client *Client) sendRequest(ctx context.Context, request *http.Request, body []byte) ([]byte, string, error) {
+// sendRequest sends an HTTP request and refreshes credentials on 403 or 401 errors
+func (client *Client) sendRequest(ctx context.Context, request *http.Request, projectID string, body []byte) ([]byte, string, error) {
 	requestMethod := request.Method
 	requestPath := request.URL.Path
 
-	requestLogArgs := map[string]interface{}{
+	requestLogArgs := map[string]any{
 		"method": requestMethod,
 		"path":   requestPath,
 	}
@@ -356,6 +376,7 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, bo
 	tflog.Debug(ctx, "Sending request", requestLogArgs)
 
 	client.addRequestHeaders(request)
+	client.setProjectIDHeader(request, projectID)
 
 	response, err := client.httpClient.Do(request)
 	if err != nil {
@@ -364,9 +385,8 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, bo
 	defer response.Body.Close()
 
 	// Unauthorized: Token could have expired
-	// Forbidden: After creating a realm, following GETs for the realm return 403 until you refresh
 	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
-		tflog.Debug(ctx, "Got unexpected response, attempting refresh", map[string]interface{}{
+		tflog.Debug(ctx, "Got unexpected response, attempting refresh", map[string]any{
 			"status": response.Status,
 		})
 
@@ -392,7 +412,7 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, bo
 		return nil, "", err
 	}
 
-	responseLogArgs := map[string]interface{}{
+	responseLogArgs := map[string]any{
 		"status": response.Status,
 	}
 
@@ -441,6 +461,12 @@ func (client *Client) addRequestHeaders(request *http.Request) {
 
 	if request.Header.Get("Content-type") == "" && (request.Method == http.MethodPost || request.Method == http.MethodPut || request.Method == http.MethodDelete) {
 		request.Header.Set("Content-type", "application/json")
+	}
+}
+
+func (client *Client) setProjectIDHeader(request *http.Request, projectID string) {
+	if projectID != "" {
+		request.Header.Set(projectIDHeader, projectID)
 	}
 }
 

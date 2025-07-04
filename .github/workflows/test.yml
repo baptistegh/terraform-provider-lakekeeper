@@ -122,15 +122,32 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - name: Starting Lakekeeper instance (and third parties)
-        run: make testacc-up
-      - run: |
-          echo "Waiting for Lakekeeper to be healthy"
-          ./scripts/await-healthy.sh
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       - run: go mod download
+      - name: Restore Docker image cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker-cache
+          key: docker-cache-${{ runner.os }}-lakekeeper
+          restore-keys: |
+            docker-cache-${{ runner.os }}-
+      - name: Load Docker images (if cache hit)
+        run: |
+          if [ -f /tmp/.docker-cache/images.tar ]; then
+            docker load -i /tmp/.docker-cache/images.tar
+          fi
+      - name: Starting Lakekeeper instance (and third parties)
+        run: make testacc-up
+      - run: |
+          echo "Waiting for Lakekeeper to be healthy"
+          ./scripts/await-healthy.sh
       - run: go test -v -cover --tags acceptance -v ./internal/provider/
         timeout-minutes: 10
+      - name: Save Docker images for cache
+        if: always()
+        run: |
+          mkdir -p /tmp/.docker-cache
+          docker save $(docker compose -f run/docker-compose.yml config | grep image | awk '{print $2}') -o /tmp/.docker-cache/images.tar

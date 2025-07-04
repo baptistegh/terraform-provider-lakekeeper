@@ -41,6 +41,9 @@ func (client *Client) Whoami(ctx context.Context) (*User, error) {
 }
 
 func (client *Client) GetUserByID(ctx context.Context, id string) (*User, error) {
+	if id == "" {
+		return nil, fmt.Errorf("user id can not be empty")
+	}
 	var user User
 
 	if err := client.get(ctx, "/management/v1/user/"+id, &user, nil); err != nil {

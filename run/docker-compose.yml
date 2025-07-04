@@ -2,8 +2,8 @@
 # Only one of these services should be run at a time.
 services:
   lakekeeper:
-    image: &lakekeeper-image ${LAKEKEEPER__SERVER_IMAGE:-quay.io/lakekeeper/catalog:latest-main}
-    pull_policy: &lakekeeper-pull-policy always
+    image: &lakekeeper-image ${LAKEKEEPER__SERVER_IMAGE:-quay.io/lakekeeper/catalog:latest}
+    pull_policy: &lakekeeper-pull-policy if_not_present
     labels:
       terraform-provider-lakekeeper/owned: ""
     environment: &lakekeeper-environment
@@ -29,6 +29,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      minio:
+        condition: service_healthy
     ports:
       - "8181:8181"
     networks:
@@ -143,6 +145,29 @@ services:
     command: [ "start-dev", "--metrics-enabled=true", "--health-enabled=true", "--import-realm", "--verbose", "--log-level=INFO", "--features=token-exchange" ]
     networks:
       iceberg_net:
+  
+  
+  minio:
+    image: bitnami/minio:2025.4.22
+    environment:
+      - MINIO_ROOT_USER=minio-root-user
+      - MINIO_ROOT_PASSWORD=minio-root-password
+      - MINIO_API_PORT_NUMBER=9000
+      - MINIO_CONSOLE_PORT_NUMBER=9001
+      - MINIO_SCHEME=http
+      - MINIO_DEFAULT_BUCKETS=testacc
+    healthcheck:
+      test: [ "CMD", "mc", "ls", "local", "|", "grep", "testacc" ]
+      interval: 2s
+      timeout: 10s
+      retries: 2
+      start_period: 15s
+    networks:
+      iceberg_net:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+  
 
 networks:
   iceberg_net:
