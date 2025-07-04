@@ -49,7 +49,7 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: `The ID of the user. The id must be identical to the subject in JWT tokens, prefixed with` + "`<idp-identifier>~`" + `. For example: ` + "`oidc~1234567890`" + ` for OIDC users or kubernetes~1234567890 for Kubernetes users.`,
+				MarkdownDescription: `The ID of the user. The id must be identical to the subject in JWT tokens, prefixed with` + "`<idp-identifier>~`" + `. For example: ` + "`oidc~1234567890`" + " for OIDC users or `kubernetes~1234567890` for Kubernetes users.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
