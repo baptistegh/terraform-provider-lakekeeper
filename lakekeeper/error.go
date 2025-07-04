@@ -23,7 +23,7 @@ type ErrorResponse struct {
 
 func (e *ApiError) Error() string {
 	if e.Response == nil {
-		return fmt.Sprintf("unexpected error response: message=%s", e.Message)
+		return fmt.Sprintf("unexpected error response: %s", e.Message)
 	}
 	return fmt.Sprintf("api error, code=%d message=%s type=%s", e.Response.Code, e.Response.Message, e.Response.Type)
 }

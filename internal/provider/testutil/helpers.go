@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage/credential"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 )
 
@@ -52,6 +54,40 @@ func CreateProject(t *testing.T) *lakekeeper.Project {
 	})
 
 	return project
+}
+
+// CreateWarehouse is a test helper for creating a warehouse.
+func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *lakekeeper.Warehouse {
+	t.Helper()
+
+	endpoint := "http://minio:9000/"
+	pathStyleAccess := true
+	storageProfile := storage.NewStorageProfileS3("testacc", "local-01", true)
+	storageProfile.Endpoint = &endpoint
+	storageProfile.AllowAlternativeProtocols = true
+	storageProfile.PathStyleAccess = &pathStyleAccess
+	storageProfile.KeyPrefix = &keyPrefix
+
+	request := lakekeeper.WarehouseCreateOptions{
+		Name:              acctest.RandString(8),
+		ProjectID:         projectID,
+		StorageProfile:    storageProfile,
+		StorageCredential: credential.NewS3CredentialAccessKey("minio-root-user", "minio-root-password", ""),
+		DeleteProfile:     &lakekeeper.HardDeleteProfile{Type: "hard"},
+	}
+
+	warehouse, err := TestLakekeeperClient.NewWarehouse(context.Background(), &request)
+	if err != nil {
+		t.Fatalf("could not create test warehouse: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := TestLakekeeperClient.DeleteWarehouseByID(context.Background(), projectID, warehouse.ID); err != nil {
+			t.Fatalf("could not cleanup test warehouse: %v", err)
+		}
+	})
+
+	return warehouse
 }
 
 // CreateRole is a test helper for creating a role.

@@ -91,8 +91,8 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Whether the warehouse is active.",
 				Required:            true,
 			},
-			"storage_profile":    tftypes.StorageProfileSchema(),
-			"delete_profile":     tftypes.DeleteProfileSchema(),
+			"storage_profile":    tftypes.StorageProfileResourceSchema(),
+			"delete_profile":     tftypes.DeleteProfileResourceSchema(),
 			"storage_credential": tftypes.StorageCredentialSchema(),
 		},
 	}
@@ -134,10 +134,10 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	warehouse, err := r.client.NewWarehouse(ctx, request)
-	if err != nil {
+	warehouse, apiErr := r.client.NewWarehouse(ctx, request)
+	if apiErr != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred",
-			fmt.Sprintf("Unable to create warehouse: %s", err.Error()))
+			fmt.Sprintf("Unable to create warehouse: %v", apiErr))
 		return
 	}
 

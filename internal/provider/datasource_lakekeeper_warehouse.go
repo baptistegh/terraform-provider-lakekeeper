@@ -1,0 +1,131 @@
+package provider
+
+import (
+	"context"
+	"fmt"
+
+	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ datasource.DataSource              = &LakekeeperWarehouseDataSource{}
+	_ datasource.DataSourceWithConfigure = &LakekeeperWarehouseDataSource{}
+)
+
+func init() {
+	registerDataSource(NewLakekeeperWarehouseDataSource)
+}
+
+// NewLakekeeperWarehouseDataSource is a helper function to simplify the provider implementation.
+func NewLakekeeperWarehouseDataSource() datasource.DataSource {
+	return &LakekeeperWarehouseDataSource{}
+}
+
+// LakekeeperWarehouseDataSource is the data source implementation.
+type LakekeeperWarehouseDataSource struct {
+	client *lakekeeper.Client
+}
+
+// LakekeeperWarehouseDataSourceModel describes the data source data model.
+type lakekeeperWarehouseDataSourceModel struct {
+	ID             types.String                 `tfsdk:"id"` // form: project_id:warehouse_id (internal ID)
+	WarehouseID    types.String                 `tfsdk:"warehouse_id"`
+	Name           types.String                 `tfsdk:"name"`
+	ProjectID      types.String                 `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
+	Protected      types.Bool                   `tfsdk:"protected"`
+	Active         types.Bool                   `tfsdk:"active"`
+	StorageProfile *tftypes.StorageProfileModel `tfsdk:"storage_profile"`
+	DeleteProfile  *tftypes.DeleteProfileModel  `tfsdk:"delete_profile"`
+}
+
+// Metadata returns the data source type name.
+func (d *LakekeeperWarehouseDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_warehouse"
+}
+
+// Schema defines the schema for the data source.
+func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_warehouse`" + ` data source retrieves information a lakekeeper warehouse.
+
+**Currently the datasource can only read from the default project**
+
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)`),
+
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				MarkdownDescription: "The internale ID the warehouse. In the form: <project_id>:<warehouse_id>",
+				Computed:            true,
+			},
+			"warehouse_id": schema.StringAttribute{
+				MarkdownDescription: "The ID the warehouse.",
+				Computed:            true,
+			},
+			"name": schema.StringAttribute{
+				MarkdownDescription: "Name of the warehouse.",
+				Required:            true,
+				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
+			},
+			"project_id": schema.StringAttribute{
+				MarkdownDescription: "The project ID to which the warehouse belongs. If not provided, the default project will be used.",
+				// Currently the datasource can only read from the default project.
+				// Optional:            true,
+				Computed:   true,
+				Validators: []validator.String{stringvalidator.LengthAtLeast(1)},
+			},
+			"protected": schema.BoolAttribute{
+				MarkdownDescription: "Whether the warehouse is protected from being deleted.",
+				Computed:            true,
+			},
+			"active": schema.BoolAttribute{
+				MarkdownDescription: "Whether the warehouse is active.",
+				Computed:            true,
+			},
+			"storage_profile": tftypes.StorageProfileDatasourceSchema(),
+			"delete_profile":  tftypes.DeleteProfileDatasourceSchema(),
+		},
+	}
+}
+
+// Configure adds the provider configured client to the data source.
+func (d *LakekeeperWarehouseDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, _ *datasource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	datasource := req.ProviderData.(*LakekeeperDatasourceData)
+	d.client = datasource.Client
+}
+
+// Read refreshes the Terraform state with the latest data.
+func (d *LakekeeperWarehouseDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var state lakekeeperWarehouseDataSourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	warehouse, err := d.client.GetWarehouseByName(ctx, state.ProjectID.ValueString(), state.Name.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse with name %s, %v", state.Name.ValueString(), err))
+		return
+	}
+
+	diags := state.RefreshFromSettings(warehouse)
+	if diags.HasError() {
+		resp.Diagnostics = append(resp.Diagnostics, diags...)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
