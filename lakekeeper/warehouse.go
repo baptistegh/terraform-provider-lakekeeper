@@ -3,20 +3,23 @@ package lakekeeper
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage/credential"
 )
 
+type WarehouseNoCreds struct {
+	ID                    string                         `json:"id"`
+	ProjectID             string                         `json:"-"` // deprecated field from the API
+	Name                  string                         `json:"name"`
+	Protected             bool                           `json:"protected"`
+	Status                string                         `json:"status"`
+	StorageProfileWrapper *storage.StorageProfileWrapper `json:"storage-profile"`
+	DeleteProfileWrapper  *DeleteProfileWrapper          `json:"delete-profile"`
+}
+
 type Warehouse struct {
-	ID                       string                               `json:"id"`
-	ProjectID                string                               `json:"-"`
-	Name                     string                               `json:"name"`
-	Protected                bool                                 `json:"protected"`
-	Status                   string                               `json:"status"`
-	StorageProfileWrapper    *storage.StorageProfileWrapper       `json:"storage-profile"`
-	DeleteProfileWrapper     *DeleteProfileWrapper                `json:"delete-profile"`
+	WarehouseNoCreds
 	StorageCredentialWrapper *credential.StorageCredentialWrapper `json:"storage-credential"`
 }
 
@@ -41,15 +44,19 @@ type WarehouseCreateResponse struct {
 	ID string `json:"warehouse-id"`
 }
 
-func (w *Warehouse) IsActive() bool {
+type warehouseListResponse struct {
+	Warehouses []*WarehouseNoCreds `json:"warehouses"`
+}
+
+func (w *WarehouseNoCreds) IsActive() bool {
 	return w.Status == "active"
 }
 
 // GetWarehouseByID retrieves a warehouse by its ID.
 // If projectID is empty, the client's default project ID is used.
-func (client *Client) GetWarehouseByID(ctx context.Context, projectID string, warehouseID string) (*Warehouse, error) {
+func (client *Client) GetWarehouseByID(ctx context.Context, projectID string, warehouseID string) (*Warehouse, *ApiError) {
 	if warehouseID == "" {
-		return nil, fmt.Errorf("warehouse ID cannot be empty")
+		return nil, ApiErrorFromError("warehouse ID cannot be empty")
 	}
 
 	var warehouse Warehouse
@@ -59,21 +66,48 @@ func (client *Client) GetWarehouseByID(ctx context.Context, projectID string, wa
 
 	// populate project id if it is not in the response (api deprecated field)
 	if warehouse.ProjectID == "" {
-		if projectID == "" {
-			warehouse.ProjectID = client.defaultProjectID
-		} else {
+		if projectID != "" {
 			warehouse.ProjectID = projectID
+		} else {
+			warehouse.ProjectID = client.defaultProjectID
 		}
 	}
 
 	return &warehouse, nil
 }
 
+func (client *Client) GetWarehouseByName(ctx context.Context, projectID, name string) (*WarehouseNoCreds, *ApiError) {
+	if name == "" {
+		return nil, ApiErrorFromError("warehouse name must be defined")
+	}
+
+	evaluatedProjectID := client.defaultProjectID
+	if projectID != "" {
+		evaluatedProjectID = projectID
+	}
+
+	var resp warehouseListResponse
+	params := map[string]string{
+		"projectId": evaluatedProjectID,
+	}
+	if err := client.getWithProjectID(ctx, "/management/v1/warehouse", projectID, &resp, params); err != nil {
+		return nil, err
+	}
+
+	for _, warehouse := range resp.Warehouses {
+		if warehouse.Name == name {
+			warehouse.ProjectID = evaluatedProjectID
+			return warehouse, nil
+		}
+	}
+	return nil, ApiErrorFromError("could not find warehouse %s in project %s", name, evaluatedProjectID)
+}
+
 // DeleteWarehouseByID deletes a warehouse by its ID.
 // If projectID is empty, the client's default project ID is used.
-func (client *Client) DeleteWarehouseByID(ctx context.Context, projectID, warehouseID string) error {
+func (client *Client) DeleteWarehouseByID(ctx context.Context, projectID, warehouseID string) *ApiError {
 	if warehouseID == "" {
-		return fmt.Errorf("warehouse ID cannot be empty")
+		return ApiErrorFromError("warehouse ID cannot be empty")
 	}
 
 	if err := client.deleteWithProjectID(ctx, "/management/v1/warehouse/"+warehouseID, projectID); err != nil {
@@ -83,17 +117,17 @@ func (client *Client) DeleteWarehouseByID(ctx context.Context, projectID, wareho
 	return nil
 }
 
-func (client *Client) NewWarehouse(ctx context.Context, r *WarehouseCreateOptions) (*Warehouse, error) {
+func (client *Client) NewWarehouse(ctx context.Context, r *WarehouseCreateOptions) (*Warehouse, *ApiError) {
 	if r.Name == "" {
-		return nil, fmt.Errorf("could not create warehouse with an empty name")
+		return nil, ApiErrorFromError("could not create warehouse with an empty name")
 	}
 
 	if r.StorageProfile == nil {
-		return nil, fmt.Errorf("storage profile must be defined")
+		return nil, ApiErrorFromError("storage profile must be defined")
 	}
 
 	if r.StorageCredential == nil {
-		return nil, fmt.Errorf("storage credential must be defined")
+		return nil, ApiErrorFromError("storage credential must be defined")
 	}
 
 	var w = warehouseCreateRequest{
@@ -101,9 +135,6 @@ func (client *Client) NewWarehouse(ctx context.Context, r *WarehouseCreateOption
 		StorageProfileWrapper:    &storage.StorageProfileWrapper{StorageProfile: r.StorageProfile},
 		StorageCredentialWrapper: &credential.StorageCredentialWrapper{StorageCredential: r.StorageCredential},
 	}
-
-	//b, _ := json.Marshal(w)
-	//panic(string(b))
 
 	if r.DeleteProfile != nil {
 		w.DeleteProfileWrapper = &DeleteProfileWrapper{DeleteProfile: r.DeleteProfile}
@@ -116,7 +147,7 @@ func (client *Client) NewWarehouse(ctx context.Context, r *WarehouseCreateOption
 
 	body, err := json.Marshal(w)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal warehouse creation request, %s", err.Error())
+		return nil, ApiErrorFromError("could not marshal warehouse creation request, %v", err)
 	}
 
 	resp, apiErr := client.postWithProjectID(ctx, "/management/v1/warehouse", evaluatedProjectID, body)
@@ -125,7 +156,7 @@ func (client *Client) NewWarehouse(ctx context.Context, r *WarehouseCreateOption
 	}
 	var wResp WarehouseCreateResponse
 	if err := json.Unmarshal(resp, &wResp); err != nil {
-		return nil, fmt.Errorf("warehouse %s is created but could not find its ID, %s", r.Name, err.Error())
+		return nil, ApiErrorFromError("warehouse %s is created but could not find its ID, %v", r.Name, err)
 	}
 
 	return client.GetWarehouseByID(ctx, evaluatedProjectID, wResp.ID)
