@@ -121,6 +121,18 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
+      - name: Restore Docker image cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.docker-cache
+          key: docker-cache-${{ runner.os }}-lakekeeper
+          restore-keys: |
+            docker-cache-${{ runner.os }}-
+      - name: Load Docker images (if cache hit)
+        run: |
+          if [ -f /tmp/.docker-cache/images.tar ]; then
+            docker load -i /tmp/.docker-cache/images.tar
+          fi
       - run: go mod download
       - name: Starting Lakekeeper instance (and third parties)
         run: make testacc-up
@@ -129,3 +141,9 @@ jobs:
           ./scripts/await-healthy.sh
       - run: go test -v -cover --tags acceptance -v ./internal/provider/
         timeout-minutes: 10
+      - name: Save Docker images for cache
+        if: always()
+        run: |
+          mkdir -p /tmp/.docker-cache
+          docker save $(docker compose -f run/docker-compose.yml config | grep image | awk '{print $2}') -o /tmp/.docker-cache/images.tar
+
