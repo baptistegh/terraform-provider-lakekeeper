@@ -76,9 +76,9 @@ func (client *Client) NewProject(ctx context.Context, name string) (*Project, er
 		return nil, fmt.Errorf("could not marshall project creation request, %s", err.Error())
 	}
 
-	resp, err := client.post(ctx, "/management/v1/project", body)
-	if err != nil {
-		return nil, err
+	resp, apiErr := client.post(ctx, "/management/v1/project", body)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	var r ProjectCreateResponse

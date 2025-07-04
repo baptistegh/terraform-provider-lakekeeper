@@ -27,14 +27,15 @@ type LakekeeperProvider struct {
 
 // LakekeeperProviderModel describes the provider data model.
 type LakekeeperProviderModel struct {
-	Endpoint         types.String `tfsdk:"endpoint"`
-	AuthURL          types.String `tfsdk:"auth_url"`
-	ClientID         types.String `tfsdk:"client_id"`
-	ClientSecret     types.String `tfsdk:"client_secret"`
-	Scope            types.String `tfsdk:"scope"`
-	CACertFile       types.String `tfsdk:"cacert_file"`
-	Insecure         types.Bool   `tfsdk:"insecure"`
-	InitialBootstrap types.Bool   `tfsdk:"initial_bootstrap"`
+	Endpoint              types.String `tfsdk:"endpoint"`
+	AuthURL               types.String `tfsdk:"auth_url"`
+	ClientID              types.String `tfsdk:"client_id"`
+	ClientSecret          types.String `tfsdk:"client_secret"`
+	Scope                 types.String `tfsdk:"scope"`
+	CACertFile            types.String `tfsdk:"cacert_file"`
+	Insecure              types.Bool   `tfsdk:"insecure"`
+	InitialBootstrap      types.Bool   `tfsdk:"initial_bootstrap"`
+	HandleTokenExpiration types.Bool   `tfsdk:"handle_token_expiration"`
 }
 
 type (
@@ -92,6 +93,10 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 			},
 			"initial_bootstrap": schema.BoolAttribute{
 				MarkdownDescription: "When set to true, the provider will try to bootstrap the serve first. default: `true`.",
+				Optional:            true,
+			},
+			"handle_token_expiration": schema.BoolAttribute{
+				MarkdownDescription: "When set to true, the provider will try to refresh the token if Lakekeeper API sends 401/403 HTTP Status Codes. default: `true`.",
 				Optional:            true,
 			},
 		},
@@ -165,17 +170,20 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 			ClientSecret: os.Getenv("LAKEKEEPER_CLIENT_SECRET"),
 			Scope:        "lakekeeper",
 		},
-		CACertFile:       "",
-		Insecure:         false,
-		InitialBootstrap: true,
+		CACertFile:            "",
+		Insecure:              false,
+		InitialBootstrap:      true,
+		HandleTokenExpiration: true,
 	}
 
 	if !config.Endpoint.IsNull() {
 		evaluatedConfig.BaseURL = config.Endpoint.ValueString()
 	}
+
 	if !config.AuthURL.IsNull() {
 		evaluatedConfig.ClientCredentials.AuthURL = config.AuthURL.ValueString()
 	}
+
 	if !config.ClientID.IsNull() {
 		evaluatedConfig.ClientCredentials.ClientID = config.ClientID.ValueString()
 	}
@@ -198,6 +206,10 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 
 	if !config.InitialBootstrap.IsNull() {
 		evaluatedConfig.InitialBootstrap = config.InitialBootstrap.ValueBool()
+	}
+
+	if !config.HandleTokenExpiration.IsNull() {
+		evaluatedConfig.HandleTokenExpiration = config.HandleTokenExpiration.ValueBool()
 	}
 
 	clientFactory := newLakekeeperClient(evaluatedConfig, req.TerraformVersion, p.version)

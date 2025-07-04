@@ -22,13 +22,14 @@ import (
 )
 
 type Config struct {
-	BaseURL           string
-	ClientCredentials *ClientCredentials
-	Insecure          bool
-	CACertFile        string
-	ClientTimeout     int
-	UserAgent         string
-	InitialBootstrap  bool
+	BaseURL               string
+	ClientCredentials     *ClientCredentials
+	Insecure              bool
+	CACertFile            string
+	ClientTimeout         int
+	UserAgent             string
+	InitialBootstrap      bool
+	HandleTokenExpiration bool
 }
 
 type Client struct {
@@ -140,84 +141,80 @@ func newHttpClient(tlsInsecureSkipVerify bool, clientTimeout int, caCert string)
 	return httpClient, nil
 }
 
-func (client *Client) get(ctx context.Context, path string, resource any, params map[string]string) error {
+func (client *Client) get(ctx context.Context, path string, resource any, params map[string]string) *ApiError {
 	body, err := client.getRaw(ctx, path, client.defaultProjectID, params)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(body, resource)
+
+	if err := json.Unmarshal(body, resource); err != nil {
+		return ApiErrorFromError("could not read response, %v", err)
+	}
+	return nil
 }
 
-func (client *Client) getWithProjectID(ctx context.Context, path, projectID string, resource any, params map[string]string) error {
+func (client *Client) getWithProjectID(ctx context.Context, path, projectID string, resource any, params map[string]string) *ApiError {
 	body, err := client.getRaw(ctx, path, projectID, params)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(body, resource)
+
+	if err := json.Unmarshal(body, resource); err != nil {
+		return ApiErrorFromError("could not read response, %v", err)
+	}
+	return nil
 }
 
-func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, error) {
-	resourceUrl := client.config.BaseURL + path
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-	resp, _, err := client.sendRequest(ctx, request, projectID, body)
-	if err != nil {
-		return nil, err
-	}
-	return resp, err
-}
-
-func (client *Client) post(ctx context.Context, path string, body []byte) ([]byte, error) {
+func (client *Client) post(ctx context.Context, path string, body []byte) ([]byte, *ApiError) {
 	resourceUrl := client.config.BaseURL + path
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
 	if err != nil {
-		return nil, err
+		return nil, ApiErrorFromError("could not create request, %v", err)
 	}
 
-	resp, _, err := client.sendRequest(ctx, request, client.defaultProjectID, body)
-	if err != nil {
-		return nil, err
-	}
-	return resp, err
+	return client.sendRequest(ctx, request, client.defaultProjectID, body)
 }
 
-func (client *Client) delete(ctx context.Context, path string) error {
+func (client *Client) postWithProjectID(ctx context.Context, path string, projectID string, body []byte) ([]byte, *ApiError) {
+	resourceUrl := client.config.BaseURL + path
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, resourceUrl, nil)
+	if err != nil {
+		return nil, ApiErrorFromError("could not create request, %v", err)
+	}
+	return client.sendRequest(ctx, request, projectID, body)
+}
+
+func (client *Client) delete(ctx context.Context, path string) *ApiError {
 	resourceUrl := client.config.BaseURL + path
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, resourceUrl, nil)
 	if err != nil {
-		return err
+		return ApiErrorFromError("could not create request, %v", err)
 	}
-	_, _, err = client.sendRequest(ctx, request, client.defaultProjectID, nil)
-	if err != nil {
-		return err
-	}
-	return err
+
+	_, r := client.sendRequest(ctx, request, client.defaultProjectID, nil)
+	return r
 }
 
-func (client *Client) deleteWithProjectID(ctx context.Context, path, projectID string) error {
+func (client *Client) deleteWithProjectID(ctx context.Context, path, projectID string) *ApiError {
 	resourceUrl := client.config.BaseURL + path
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, resourceUrl, nil)
 	if err != nil {
-		return err
+		return ApiErrorFromError("could not create request, %v", err)
 	}
-	_, _, err = client.sendRequest(ctx, request, projectID, nil)
-	if err != nil {
-		return err
-	}
-	return err
+
+	_, r := client.sendRequest(ctx, request, projectID, nil)
+	return r
 }
 
-func (client *Client) getRaw(ctx context.Context, path string, projectID string, params map[string]string) ([]byte, error) {
+func (client *Client) getRaw(ctx context.Context, path string, projectID string, params map[string]string) ([]byte, *ApiError) {
 	resourceUrl := client.config.BaseURL + path
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, resourceUrl, nil)
 	if err != nil {
-		return nil, err
+		return nil, ApiErrorFromError("could not create request, %v", err)
 	}
 
 	if params != nil {
@@ -228,8 +225,7 @@ func (client *Client) getRaw(ctx context.Context, path string, projectID string,
 		request.URL.RawQuery = query.Encode()
 	}
 
-	body, _, err := client.sendRequest(ctx, request, projectID, nil)
-	return body, err
+	return client.sendRequest(ctx, request, projectID, nil)
 }
 
 // login gets a token from IDP and stores it for next uses
@@ -343,15 +339,16 @@ func (client *Client) refresh(ctx context.Context) error {
 	return nil
 }
 
+// bootstrap sends the bootstrap if the config asks for initial bootstrap
 func (client *Client) bootstrap(ctx context.Context) error {
 	bootstrapData, err := json.Marshal(BootstrapRequest{AcceptTerms: true, IsOperator: true})
 	if err != nil {
 		return fmt.Errorf("error creating bootstrap request, %s", err.Error())
 	}
 
-	_, err = client.post(ctx, "/management/v1/bootstrap", bootstrapData)
-	if err != nil {
-		return err
+	_, apiErr := client.post(ctx, "/management/v1/bootstrap", bootstrapData)
+	if apiErr != nil {
+		return apiErr
 	}
 
 	client.bootstrapped = true
@@ -360,7 +357,7 @@ func (client *Client) bootstrap(ctx context.Context) error {
 }
 
 // sendRequest sends an HTTP request and refreshes credentials on 403 or 401 errors
-func (client *Client) sendRequest(ctx context.Context, request *http.Request, projectID string, body []byte) ([]byte, string, error) {
+func (client *Client) sendRequest(ctx context.Context, request *http.Request, projectID string, body []byte) ([]byte, *ApiError) {
 	requestMethod := request.Method
 	requestPath := request.URL.Path
 
@@ -380,36 +377,37 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, pr
 
 	response, err := client.httpClient.Do(request)
 	if err != nil {
-		return nil, "", fmt.Errorf("error sending request: %v", err)
+		return nil, ApiErrorFromError("error sending request %v", err)
 	}
 	defer response.Body.Close()
 
-	// Unauthorized: Token could have expired
-	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
-		tflog.Debug(ctx, "Got unexpected response, attempting refresh", map[string]any{
+	if response.StatusCode >= 400 {
+		tflog.Debug(ctx, "Got error response", map[string]any{
 			"status": response.Status,
 		})
 
-		err := client.refresh(ctx)
-		if err != nil {
-			return nil, "", fmt.Errorf("error refreshing credentials: %s", err)
+		apiError := ApiErrorFromResponse(response)
+		if !client.config.HandleTokenExpiration {
+			return nil, apiError
 		}
 
-		client.addRequestHeaders(request)
+		// Token could have expired
+		if apiError.IsAuthError() {
+			tflog.Debug(ctx, "Got unexpected response, attempting refresh", map[string]any{
+				"status": response.Status,
+			})
 
-		if body != nil {
-			request.Body = io.NopCloser(bytes.NewReader(body))
+			response, err := client.handleTokenRefresh(ctx, request)
+			if err != nil {
+				return nil, err
+			}
+			defer response.Body.Close()
 		}
-		response, err = client.httpClient.Do(request)
-		if err != nil {
-			return nil, "", fmt.Errorf("error sending request after refresh: %v", err)
-		}
-		defer response.Body.Close()
 	}
 
 	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, "", err
+		return nil, ApiErrorFromError("could not read API response, %v", err)
 	}
 
 	responseLogArgs := map[string]any{
@@ -423,19 +421,32 @@ func (client *Client) sendRequest(ctx context.Context, request *http.Request, pr
 	tflog.Debug(ctx, "Received response", responseLogArgs)
 
 	if response.StatusCode >= 400 {
-		errorMessage := fmt.Sprintf("error sending %s request to %s: %s.", request.Method, request.URL.Path, response.Status)
-
-		if len(responseBody) != 0 {
-			errorMessage = fmt.Sprintf("%s Response body: %s", errorMessage, responseBody)
-		}
-
-		return nil, "", &ApiError{
-			Code:    response.StatusCode,
-			Message: errorMessage,
-		}
+		return nil, ApiErrorFromResponse(response)
 	}
 
-	return responseBody, response.Header.Get("Location"), nil
+	return responseBody, nil
+}
+
+func (client *Client) handleTokenRefresh(ctx context.Context, request *http.Request) (*http.Response, *ApiError) {
+	err := client.refresh(ctx)
+	if err != nil {
+		return nil, ApiErrorFromError("error refreshing credentials: %s", err)
+	}
+
+	// refresh tokens in request headers
+	client.addRequestHeaders(request)
+
+	response, err := client.httpClient.Do(request)
+	if err != nil {
+		return nil, ApiErrorFromError("error sending request after token refresh, %v", err)
+	}
+
+	if response.StatusCode >= 400 {
+		defer response.Body.Close()
+		return nil, ApiErrorFromResponse(response)
+	}
+
+	return response, nil
 }
 
 func (client *Client) getAuthenticationFormData() url.Values {

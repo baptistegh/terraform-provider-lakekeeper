@@ -69,9 +69,9 @@ func (client *Client) NewUser(ctx context.Context, id, email, name, userType str
 		return nil, fmt.Errorf("could not marshal create user request, %s", err.Error())
 	}
 
-	bodyResp, err := client.post(ctx, "/management/v1/user", body)
-	if err != nil {
-		return nil, err
+	bodyResp, apiErr := client.post(ctx, "/management/v1/user", body)
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
 	var user User
