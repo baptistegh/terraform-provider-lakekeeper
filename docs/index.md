@@ -1,8 +1,7 @@
 ---
 page_title: "lakekeeper Provider"
-subcategory: ""
 description: |-
-  
+
 ---
 
 # Lakekeeper Provider

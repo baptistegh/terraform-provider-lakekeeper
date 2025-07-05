@@ -1,5 +1,5 @@
-//go:build acceptance || flakey || settings
-// +build acceptance flakey settings
+//go:build acceptance
+// +build acceptance
 
 package testutil
 
@@ -12,7 +12,7 @@ import (
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage/credential"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 )
 
 var testLakekeeperConfig = lakekeeper.Config{
