@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
