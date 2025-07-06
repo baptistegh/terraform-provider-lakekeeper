@@ -51,7 +51,7 @@ func (r *lakekeeperProjectResource) Schema(ctx context.Context, req resource.Sch
 	resp.Schema = schema.Schema{
 		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_project`" + ` resource allows to manage the lifecycle of a lakekeeper project.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_project)`),
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project)`),
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

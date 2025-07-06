@@ -93,7 +93,7 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				Optional:            true,
 			},
 			"initial_bootstrap": schema.BoolAttribute{
-				MarkdownDescription: "When set to true, the provider will try to bootstrap the serve first. default: `true`.",
+				MarkdownDescription: "When set to true, the provider will try to bootstrap the server first. default: `true`.",
 				Optional:            true,
 			},
 		},

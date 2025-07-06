@@ -44,7 +44,7 @@ func (d *LakekeeperDefaultProjectDataSource) Metadata(_ context.Context, req dat
 // Schema defines the schema for the data source.
 func (d *LakekeeperDefaultProjectDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: `The ` + "`lakekeeper_default_project`" + ` data source retrieves information about a lakekeeper project.
+		MarkdownDescription: `The ` + "`lakekeeper_default_project`" + ` data source retrieves information about the user's default project.
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_project)`,
 
