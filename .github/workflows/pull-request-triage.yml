@@ -1,8 +1,11 @@
-name: PR Conventional Commit Check
+name: PR Title Checker
 
 on:
   pull_request:
     types: [opened, edited, synchronize]
+
+permissions:
+  pull-requests: write
 
 jobs:
   check-conventional-title:
