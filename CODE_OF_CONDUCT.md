@@ -34,7 +34,7 @@ This Code of Conduct applies within all project spaces (e.g. GitHub issues, PRs,
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the maintainers at [INSERT CONTACT EMAIL OR ISSUE TEMPLATE LINK]. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be [reported to the maintainers](https://github.com/baptistegh/terraform-provider-lakekeeper/issues). All complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution
 
