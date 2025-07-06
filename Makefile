@@ -5,22 +5,14 @@ reviewable: build fmt generate test ## Run before committing.
 GOBIN = $(shell pwd)/bin
 PROVIDER_SRC_DIR := ./internal/provider/...
 CLIENT_SRC_DIR := ./lakekeeper
-TERRAFORM_PLUGIN_DIR ?= ~/.terraform.d/plugins/terraform.local/x/lakekeeper/99.99.99
-TERRAFORM_PLATFORM_DIR ?= darwin_amd64
 CONTAINER_COMPOSE_ENGINE ?= $(shell docker compose version >/dev/null 2>&1 && echo 'docker compose' || echo 'docker-compose')
 
 build: ## Build the provider binary.
 	go mod tidy
 	GOBIN=$(GOBIN) go install
 
-local: build ## Build and Install the provider locally
-	@mkdir -p $(TERRAFORM_PLUGIN_DIR)/$(TERRAFORM_PLATFORM_DIR)
-	@cp -f $(GOBIN)/terraform-provider-lakekeeper $(TERRAFORM_PLUGIN_DIR)/$(TERRAFORM_PLATFORM_DIR)/terraform-provider-lakekeeper
-
-generate: tool-tfplugindocs ## Generate files to be checked in.
-	@# Setting empty environment variables to work around issue: https://github.com/hashicorp/terraform-plugin-docs/issues/12
-	@# Setting the PATH so that tfplugindocs uses the same terraform binary as other targets here, and to resolve a "Error: Incompatible provider version" error on M1 macs.
-	PATH="$(GOBIN):$(PATH)" $(GOBIN)/tfplugindocs generate -provider-name terraform-provider-lakekeeper
+generate: ## Generate documentation.
+	PATH="$(GOBIN):$(PATH)" go generate --tags generate ./...
 
 ifdef RUN
 TESTARGS += -test.run $(RUN)
@@ -35,14 +27,16 @@ fmt: tool-golangci-lint tool-terraform tool-shfmt ## Format files and fix issues
 	$(GOBIN)/terraform fmt -recursive -list ./examples ./playground
 	$(GOBIN)/shfmt -l -s -w ./examples
 
+lint: lint-golangci lint-examples-tf lint-examples-sh lint-generated
+
 lint-golangci: tool-golangci-lint ## Run golangci-lint linter (same as fmt but without modifying files).
-	$(GOBIN)/golangci-lint run --build-tags acceptance
+	PATH="$(GOBIN):$(PATH)" golangci-lint run --build-tags acceptance
 
 lint-examples-tf: tool-terraform ## Run terraform linter on examples (same as fmt but without modifying files).
-	$(GOBIN)/terraform fmt -recursive -check -diff ./examples ./playground
+	PATH="$(GOBIN):$(PATH)" terraform fmt -recursive -check -diff ./examples ./playground
 
 lint-examples-sh: tool-shfmt ## Run shell linter on examples (same as fmt but without modifying files).
-	$(GOBIN)/shfmt -l -s -d ./examples
+	PATH="$(GOBIN):$(PATH)" shfmt -l -s -d ./examples
 
 lint-generated: generate ## Check that "make generate" was called. Note this only works if the git workspace is clean.
 	@echo "Checking git status"
@@ -53,6 +47,8 @@ lint-generated: generate ## Check that "make generate" was called. Note this onl
 		echo "Run \"make generate\" and try again"; \
 		exit 1; \
 	}
+	@echo "validate documentation"
+	PATH="$(GOBIN):$(PATH)" go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs validate
 
 LAKEKEEPER_ENDPOINT ?= http://localhost:8181
 LAKEKEEPER_AUTH_URL ?= http://localhost:30080/realms/iceberg/protocol/openid-connect/token
@@ -82,14 +78,11 @@ tool-golangci-lint:
 	@mkdir -p $(GOBIN)
 	@[ -f $(GOBIN)/golangci-lint ] || { curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.2.0; }
 
-tool-tfplugindocs:
-	@$(call install-tool, github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs)
-
 tool-shfmt:
 	@$(call install-tool, mvdan.cc/sh/v3/cmd/shfmt)
 
 define install-tool
-	cd tools && GOBIN=$(GOBIN) go install $(1)
+	GOBIN=$(GOBIN) go install $(1)
 endef
 
 TERRAFORM_VERSION = v1.9.8
