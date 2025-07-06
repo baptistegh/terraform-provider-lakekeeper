@@ -4,13 +4,11 @@
 package provider
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -19,8 +17,7 @@ import (
 
 func TestAccLakekeeperUser_basic(t *testing.T) {
 
-	index := acctest.RandIntRange(0, len(lakekeeper.ValidUserIDPPrefixes))
-	rID := fmt.Sprintf("%s~%s", lakekeeper.ValidUserIDPPrefixes[index], acctest.RandString(12))
+	rID := acctest.RandomWithPrefix("oidc~")
 	rName := acctest.RandString(8)
 	rUpdatedName := acctest.RandString(12)
 
@@ -43,7 +40,6 @@ func TestAccLakekeeperUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("lakekeeper_user.foo", "email", rName+"@local.local"),
 					resource.TestCheckResourceAttr("lakekeeper_user.foo", "user_type", "human"),
 					resource.TestCheckResourceAttr("lakekeeper_user.foo", "last_updated_with", "create-endpoint"),
-					resource.TestCheckResourceAttr("lakekeeper_user.foo", "updated_at", ""),
 					resource.TestCheckResourceAttrSet("lakekeeper_user.foo", "created_at"),
 				),
 			},
@@ -109,8 +105,7 @@ func TestAccLakekeeperUser_invalidID(t *testing.T) {
 
 func TestAccLakekeeperUser_invalidType(t *testing.T) {
 
-	index := acctest.RandIntRange(0, len(lakekeeper.ValidUserIDPPrefixes))
-	rID := fmt.Sprintf("%s~%s", lakekeeper.ValidUserIDPPrefixes[index], acctest.RandString(12))
+	rID := acctest.RandomWithPrefix("oidc~")
 	rName := acctest.RandString(8)
 	rType := acctest.RandString(8)
 
@@ -150,11 +145,10 @@ func testAccCheckLakekeeperUserDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := testutil.TestLakekeeperClient.GetUserByID(context.Background(), rs.Primary.ID)
+		_, _, err := testutil.TestLakekeeperClient.User.GetUser(rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("User with id %s still exists", rs.Primary.ID)
 		}
-		return nil
 	}
 	return nil
 }

@@ -65,8 +65,7 @@ func (r *lakekeeperRoleResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: `The ID of the project the role belongs to.`,
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the role.",
@@ -111,15 +110,15 @@ func (r *lakekeeperRoleResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	roleCreateReq := lakekeeper.RoleCreateRequest{
+	opts := lakekeeper.CreateRoleOptions{
 		Name:        state.Name.ValueString(),
-		Description: state.Description.ValueString(),
-		ProjectID:   state.ProjectID.ValueString(),
+		Description: state.Description.ValueStringPointer(),
+		ProjectID:   state.ProjectID.ValueStringPointer(),
 	}
 
-	role, err := r.client.NewRole(ctx, &roleCreateReq)
+	role, _, err := r.client.Role.CreateRole(&opts, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create role: %v", err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create role, %v", err))
 		return
 	}
 
@@ -153,9 +152,9 @@ func (r *lakekeeperRoleResource) Read(ctx context.Context, req resource.ReadRequ
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	role, err := r.client.GetRoleByID(ctx, roleID, projectID)
+	role, _, err := r.client.Role.GetRole(roleID, projectID, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role: %v", err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role %s in project %s, %v", roleID, projectID, err))
 		return
 	}
 
@@ -195,16 +194,15 @@ func (r *lakekeeperRoleResource) Update(ctx context.Context, req resource.Update
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	roleUpdateReq := lakekeeper.RoleUpdateRequest{
-		ID:          roleID,
-		ProjectID:   projectID,
+	opts := lakekeeper.UpdateRoleOptions{
 		Name:        plan.Name.ValueString(),
-		Description: plan.Description.ValueString(),
+		Description: plan.Description.ValueStringPointer(),
+		ProjectID:   &projectID,
 	}
 
-	role, err := r.client.UpdateRole(ctx, &roleUpdateReq)
+	role, _, err := r.client.Role.UpdateRole(roleID, &opts, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update role: %v", err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update role %s in project %s, %v", roleID, projectID, err))
 		return
 	}
 
@@ -238,9 +236,9 @@ func (r *lakekeeperRoleResource) Delete(ctx context.Context, req resource.Delete
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	err := r.client.DeteleteRoleByID(ctx, roleID, projectID)
+	_, err := r.client.Role.DeleteRole(roleID, projectID, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete role: %v", err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete role %s in project %s, %v", roleID, projectID, err))
 		return
 	}
 

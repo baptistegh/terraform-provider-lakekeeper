@@ -118,9 +118,9 @@ func (d *lakekeeperServerInfoDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 	// Make API call to read applications
-	serverInfo, err := d.client.GetServerInfo(ctx)
+	serverInfo, _, err := d.client.Server.Info(lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server infos: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server infos, %v", err.Error()))
 		return
 	}
 

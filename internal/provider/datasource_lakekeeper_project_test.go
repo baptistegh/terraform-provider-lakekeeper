@@ -21,9 +21,9 @@ func TestAccDataLakekeeperProject_basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`				
 				data "lakekeeper_project" "foo" {
-				  name = "%s"
+				  id = "%s"
 				}
-				`, project.Name),
+				`, project.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.lakekeeper_project.foo", "id", project.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_project.foo", "name", project.Name),

@@ -4,7 +4,6 @@
 package provider
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -27,16 +26,16 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create a warehouse with S3 storage profile
 			{
-				Config: fmt.Sprintf(`				
+				Config: fmt.Sprintf(`
+				data "lakekeeper_default_project" "default" {}			
 				resource "lakekeeper_warehouse" "s3" {
 					name = "%s"
-					protected = false
-					active = true
+					project_id = data.lakekeeper_default_project.default.id
 					storage_profile = {
 						type = "s3"
 						bucket = "testacc"
 						endpoint = "http://minio:9000/"
-						region ="local-01"
+						region = "local-01"
 						sts_enabled = false
 						path_style_access = true
 						key_prefix = "%s"
@@ -65,9 +64,11 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 			},
 			// Update must throw an error for now
 			{
-				Config: fmt.Sprintf(`				
+				Config: fmt.Sprintf(`
+				data "lakekeeper_default_project" "default" {}
 				resource "lakekeeper_warehouse" "s3" {
 					name = "%s"
+					project_id = data.lakekeeper_default_project.default.id
 					protected = false
 					active = true
 					storage_profile = {
@@ -110,9 +111,11 @@ func TestAccLakekeeperWarehouse_NonImplemented(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create a warehouse with S3 storage profile
 			{
-				Config: fmt.Sprintf(`				
+				Config: fmt.Sprintf(`			
+				data "lakekeeper_default_project" "default" {}		
 				resource "lakekeeper_warehouse" "s3" {
 					name = "%s"
+					project_id = data.lakekeeper_default_project.default.id
 					protected = false
 					active = true
 					storage_profile = {
@@ -140,8 +143,10 @@ func TestAccLakekeeperWarehouse_NonImplemented(t *testing.T) {
 			// Update must throw an error for now
 			{
 				Config: fmt.Sprintf(`				
+				data "lakekeeper_default_project" "default" {}	
 				resource "lakekeeper_warehouse" "s3" {
 					name = "%s"
+					project_id = data.lakekeeper_default_project.default.id
 					protected = false
 					active = true
 					storage_profile = {
@@ -180,8 +185,7 @@ func testAccCheckLakekeeperWarehouseDestroy(s *terraform.State) error {
 		}
 
 		projectID, warehouseID := splitInternalID(types.StringValue(rs.Primary.ID))
-		_, err := testutil.TestLakekeeperClient.GetWarehouseByID(context.Background(), projectID, warehouseID)
-		if err == nil {
+		if _, _, err := testutil.TestLakekeeperClient.Warehouse.GetWarehouse(warehouseID, projectID); err == nil {
 			return fmt.Errorf("Warehouse with id %s still exists", rs.Primary.ID)
 		}
 		return nil

@@ -6,19 +6,17 @@ import (
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage/credential"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeeper.WarehouseCreateOptions, error) {
+func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeeper.CreateWarehouseOptions, error) {
 	if !m.Active.ValueBool() {
 		return nil, fmt.Errorf("could not create a warehouse with inactive status")
 	}
-	req := &lakekeeper.WarehouseCreateOptions{
+	req := lakekeeper.CreateWarehouseOptions{
 		Name:      m.Name.ValueString(),
-		Protected: m.Protected.ValueBool(),
-		Status:    "active",
+		ProjectID: m.ProjectID.ValueString(),
 	}
 
 	if m.DeleteProfile != nil {
@@ -34,7 +32,7 @@ func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeep
 		if err != nil {
 			return nil, err
 		}
-		req.StorageProfile = storageProfile
+		req.StorageProfile = storage.StorageProfileWrapper{StorageProfile: storageProfile}
 	}
 
 	if m.StorageCredential != nil {
@@ -42,10 +40,10 @@ func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeep
 		if err != nil {
 			return nil, err
 		}
-		req.StorageCredential = storageCredential
+		req.StorageCredential = storage.StorageCredentialWrapper{StorageCredential: storageCredential}
 	}
 
-	return req, nil
+	return &req, nil
 }
 
 // TODO: refactor RefreshFromSettings on datasource and resource
@@ -123,15 +121,15 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *lakekeeper.War
 		}
 	}
 
-	// Lakekeeper API does not give delete-profile on GET, it can't be refreshed
-	if (w.StorageCredentialWrapper == nil || w.StorageCredentialWrapper.StorageCredential == nil) && m.StorageCredential == nil {
+	// Lakekeeper API does not give storage-credential on GET, it can't be refreshed
+	if m.StorageCredential == nil {
 		diags.AddError(errorMessage, "Storage credential must be defined")
 	}
 
 	return diags
 }
 
-func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *lakekeeper.WarehouseNoCreds) diag.Diagnostics {
+func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *lakekeeper.Warehouse) diag.Diagnostics {
 	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)
@@ -268,14 +266,14 @@ func (m *lakekeeperWarehouseResourceModel) StorageProfileSettings() (storage.Sto
 	return nil, fmt.Errorf("invalid storage profile definitions, type must be [s3,gcs,adls]")
 }
 
-func (m *lakekeeperWarehouseResourceModel) StorageCredentialSettings() (credential.StorageCredential, error) {
+func (m *lakekeeperWarehouseResourceModel) StorageCredentialSettings() (storage.StorageCredential, error) {
 	if m.StorageCredential == nil {
 		return nil, fmt.Errorf("invalid storage credential definitions, must be defined")
 	}
 	storageType := m.StorageCredential.Type.ValueString()
 	switch storageType {
 	case "s3_access_key":
-		return credential.NewS3CredentialAccessKey(
+		return storage.NewS3CredentialAccessKey(
 			m.StorageCredential.AccessKeyID.ValueString(),
 			m.StorageCredential.SecretAccessKey.ValueString(),
 			m.StorageCredential.ExternalID.ValueString(),

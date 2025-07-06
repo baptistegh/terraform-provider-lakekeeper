@@ -1,93 +1,139 @@
 package lakekeeper
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"slices"
+	"net/http"
 )
 
+type (
+	UserServiceInterface interface {
+		GetUser(id string, options ...RequestOptionFunc) (*User, *http.Response, error)
+		Whoami(options ...RequestOptionFunc) (*User, *http.Response, error)
+		ProvisionUser(opts *ProvisionUserOptions, options ...RequestOptionFunc) (*User, *http.Response, error)
+		DeleteUser(id string, options ...RequestOptionFunc) (*http.Response, error)
+	}
+
+	// UserService handles communication with user endpoints of the Lakekeeper API.
+	//
+	// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user
+	UserService struct {
+		client *Client
+	}
+)
+
+var _ UserServiceInterface = (*UserService)(nil)
+
+// User represents a lakekeeper user
 type User struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	Email           string `json:"email"`
-	UserType        string `json:"user-type"`
-	CreatedAt       string `json:"created-at"`
-	UpdatedAt       string `json:"updated-at"`
-	LastUpdatedWith string `json:"last-updated-with"`
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	Email           *string  `json:"email,omitempty"`
+	UserType        UserType `json:"user-type"`
+	CreatedAt       string   `json:"created-at"`
+	UpdatedAt       *string  `json:"updated-at,omitempty"`
+	LastUpdatedWith string   `json:"last-updated-with"`
 }
 
-type UserCreateRequest struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
-	UserType       string `json:"user-type"`
-	UpdateIfExists bool   `json:"update-if-exists"`
-}
+type UserType string
 
-var (
-	ValidUserTypes       = []string{"human", "application"}
-	ValidUserIDPPrefixes = []string{"oidc", "kubernetes"}
+const (
+	HumanUserType       UserType = "human"
+	ApplicationUserType UserType = "application"
 )
 
-func (client *Client) Whoami(ctx context.Context) (*User, error) {
-	var user User
-
-	if err := client.get(ctx, "/management/v1/whoami", &user, nil); err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-func (client *Client) GetUserByID(ctx context.Context, id string) (*User, error) {
-	if id == "" {
-		return nil, fmt.Errorf("user id can not be empty")
-	}
-	var user User
-
-	if err := client.get(ctx, "/management/v1/user/"+id, &user, nil); err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-// NewUser creates a new user, id is required because it must match the identity provider ID
-func (client *Client) NewUser(ctx context.Context, id, email, name, userType string, updateIfExists bool) (*User, error) {
-	if !slices.Contains(ValidUserTypes, userType) {
-		return nil, fmt.Errorf("invalid user type %s, valid values are %v", userType, ValidUserTypes)
-	}
-	body, err := json.Marshal(UserCreateRequest{
-		ID:             id,
-		Email:          email,
-		Name:           name,
-		UserType:       userType,
-		UpdateIfExists: updateIfExists,
-	})
+// GetUser retrieves detailed information about a specific user.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/get_user
+func (s *UserService) GetUser(id string, options ...RequestOptionFunc) (*User, *http.Response, error) {
+	req, err := s.client.NewRequest(http.MethodGet, "/user/"+id, nil, options)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal create user request, %s", err.Error())
+		return nil, nil, err
 	}
 
-	bodyResp, apiErr := client.post(ctx, "/management/v1/user", body)
+	var user User
+
+	resp, apiErr := s.client.Do(req, &user)
 	if apiErr != nil {
-		return nil, apiErr
+		return nil, resp, apiErr
+	}
+
+	return &user, resp, nil
+}
+
+// Whoami returns information about the user associated with the current authentication token.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/whoami
+func (s *UserService) Whoami(options ...RequestOptionFunc) (*User, *http.Response, error) {
+	req, err := s.client.NewRequest(http.MethodGet, "/whoami", nil, options)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	var user User
-	if err := json.Unmarshal(bodyResp, &user); err != nil {
-		return nil, fmt.Errorf("could not read create user response, %s", err.Error())
+
+	resp, apiErr := s.client.Do(req, &user)
+	if apiErr != nil {
+		return nil, resp, apiErr
 	}
 
-	return &user, nil
+	return &user, resp, nil
 }
 
-// DeleteUser deletes a user
-func (client *Client) DeleteUser(ctx context.Context, id string) error {
-	err := client.delete(ctx, "/management/v1/user/"+id)
+// ProvisionUserOptions represents ProvisionUser() options.
+//
+// The id must be identical to the subject in JWT tokens, prefixed with <idp-identifier>~.
+// For example: oidc~1234567890 for OIDC users or kubernetes~1234567890 for Kubernetes users.
+// To create users in self-service manner, do not set the id.
+// The id is then extracted from the passed JWT token.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/create_user
+type ProvisionUserOptions struct {
+	ID             *string   `json:"id,omitempty"`
+	Email          *string   `json:"email,omitempty"`
+	Name           *string   `json:"name,omitempty"`
+	UpdateIfExists *bool     `json:"update-if-exists,omitempty"`
+	UserType       *UserType `json:"user-type,omitempty"`
+}
+
+// ProvisionUser creates a new user or updates an existing user's metadata from the provided token.
+// The token should include "profile" and "email" scopes for complete user information.
+// If opts is provided, the associated user will be created
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/create_user
+func (s *UserService) ProvisionUser(opts *ProvisionUserOptions, options ...RequestOptionFunc) (*User, *http.Response, error) {
+	req, err := s.client.NewRequest(http.MethodPost, "/user", opts, options)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	return nil
+	var user User
+
+	resp, apiErr := s.client.Do(req, &user)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &user, resp, nil
+}
+
+// DeleteProject permanently removes a user and all their associated permissions.
+// If the user is re-registered later, their permissions will need to be re-added.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/delete_user
+func (s *UserService) DeleteUser(id string, options ...RequestOptionFunc) (*http.Response, error) {
+	req, err := s.client.NewRequest(http.MethodDelete, "/user/"+id, nil, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
 }

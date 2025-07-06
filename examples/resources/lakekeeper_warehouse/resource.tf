@@ -1,9 +1,9 @@
-data "lakekeeper_project" "my_project" {
-  name = "my_project"
+resource "lakekeeper_project" "bi" {
+  name = "bi"
 }
 
 resource "lakekeeper_warehouse" "aws" {
-  project_id = data.lakekeeper_project.my_project.id
+  project_id = data.lakekeeper_project.bi.id
   name       = "aws"
   protected  = false
   active     = true

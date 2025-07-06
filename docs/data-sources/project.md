@@ -17,7 +17,7 @@ The `lakekeeper_project` data source retrieves information about a lakekeeper pr
 
 ```terraform
 data "lakekeeper_project" "snapshot" {
-  name = "snapshot"
+  id = "9d25e96e-601a-44ea-badc-74b8c896b4f0"
 }
 ```
 
@@ -26,8 +26,8 @@ data "lakekeeper_project" "snapshot" {
 
 ### Required
 
-- `name` (String) The project name, it is used to identify the project.
+- `id` (String) The ID of the project
 
 ### Read-Only
 
-- `id` (String) The ID of the project
+- `name` (String) The project name, it is used to identify the project.

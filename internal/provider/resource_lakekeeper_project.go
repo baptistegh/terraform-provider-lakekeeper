@@ -90,9 +90,15 @@ func (r *lakekeeperProjectResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	project, err := r.client.NewProject(ctx, state.Name.ValueString())
+	name := state.Name.ValueString()
+
+	opts := lakekeeper.CreateProjectOptions{
+		Name: name,
+	}
+
+	project, _, err := r.client.Project.CreateProject(&opts, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create project: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create project %s, %v", name, err.Error()))
 		return
 	}
 
@@ -118,9 +124,11 @@ func (r *lakekeeperProjectResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	project, err := r.client.GetProjectByID(ctx, state.ID.ValueString())
+	id := state.ID.ValueString()
+
+	project, _, err := r.client.Project.GetProject(id, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project %s, %v", id, err.Error()))
 		return
 	}
 
@@ -149,9 +157,11 @@ func (r *lakekeeperProjectResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	err := r.client.DeleteProject(ctx, state.ID.ValueString())
+	id := state.ID.ValueString()
+
+	_, err := r.client.Project.DeleteProject(id, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete project: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete project %s, %v", id, err))
 		return
 	}
 

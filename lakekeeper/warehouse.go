@@ -1,163 +1,207 @@
 package lakekeeper
 
 import (
-	"context"
-	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage/credential"
 )
 
-type WarehouseNoCreds struct {
+type (
+	WarehouseServiceInterface interface {
+		GetWarehouse(id, projectID string, options ...RequestOptionFunc) (*Warehouse, *http.Response, error)
+		ListWarehouses(opts *ListWarehousesOptions, options ...RequestOptionFunc) ([]*Warehouse, *http.Response, error)
+		CreateWarehouse(opts *CreateWarehouseOptions, options ...RequestOptionFunc) (*Warehouse, *http.Response, error)
+		DeleteWarehouse(id string, opts *DeleteWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
+	}
+
+	// WarehouseService handles communication with warehouse endpoints of the Lakekeeper API.
+	//
+	// Lakekeeper API docs:
+	// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse
+	WarehouseService struct {
+		client *Client
+	}
+)
+
+var _ WarehouseServiceInterface = (*WarehouseService)(nil)
+
+// Warehouse represents a lakekeeper warehouse
+type Warehouse struct {
 	ID                    string                         `json:"id"`
-	ProjectID             string                         `json:"-"` // deprecated field from the API
+	ProjectID             string                         `json:"project-id"`
 	Name                  string                         `json:"name"`
 	Protected             bool                           `json:"protected"`
-	Status                string                         `json:"status"`
+	Status                WarehouseStatus                `json:"status"`
 	StorageProfileWrapper *storage.StorageProfileWrapper `json:"storage-profile"`
 	DeleteProfileWrapper  *DeleteProfileWrapper          `json:"delete-profile"`
 }
 
-type Warehouse struct {
-	WarehouseNoCreds
-	StorageCredentialWrapper *credential.StorageCredentialWrapper `json:"storage-credential"`
+type WarehouseStatus string
+
+const (
+	WarehouseStatusActive   WarehouseStatus = "active"
+	WarehouseStatusInactive WarehouseStatus = "inactive"
+)
+
+func (w *Warehouse) IsActive() bool {
+	return w.Status == WarehouseStatusActive
 }
 
-type WarehouseCreateOptions struct {
-	Name              string
-	ProjectID         string // if empty, client default project id is used
-	Protected         bool
-	Status            string
-	StorageProfile    storage.StorageProfile
-	StorageCredential credential.StorageCredential
-	DeleteProfile     DeleteProfile
+// GetWarehouse retrieves detailed information about a specific warehouse.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse
+func (s *WarehouseService) GetWarehouse(id, projectID string, options ...RequestOptionFunc) (*Warehouse, *http.Response, error) {
+	if projectID != "" {
+		options = append(options, WithProject(projectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodGet, "/warehouse/"+id, nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var wh Warehouse
+
+	resp, apiErr := s.client.Do(req, &wh)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &wh, resp, nil
 }
 
-type warehouseCreateRequest struct {
-	Name                     string                               `json:"warehouse-name"`
-	StorageProfileWrapper    *storage.StorageProfileWrapper       `json:"storage-profile"`
-	StorageCredentialWrapper *credential.StorageCredentialWrapper `json:"storage-credential"`
-	DeleteProfileWrapper     *DeleteProfileWrapper                `json:"delete-profile,omitempty"`
+// ListWarehousesOptions represents ListWarehouses() options
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/list_warehouses
+type ListWarehousesOptions struct {
+	WarehouseStatus *WarehouseStatus `url:"warehouseStatus,omitempty"`
+	ProjectID       *string          `url:"projectId,omitempty"`
 }
 
-type WarehouseCreateResponse struct {
+// listWarehouseResponse represents the response on list warehouses API action
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/list_warehouses
+type listWarehousesResponse struct {
+	Warehouses []*Warehouse `json:"warehouses"`
+}
+
+// Returns all warehouses in the project that the current user has access to.
+// By default, deactivated warehouses are not included in the results.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/list_warehouses
+func (s *WarehouseService) ListWarehouses(opts *ListWarehousesOptions, options ...RequestOptionFunc) ([]*Warehouse, *http.Response, error) {
+	if opts != nil && opts.ProjectID != nil {
+		options = append(options, WithProject(*opts.ProjectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodGet, "/warehouse", opts, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var whs listWarehousesResponse
+
+	resp, apiErr := s.client.Do(req, &whs)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return whs.Warehouses, resp, nil
+}
+
+// CreateWarehouseOptions represents CreateWarehouse() options.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/create_warehouse
+type CreateWarehouseOptions struct {
+	Name              string                           `json:"warehouse-name"`
+	ProjectID         string                           `json:"project-id"`
+	StorageProfile    storage.StorageProfileWrapper    `json:"storage-profile"`
+	StorageCredential storage.StorageCredentialWrapper `json:"storage-credential"`
+	DeleteProfile     DeleteProfile                    `json:"delete-profile,omitempty"`
+}
+
+// CreateWarehouseOptions represents the response from the API
+// on a create_warehouse action.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/create_warehouse
+type createWarehouseResponse struct {
 	ID string `json:"warehouse-id"`
 }
 
-type warehouseListResponse struct {
-	Warehouses []*WarehouseNoCreds `json:"warehouses"`
-}
-
-func (w *WarehouseNoCreds) IsActive() bool {
-	return w.Status == "active"
-}
-
-// GetWarehouseByID retrieves a warehouse by its ID.
-// If projectID is empty, the client's default project ID is used.
-func (client *Client) GetWarehouseByID(ctx context.Context, projectID string, warehouseID string) (*Warehouse, *ApiError) {
-	if warehouseID == "" {
-		return nil, ApiErrorFromError("warehouse ID cannot be empty")
+// CreateWarehouse creates a new warehouse in the specified project with
+// the provided configuration.
+// The project of a warehouse cannot be changed after creation.
+// This operation validates the storage configuration.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/create_warehouse
+func (s *WarehouseService) CreateWarehouse(opts *CreateWarehouseOptions, options ...RequestOptionFunc) (*Warehouse, *http.Response, error) {
+	if opts == nil {
+		return nil, nil, errors.New("CreateWarehouse received empty options")
 	}
 
-	var warehouse Warehouse
-	if err := client.getWithProjectID(ctx, "/management/v1/warehouse/"+warehouseID, projectID, &warehouse, nil); err != nil {
-		return nil, err
+	if opts.ProjectID != "" {
+		options = append(options, WithProject(opts.ProjectID))
 	}
 
-	// populate project id if it is not in the response (api deprecated field)
-	if warehouse.ProjectID == "" {
-		if projectID != "" {
-			warehouse.ProjectID = projectID
-		} else {
-			warehouse.ProjectID = client.defaultProjectID
-		}
-	}
-
-	return &warehouse, nil
-}
-
-func (client *Client) GetWarehouseByName(ctx context.Context, projectID, name string) (*WarehouseNoCreds, *ApiError) {
-	if name == "" {
-		return nil, ApiErrorFromError("warehouse name must be defined")
-	}
-
-	evaluatedProjectID := client.defaultProjectID
-	if projectID != "" {
-		evaluatedProjectID = projectID
-	}
-
-	var resp warehouseListResponse
-	params := map[string]string{
-		"projectId": evaluatedProjectID,
-	}
-	if err := client.getWithProjectID(ctx, "/management/v1/warehouse", projectID, &resp, params); err != nil {
-		return nil, err
-	}
-
-	for _, warehouse := range resp.Warehouses {
-		if warehouse.Name == name {
-			warehouse.ProjectID = evaluatedProjectID
-			return warehouse, nil
-		}
-	}
-	return nil, ApiErrorFromError("could not find warehouse %s in project %s", name, evaluatedProjectID)
-}
-
-// DeleteWarehouseByID deletes a warehouse by its ID.
-// If projectID is empty, the client's default project ID is used.
-func (client *Client) DeleteWarehouseByID(ctx context.Context, projectID, warehouseID string) *ApiError {
-	if warehouseID == "" {
-		return ApiErrorFromError("warehouse ID cannot be empty")
-	}
-
-	if err := client.deleteWithProjectID(ctx, "/management/v1/warehouse/"+warehouseID, projectID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (client *Client) NewWarehouse(ctx context.Context, r *WarehouseCreateOptions) (*Warehouse, *ApiError) {
-	if r.Name == "" {
-		return nil, ApiErrorFromError("could not create warehouse with an empty name")
-	}
-
-	if r.StorageProfile == nil {
-		return nil, ApiErrorFromError("storage profile must be defined")
-	}
-
-	if r.StorageCredential == nil {
-		return nil, ApiErrorFromError("storage credential must be defined")
-	}
-
-	var w = warehouseCreateRequest{
-		Name:                     r.Name,
-		StorageProfileWrapper:    &storage.StorageProfileWrapper{StorageProfile: r.StorageProfile},
-		StorageCredentialWrapper: &credential.StorageCredentialWrapper{StorageCredential: r.StorageCredential},
-	}
-
-	if r.DeleteProfile != nil {
-		w.DeleteProfileWrapper = &DeleteProfileWrapper{DeleteProfile: r.DeleteProfile}
-	}
-
-	evaluatedProjectID := client.defaultProjectID
-	if r.ProjectID != "" {
-		evaluatedProjectID = r.ProjectID
-	}
-
-	body, err := json.Marshal(w)
+	req, err := s.client.NewRequest(http.MethodPost, "/warehouse", opts, options)
 	if err != nil {
-		return nil, ApiErrorFromError("could not marshal warehouse creation request, %v", err)
+		return nil, nil, err
 	}
 
-	resp, apiErr := client.postWithProjectID(ctx, "/management/v1/warehouse", evaluatedProjectID, body)
+	var whResp createWarehouseResponse
+
+	resp, apiErr := s.client.Do(req, &whResp)
 	if apiErr != nil {
-		return nil, apiErr
-	}
-	var wResp WarehouseCreateResponse
-	if err := json.Unmarshal(resp, &wResp); err != nil {
-		return nil, ApiErrorFromError("warehouse %s is created but could not find its ID, %v", r.Name, err)
+		return nil, resp, apiErr
 	}
 
-	return client.GetWarehouseByID(ctx, evaluatedProjectID, wResp.ID)
+	warehouse, _, err := s.GetWarehouse(whResp.ID, opts.ProjectID)
+	if err != nil {
+		return nil, resp, fmt.Errorf("warehouse is created but error occured on get, %w", err)
+	}
+
+	return warehouse, resp, nil
+}
+
+// DeleteWarehouseOptions represents DeleteWarehouse() options.
+//
+// force parameters needs to be true to delete protected warehouses.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/delete_warehouse
+type DeleteWarehouseOptions struct {
+	Force     bool    `url:"force"`
+	ProjectID *string `url:"-"`
+}
+
+// DeleteWarehouse permanently removes a warehouse and all its associated resources.
+// Use the force parameter to delete protected warehouses.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/delete_warehouse
+func (s *WarehouseService) DeleteWarehouse(id string, opts *DeleteWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error) {
+	if opts != nil && opts.ProjectID != nil {
+		options = append(options, WithProject(*opts.ProjectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodDelete, "/warehouse/"+id, opts, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
 }

@@ -4,7 +4,6 @@
 package provider
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -50,7 +49,7 @@ func testAccCheckLakekeeperProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := testutil.TestLakekeeperClient.GetProjectByID(context.Background(), rs.Primary.ID)
+		_, _, err := testutil.TestLakekeeperClient.Project.GetProject(rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("Project with id %s still exists", rs.Primary.ID)
 		}

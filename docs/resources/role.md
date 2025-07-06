@@ -33,11 +33,11 @@ resource "lakekeeper_user" "john_doe" {
 ### Required
 
 - `name` (String) The name of the role.
+- `project_id` (String) The ID of the project the role belongs to.
 
 ### Optional
 
 - `description` (String) The description of the role.
-- `project_id` (String) The ID of the project the role belongs to.
 - `updated_at` (String) When the role has last been modified.
 
 ### Read-Only

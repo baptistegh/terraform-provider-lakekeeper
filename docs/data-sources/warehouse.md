@@ -20,7 +20,7 @@ The `lakekeeper_warehouse` data source retrieves information a lakekeeper wareho
 
 ```terraform
 data "lakekeeper_warehouse" "foo" {
-  name = "warehouse_01"
+  id = "116d3ba8-1c38-4548-b39c-aaed6c325406"
 }
 ```
 
@@ -29,17 +29,17 @@ data "lakekeeper_warehouse" "foo" {
 
 ### Required
 
-- `name` (String) Name of the warehouse.
+- `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
+- `warehouse_id` (String) The ID the warehouse.
 
 ### Read-Only
 
 - `active` (Boolean) Whether the warehouse is active.
 - `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
 - `id` (String) The internale ID the warehouse. In the form: <project_id>:<warehouse_id>
-- `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
+- `name` (String) Name of the warehouse.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
 - `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
-- `warehouse_id` (String) The ID the warehouse.
 
 <a id="nestedatt--delete_profile"></a>
 ### Nested Schema for `delete_profile`

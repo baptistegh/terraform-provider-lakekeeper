@@ -16,12 +16,12 @@ The `lakekeeper_warehouse` resource allows to manage the lifecycle of a lakekeep
 ## Example Usage
 
 ```terraform
-data "lakekeeper_project" "my_project" {
-  name = "my_project"
+resource "lakekeeper_project" "bi" {
+  name = "bi"
 }
 
 resource "lakekeeper_warehouse" "aws" {
-  project_id = data.lakekeeper_project.my_project.id
+  project_id = data.lakekeeper_project.bi.id
   name       = "aws"
   protected  = false
   active     = true
@@ -46,15 +46,15 @@ resource "lakekeeper_warehouse" "aws" {
 
 ### Required
 
-- `active` (Boolean) Whether the warehouse is active.
 - `name` (String) Name of the warehouse.
-- `protected` (Boolean) Whether the warehouse is protected from being deleted.
+- `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
 - `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
 
 ### Optional
 
+- `active` (Boolean) Whether the warehouse is active.
 - `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
-- `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
+- `protected` (Boolean) Whether the warehouse is protected from being deleted.
 - `storage_credential` (Attributes) The credentials used to access the storage. This is required for the warehouse to be able to access the storage profile. (see [below for nested schema](#nestedatt--storage_credential))
 
 ### Read-Only

@@ -4,7 +4,6 @@
 package provider
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -27,9 +26,11 @@ func TestAccLakekeeperRole_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckLakekeeperRoleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`				
+				Config: fmt.Sprintf(`
+				data "lakekeeper_default_project" "default" {}			
 				resource "lakekeeper_role" "foo" {
 				  name = "%s"
+				  project_id = data.lakekeeper_default_project.default.id
 				}
 				`, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -49,9 +50,11 @@ func TestAccLakekeeperRole_basic(t *testing.T) {
 			},
 			// Update resource
 			{
-				Config: fmt.Sprintf(`				
+				Config: fmt.Sprintf(`
+				data "lakekeeper_default_project" "default" {}		
 				resource "lakekeeper_role" "foo" {
 				  name = "%s"
+				  project_id = data.lakekeeper_default_project.default.id
 				  description = "%s"
 				}
 				`, rName, rDescription),
@@ -84,11 +87,14 @@ func TestAccLakekeeperRole_duplicate(t *testing.T) {
 		CheckDestroy:             testAccCheckLakekeeperRoleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`				
+				Config: fmt.Sprintf(`	
+				data "lakekeeper_default_project" "default" {}				
 				resource "lakekeeper_role" "foo" {
+				  project_id = data.lakekeeper_default_project.default.id
 				  name = "%s"
 				}				
 				resource "lakekeeper_role" "toto" {
+				  project_id = data.lakekeeper_default_project.default.id
 				  name = "%s"
 				}
 				`, rName, rName),
@@ -108,9 +114,11 @@ func TestAccLakekeeperRole_project(t *testing.T) {
 		CheckDestroy:             testAccCheckLakekeeperRoleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`				
+				Config: fmt.Sprintf(`	
+				data "lakekeeper_default_project" "default" {}				
 				resource "lakekeeper_role" "foo" {
 				  name = "%s"
+				  project_id = data.lakekeeper_default_project.default.id
 				}				
 				resource "lakekeeper_role" "toto" {
 				  name = "%s"
@@ -157,7 +165,7 @@ func testAccCheckLakekeeperRoleDestroy(s *terraform.State) error {
 
 		projectID, roleID := splitInternalID(types.StringValue(rs.Primary.ID))
 
-		_, err := testutil.TestLakekeeperClient.GetRoleByID(context.Background(), roleID, projectID)
+		_, _, err := testutil.TestLakekeeperClient.Role.GetRole(roleID, projectID)
 		if err == nil {
 			return fmt.Errorf("Role with id %s still exists", rs.Primary.ID)
 		}

@@ -1,4 +1,4 @@
-package credential
+package storage
 
 type GCSCredential interface {
 	GetGCSCredentialType() string
