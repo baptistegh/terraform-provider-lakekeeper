@@ -4,14 +4,14 @@ page_title: "lakekeeper_project Resource - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
   The lakekeeper_project resource allows to manage the lifecycle of a lakekeeper project.
-  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_project
+  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project
 ---
 
 # lakekeeper_project (Resource)
 
 The `lakekeeper_project` resource allows to manage the lifecycle of a lakekeeper project.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_project)
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project)
 
 ## Example Usage
 

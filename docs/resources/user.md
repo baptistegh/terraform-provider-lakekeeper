@@ -4,14 +4,14 @@ page_title: "lakekeeper_user Resource - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
   The lakekeeper_user resource allows to manage the lifecycle of a lakekeeper user.
-  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/get_user
+  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user
 ---
 
 # lakekeeper_user (Resource)
 
 The `lakekeeper_user` resource allows to manage the lifecycle of a lakekeeper user.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/get_user)
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user)
 
 ## Example Usage
 

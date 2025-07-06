@@ -4,14 +4,14 @@ page_title: "lakekeeper_warehouse Resource - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
   The lakekeeper_warehouse resource allows to manage the lifecycle of a lakekeeper warehouse.
-  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse
+  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse
 ---
 
 # lakekeeper_warehouse (Resource)
 
 The `lakekeeper_warehouse` resource allows to manage the lifecycle of a lakekeeper warehouse.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse)
 
 ## Example Usage
 

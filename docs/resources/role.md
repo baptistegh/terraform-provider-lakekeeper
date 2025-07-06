@@ -4,14 +4,14 @@ page_title: "lakekeeper_role Resource - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
   The lakekeeper_role resource allows to manage the lifecycle of a lakekeeper role.
-  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/get_role
+  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role
 ---
 
 # lakekeeper_role (Resource)
 
 The `lakekeeper_role` resource allows to manage the lifecycle of a lakekeeper role.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/get_role)
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role)
 
 ## Example Usage
 
