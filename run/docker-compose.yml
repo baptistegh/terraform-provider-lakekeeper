@@ -1,8 +1,9 @@
 # Acceptance tests depend on a running Lakekeeper instance.
 # Only one of these services should be run at a time.
+version: "3"
 services:
   lakekeeper:
-    image: &lakekeeper-image ${LAKEKEEPER__SERVER_IMAGE:-quay.io/lakekeeper/catalog:latest}
+    image: quay.io/lakekeeper/catalog:v0.9.0
     pull_policy: &lakekeeper-pull-policy if_not_present
     labels:
       terraform-provider-lakekeeper/owned: ""
@@ -37,7 +38,7 @@ services:
       iceberg_net:
   
   migrate:
-    image: *lakekeeper-image
+    image: quay.io/lakekeeper/catalog:v0.9.0
     pull_policy: *lakekeeper-pull-policy
     environment:
       - LAKEKEEPER__PG_ENCRYPTION_KEY=This-is-NOT-Secure!

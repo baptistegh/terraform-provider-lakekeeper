@@ -28,3 +28,7 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Etc/UTC"
+  - package-ecosystem: "docker"
+    directory: "/run"
+    schedule:
+      interval: "weekly"
