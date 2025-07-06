@@ -64,7 +64,7 @@ type Client struct {
 	Role      RoleServiceInterface
 }
 
-// NewAuthSourceClient returns a new GitLab API client that uses the AuthSource for authentication.
+// NewAuthSourceClient returns a new Lakekeeper API client that uses the AuthSource for authentication.
 func NewAuthSourceClient(as AuthSource, baseURL string, options ...ClientOptionFunc) (*Client, error) {
 	c := &Client{
 		UserAgent:  userAgent,
