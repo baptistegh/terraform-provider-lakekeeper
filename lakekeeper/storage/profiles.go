@@ -66,9 +66,10 @@ func (StorageProfileS3) GetStorageType() string {
 
 func NewStorageProfileS3(bucket, region string, stsEnabled bool) *StorageProfileS3 {
 	return &StorageProfileS3{
-		Type:   "s3",
-		Bucket: bucket,
-		Region: region,
+		Type:       "s3",
+		Bucket:     bucket,
+		Region:     region,
+		STSEnabled: stsEnabled,
 	}
 }
 

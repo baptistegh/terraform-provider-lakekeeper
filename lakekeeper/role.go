@@ -1,11 +1,30 @@
 package lakekeeper
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
+	"errors"
+	"net/http"
 )
 
+type (
+	RoleServiceInterface interface {
+		ListRoles(opts *ListRolesOptions, options ...RequestOptionFunc) ([]*Role, error)
+		GetRole(id string, projectID string, options ...RequestOptionFunc) (*Role, *http.Response, error)
+		CreateRole(opts *CreateRoleOptions, options ...RequestOptionFunc) (*Role, *http.Response, error)
+		UpdateRole(id string, opts *UpdateRoleOptions, options ...RequestOptionFunc) (*Role, *http.Response, error)
+		DeleteRole(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
+	}
+
+	// RoleService handles communication with role endpoints of the Lakekeeper API.
+	//
+	// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role
+	RoleService struct {
+		client *Client
+	}
+)
+
+var _ RoleServiceInterface = (*RoleService)(nil)
+
+// Project represents a lakekeeper role
 type Role struct {
 	ID          string  `json:"id"`
 	ProjectID   string  `json:"project-id"`
@@ -16,151 +35,176 @@ type Role struct {
 	UpdatedAt *string `json:"updated-at,omitempty"`
 }
 
-type RoleCreateRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-
-	ProjectID string `json:"-"`
-}
-
-type RoleUpdateRequest struct {
-	ID        string `json:"-"`
-	ProjectID string `json:"-"`
-
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-}
-
-type RoleSearchResponse struct {
-	NextPageToken string  `json:"next-page-token"`
-	Roles         []*Role `json:"roles"`
-}
-
-func (r Role) String() string {
-	return fmt.Sprintf("{id:%s,project_id:%s,name:%s}", r.ID, r.ProjectID, r.Name)
-}
-
-func (client *Client) GetRoleByID(ctx context.Context, roleID string, projectID string) (*Role, *ApiError) {
-	if roleID == "" {
-		return nil, ApiErrorFromError("role id can not be empty")
+// GetRole retrieves information about a role.
+//
+// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/get_role
+func (s *RoleService) GetRole(id string, projectID string, options ...RequestOptionFunc) (*Role, *http.Response, error) {
+	if projectID != "" {
+		options = append(options, WithProject(id))
 	}
+
+	req, err := s.client.NewRequest(http.MethodGet, "/role/"+id, nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	var role Role
 
-	if err := client.getWithProjectID(ctx, "/management/v1/role/"+roleID, projectID, &role, nil); err != nil {
+	resp, apiErr := s.client.Do(req, &role)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &role, resp, nil
+}
+
+// ListRolesOptions represents ListRoles() options.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/create_project
+type ListRolesOptions struct {
+	Name      *string `url:"name,omitempty"`
+	PageToken *string `url:"pageToken,omitempty"`
+	PageSize  *string `url:"pageSize,omitempty"`
+	ProjectID *string `url:"projectId,omitempty"`
+}
+
+// listRoleResponse represents a response from list_roles API endpoint.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/list_roles
+type listRolesResponse struct {
+	NextPageToken *string `json:"next-page-token,omitempty"`
+	Roles         []*Role `json:"role"`
+}
+
+// ListRoles returns all roles in the project that the current user has access to view.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/list_roles
+func (s *RoleService) ListRoles(opts *ListRolesOptions, options ...RequestOptionFunc) ([]*Role, error) {
+	if opts != nil && opts.ProjectID != nil {
+		options = append(options, WithProject(*opts.ProjectID))
+	}
+
+	var roles []*Role
+
+	for {
+		var r listRolesResponse
+		req, err := s.client.NewRequest(http.MethodGet, "/project-list", opts, options)
+		if err != nil {
+			return nil, err
+		}
+
+		_, apiErr := s.client.Do(req, &r)
+		if apiErr != nil {
+			return nil, apiErr
+		}
+
+		roles = append(roles, r.Roles...)
+
+		if r.NextPageToken == nil {
+			break
+		}
+		opts.PageToken = r.NextPageToken
+	}
+
+	return roles, nil
+}
+
+// CreateRoleOptions represents CreateRole() options.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/create_role
+type CreateRoleOptions struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+	ProjectID   *string `json:"project-id"`
+}
+
+// CreateRole creates a role with the specified name and description.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/create_role
+func (s *RoleService) CreateRole(opts *CreateRoleOptions, options ...RequestOptionFunc) (*Role, *http.Response, error) {
+	if opts == nil {
+		return nil, nil, errors.New("CreateRole needs options to create a role")
+	}
+
+	if opts.ProjectID != nil {
+		options = append(options, WithProject(*opts.ProjectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, "/role", opts, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var role Role
+
+	resp, apiErr := s.client.Do(req, &role)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &role, resp, nil
+}
+
+// CreateRoleOptions represents UpdateRole() options.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/update_role
+type UpdateRoleOptions struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	ProjectID   *string `json:"-"`
+}
+
+// UpdateRole update a role with the specified name and description.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/update_role
+func (s *RoleService) UpdateRole(id string, opts *UpdateRoleOptions, options ...RequestOptionFunc) (*Role, *http.Response, error) {
+	if id == "" {
+		return nil, nil, errors.New("Role ID must be defined to be updated")
+	}
+
+	if opts.ProjectID != nil {
+		options = append(options, WithProject(*opts.ProjectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, "/role/"+id, opts, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var role Role
+
+	resp, apiErr := s.client.Do(req, &role)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &role, resp, nil
+}
+
+// DeleteRole permanently removes a role and all its associated permissions.
+//
+// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/delete_role
+func (s *RoleService) DeleteRole(id string, projectID string, options ...RequestOptionFunc) (*http.Response, error) {
+	if projectID != "" {
+		options = append(options, WithProject(id))
+	}
+
+	req, err := s.client.NewRequest(http.MethodDelete, "/role/"+id, nil, options)
+	if err != nil {
 		return nil, err
 	}
 
-	// populate project id if it is not in the response (api deprecated field)
-	if projectID == "" {
-		role.ProjectID = client.defaultProjectID
-	} else {
-		role.ProjectID = projectID
-	}
-
-	return &role, nil
-}
-
-func (client *Client) GetRoleByName(ctx context.Context, name, projectID string) (*Role, *ApiError) {
-	if name == "" {
-		return nil, ApiErrorFromError("could not find role with empty name")
-	}
-
-	var roles RoleSearchResponse
-	if respErr := client.getWithProjectID(ctx, "/management/v1/role", projectID, &roles, map[string]string{"name": name}); respErr != nil {
-		return nil, respErr
-	}
-
-	for _, role := range roles.Roles {
-		if role.Name == name {
-			// populate project id if it is not in the response (api deprecated field)
-			if projectID == "" {
-				role.ProjectID = client.defaultProjectID
-			} else {
-				role.ProjectID = projectID
-			}
-			return role, nil
-		}
-	}
-
-	return nil, ApiErrorFromError("did not find role with name %s in project %s", name, projectID)
-}
-
-func (client *Client) NewRole(ctx context.Context, request *RoleCreateRequest) (*Role, *ApiError) {
-	if request.Name == "" {
-		return nil, ApiErrorFromError("role name must be defined")
-	}
-
-	evaluatedProjectID := client.defaultProjectID
-	if request.ProjectID != "" {
-		evaluatedProjectID = request.ProjectID
-	}
-
-	body, err := json.Marshal(request)
-	if err != nil {
-		return nil, ApiErrorFromError("could not marshal role creation request, %v", err)
-	}
-
-	resp, apiErr := client.postWithProjectID(ctx, "/management/v1/role", evaluatedProjectID, body)
+	resp, apiErr := s.client.Do(req, nil)
 	if apiErr != nil {
-		return nil, apiErr
+		return resp, apiErr
 	}
 
-	var role Role
-	if err := json.Unmarshal(resp, &role); err != nil {
-		return nil, ApiErrorFromError("role %s is created but the create response could not be decoded, %v", request.Name, err)
-	}
-
-	if role.ProjectID == "" {
-		role.ProjectID = evaluatedProjectID
-	}
-
-	return &role, nil
-}
-
-func (client *Client) DeteleteRoleByID(ctx context.Context, roleID, projectID string) *ApiError {
-	if roleID == "" {
-		return ApiErrorFromError("could not delete role with empty ID")
-	}
-
-	if err := client.deleteWithProjectID(ctx, "/management/v1/role/"+roleID, projectID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (client *Client) UpdateRole(ctx context.Context, request *RoleUpdateRequest) (*Role, *ApiError) {
-	if request.ID == "" {
-		return nil, ApiErrorFromError("role id must be defined")
-	}
-
-	if request.Name == "" {
-		return nil, ApiErrorFromError("role name must be defined")
-	}
-
-	evaluatedProjectID := client.defaultProjectID
-	if request.ProjectID != "" {
-		evaluatedProjectID = request.ProjectID
-	}
-
-	body, err := json.Marshal(request)
-	if err != nil {
-		return nil, ApiErrorFromError("could not marshal role update request, %v", err)
-	}
-
-	resp, apiErr := client.postWithProjectID(ctx, "/management/v1/role/"+request.ID, evaluatedProjectID, body)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	var role Role
-	if err := json.Unmarshal(resp, &role); err != nil {
-		return nil, ApiErrorFromError("role %s is updated but the update response could not be decoded, %v", request.Name, err)
-	}
-
-	if role.ProjectID == "" {
-		role.ProjectID = evaluatedProjectID
-	}
-
-	return &role, nil
+	return resp, nil
 }

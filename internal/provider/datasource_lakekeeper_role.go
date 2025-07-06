@@ -61,16 +61,15 @@ func (d *LakekeeperRoleDataSource) Schema(_ context.Context, _ datasource.Schema
 			},
 			"role_id": schema.StringAttribute{
 				MarkdownDescription: `The internal ID of the role.`,
-				Computed:            true,
+				Required:            true,
 			},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: `The ID of the project the role belongs to.`,
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the role.",
-				Required:            true,
+				Computed:            true,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the role.",
@@ -110,9 +109,12 @@ func (d *LakekeeperRoleDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	role, err := d.client.GetRoleByName(ctx, state.Name.ValueString(), state.ProjectID.ValueString())
+	id := state.RoleID.ValueString()
+	projectID := state.ProjectID.ValueString()
+
+	role, _, err := d.client.Role.GetRole(id, projectID, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role with name %s, %v", state.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role %s in project %s, %v", id, projectID, err))
 		return
 	}
 

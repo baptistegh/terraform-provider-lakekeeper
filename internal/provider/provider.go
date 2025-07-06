@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/api"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -27,19 +28,18 @@ type LakekeeperProvider struct {
 
 // LakekeeperProviderModel describes the provider data model.
 type LakekeeperProviderModel struct {
-	Endpoint              types.String `tfsdk:"endpoint"`
-	AuthURL               types.String `tfsdk:"auth_url"`
-	ClientID              types.String `tfsdk:"client_id"`
-	ClientSecret          types.String `tfsdk:"client_secret"`
-	Scope                 types.String `tfsdk:"scope"`
-	CACertFile            types.String `tfsdk:"cacert_file"`
-	Insecure              types.Bool   `tfsdk:"insecure"`
-	InitialBootstrap      types.Bool   `tfsdk:"initial_bootstrap"`
-	HandleTokenExpiration types.Bool   `tfsdk:"handle_token_expiration"`
+	Endpoint         types.String `tfsdk:"endpoint"`
+	AuthURL          types.String `tfsdk:"auth_url"`
+	ClientID         types.String `tfsdk:"client_id"`
+	ClientSecret     types.String `tfsdk:"client_secret"`
+	Scopes           types.List   `tfsdk:"scopes"`
+	CACertFile       types.String `tfsdk:"cacert_file"`
+	Insecure         types.Bool   `tfsdk:"insecure"`
+	InitialBootstrap types.Bool   `tfsdk:"initial_bootstrap"`
 }
 
 type (
-	LakekeeperClientOptionApplyFunc = func(lakekeeper.Config) lakekeeper.Config
+	LakekeeperClientOptionApplyFunc = func(api.Config) api.Config
 	LakekeeperClientFactory         = func(ctx context.Context, configFuncs ...LakekeeperClientOptionApplyFunc) (*lakekeeper.Client, error)
 )
 
@@ -79,9 +79,10 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				Optional:            true,
 				Sensitive:           true,
 			},
-			"scope": schema.StringAttribute{
-				MarkdownDescription: "OIDC Scope. This is the scope used to request the OIDC token, e.g. `lakekeeper`.",
+			"scopes": schema.ListAttribute{
+				MarkdownDescription: "OIDC Scope. This is the scopes used to request the OIDC token, default `" + `["lakekeeper"]` + "`.",
 				Optional:            true,
+				ElementType:         types.StringType,
 			},
 			"cacert_file": schema.StringAttribute{
 				MarkdownDescription: "This is a file containing the ca cert to verify the lakekeeper instance. This is available for use when working with a locally-issued or self-signed certificate chain.",
@@ -92,11 +93,7 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				Optional:            true,
 			},
 			"initial_bootstrap": schema.BoolAttribute{
-				MarkdownDescription: "When set to true, the provider will try to bootstrap the serve first. default: `true`.",
-				Optional:            true,
-			},
-			"handle_token_expiration": schema.BoolAttribute{
-				MarkdownDescription: "When set to true, the provider will try to refresh the token if Lakekeeper API sends 401/403 HTTP Status Codes. default: `true`.",
+				MarkdownDescription: "When set to true, the provider will try to bootstrap the server first. default: `true`.",
 				Optional:            true,
 			},
 		},
@@ -147,7 +144,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		)
 	}
 
-	if config.Scope.IsUnknown() {
+	if config.Scopes.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("scope"),
 			"Unknown OIDC authenticate endpoint",
@@ -162,18 +159,18 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 
 	// Provider Configuration containing the values after evaluation of defaults etc.
 	// Initialized with the defaults which get overridden later if config is set.
-	evaluatedConfig := lakekeeper.Config{
+	evaluatedConfig := api.Config{
 		BaseURL: os.Getenv("LAKEKEEPER_ENDPOINT"),
-		ClientCredentials: &lakekeeper.ClientCredentials{
+		OIDCClientConfig: api.OIDCClientConfig{
 			AuthURL:      os.Getenv("LAKEKEEPER_AUTH_URL"),
 			ClientID:     os.Getenv("LAKEKEEPER_CLIENT_ID"),
 			ClientSecret: os.Getenv("LAKEKEEPER_CLIENT_SECRET"),
-			Scope:        "lakekeeper",
+			Scopes:       []string{"lakekeeper"},
 		},
-		CACertFile:            "",
-		Insecure:              false,
-		InitialBootstrap:      true,
-		HandleTokenExpiration: true,
+		CACertFile:       "",
+		Insecure:         false,
+		InitialBootstrap: true,
+		EarlyAuthFail:    true,
 	}
 
 	if !config.Endpoint.IsNull() {
@@ -181,19 +178,24 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 	}
 
 	if !config.AuthURL.IsNull() {
-		evaluatedConfig.ClientCredentials.AuthURL = config.AuthURL.ValueString()
+		evaluatedConfig.AuthURL = config.AuthURL.ValueString()
 	}
 
 	if !config.ClientID.IsNull() {
-		evaluatedConfig.ClientCredentials.ClientID = config.ClientID.ValueString()
+		evaluatedConfig.ClientID = config.ClientID.ValueString()
 	}
 
 	if !config.ClientSecret.IsNull() {
-		evaluatedConfig.ClientCredentials.ClientSecret = config.ClientSecret.ValueString()
+		evaluatedConfig.ClientSecret = config.ClientSecret.ValueString()
 	}
 
-	if !config.Scope.IsNull() {
-		evaluatedConfig.ClientCredentials.Scope = config.Scope.ValueString()
+	if !config.Scopes.IsNull() {
+		for _, elem := range config.Scopes.Elements() {
+			strVal, ok := elem.(types.String)
+			if ok && !strVal.IsNull() && !strVal.IsUnknown() {
+				evaluatedConfig.Scopes = append(evaluatedConfig.Scopes, strVal.ValueString())
+			}
+		}
 	}
 
 	if !config.CACertFile.IsNull() {
@@ -206,10 +208,6 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 
 	if !config.InitialBootstrap.IsNull() {
 		evaluatedConfig.InitialBootstrap = config.InitialBootstrap.ValueBool()
-	}
-
-	if !config.HandleTokenExpiration.IsNull() {
-		evaluatedConfig.HandleTokenExpiration = config.HandleTokenExpiration.ValueBool()
 	}
 
 	clientFactory := newLakekeeperClient(evaluatedConfig, req.TerraformVersion, p.version)
@@ -245,7 +243,7 @@ func New(version string) func() provider.Provider {
 	}
 }
 
-func newLakekeeperClient(config lakekeeper.Config, tfVersion, providerVersion string) LakekeeperClientFactory {
+func newLakekeeperClient(config api.Config, tfVersion, providerVersion string) LakekeeperClientFactory {
 	return func(ctx context.Context, configFuncs ...LakekeeperClientOptionApplyFunc) (*lakekeeper.Client, error) {
 		for _, f := range configFuncs {
 			config = f(config)
@@ -255,7 +253,7 @@ func newLakekeeperClient(config lakekeeper.Config, tfVersion, providerVersion st
 		//       see https://github.com/hashicorp/terraform-plugin-framework/issues/280
 		config.UserAgent = fmt.Sprintf("Terraform/%s (+https://www.terraform.io) Terraform-Plugin-Framework terraform-provider-lakekeeper/%s", tfVersion, providerVersion)
 
-		client, err := lakekeeper.NewClient(ctx, &config)
+		client, err := config.NewLakekeeperClient(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("the provider failed to create a new Lakekeeper Client from the given configuration: %w", err)
 		}

@@ -1,4 +1,4 @@
-package credential
+package storage
 
 type S3Credential interface {
 	GetS3CredentialType() string

@@ -3,7 +3,6 @@ package lakekeeper
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -12,6 +11,7 @@ type ApiError struct {
 	StatusCode int            `json:"-"`
 	Message    string         `json:"-"`
 	Response   *ErrorResponse `json:"error"`
+	Cause      error          `json:"-"`
 }
 
 type ErrorResponse struct {
@@ -23,36 +23,55 @@ type ErrorResponse struct {
 
 func (e *ApiError) Error() string {
 	if e.Response == nil {
-		return fmt.Sprintf("unexpected error response: %s", e.Message)
+		return fmt.Sprintf("unexpected error response, %s, %v", e.Message, e.Cause)
 	}
 	return fmt.Sprintf("api error, code=%d message=%s type=%s", e.Response.Code, e.Response.Message, e.Response.Type)
+}
+
+func (e *ApiError) Type() string {
+	if e.Response == nil {
+		return "Uknown"
+	}
+	return e.Response.Type
 }
 
 func (e *ApiError) IsAuthError() bool {
 	return e.StatusCode == http.StatusUnauthorized || e.StatusCode == http.StatusForbidden
 }
 
-func ApiErrorFromResponse(response *http.Response) *ApiError {
-	defer response.Body.Close()
+func (e *ApiError) WithCause(err error) *ApiError {
+	e.Cause = err
+	return e
+}
 
-	apiErr := ApiError{}
+func (e *ApiError) WithMessage(format string, a ...any) *ApiError {
+	e.Message = fmt.Sprintf(format, a...)
+	return e
+}
+
+func ApiErrorFromResponse(response *http.Response) *ApiError {
+	var apiErr ApiError
+
+	_ = json.NewDecoder(response.Body).Decode(&apiErr)
+
 	apiErr.Status = response.Status
 	apiErr.StatusCode = response.StatusCode
-
-	responseBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return &apiErr
-	}
-
-	if len(responseBody) > 0 {
-		_ = json.Unmarshal(responseBody, &apiErr)
-	}
 
 	return &apiErr
 }
 
-func ApiErrorFromError(format string, a ...any) *ApiError {
+func ApiErrorFromMessage(format string, a ...any) *ApiError {
 	return &ApiError{
 		Message: fmt.Sprintf(format, a...),
+	}
+}
+
+func ApiErrorFromError(err error) *ApiError {
+	if err == nil {
+		return nil
+	}
+	return &ApiError{
+		Message: err.Error(),
+		Cause:   err,
 	}
 }

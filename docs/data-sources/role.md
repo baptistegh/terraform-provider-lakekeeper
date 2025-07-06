@@ -18,7 +18,7 @@ The `lakekeeper_role` data source retrieves information a lakekeeper role.
 ```terraform
 data "lakekeeper_role" "admins" {
   project_id = "f892e96c-1070-45ba-a7b9-3319aaa3532e"
-  name       = "admins"
+  role_id    = "7eec657a-9f86-4b64-b4f0-7e05e62e3c36"
 }
 ```
 
@@ -27,16 +27,16 @@ data "lakekeeper_role" "admins" {
 
 ### Required
 
-- `name` (String) The name of the role.
+- `project_id` (String) The ID of the project the role belongs to.
+- `role_id` (String) The internal ID of the role.
 
 ### Optional
 
 - `description` (String) The description of the role.
-- `project_id` (String) The ID of the project the role belongs to.
 - `updated_at` (String) When the role has last been modified.
 
 ### Read-Only
 
 - `created_at` (String) When the role has been created.
 - `id` (String) The ID of the role. In the form <project_id>:<role_id>
-- `role_id` (String) The internal ID of the role.
+- `name` (String) The name of the role.

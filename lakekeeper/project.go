@@ -1,102 +1,165 @@
 package lakekeeper
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
+type (
+	ProjectServiceInterface interface {
+		ListProjects(options ...RequestOptionFunc) (*ListProjectsResponse, *http.Response, error)
+		GetProject(id string, options ...RequestOptionFunc) (*Project, *http.Response, error)
+		DeleteProject(id string, options ...RequestOptionFunc) (*http.Response, error)
+		GetDefaultProject(options ...RequestOptionFunc) (*Project, *http.Response, error)
+		CreateProject(opts *CreateProjectOptions, options ...RequestOptionFunc) (*Project, *http.Response, error)
+	}
+
+	// ProjectService handles communication with project endpoints of the Lakekeeper API.
+	//
+	// Lakekeeper API docs:
+	// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project
+	ProjectService struct {
+		client *Client
+	}
+)
+
+var _ ProjectServiceInterface = (*ProjectService)(nil)
+
+// Project represents a lakekeeper project
 type Project struct {
 	ID   string `json:"project-id"`
 	Name string `json:"project-name"`
 }
 
-type Projects struct {
-	Projects []Project `json:"projects"`
+// GetProject retrieves information about a project.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_default_project
+func (s *ProjectService) GetProject(id string, options ...RequestOptionFunc) (*Project, *http.Response, error) {
+	options = append(options, WithProject(id))
+	req, err := s.client.NewRequest(http.MethodGet, "/project", nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var prj Project
+
+	resp, apiErr := s.client.Do(req, &prj)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &prj, resp, nil
 }
 
-type ProjectCreateRequest struct {
-	Name string `json:"project-name"`
+// GetDefaultProject retrieves information about the user's default project.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/get_default_project
+//
+// Deprecated: This endpoint is deprecated and will be removed in a future version.
+func (s *ProjectService) GetDefaultProject(options ...RequestOptionFunc) (*Project, *http.Response, error) {
+	req, err := s.client.NewRequest(http.MethodGet, "/default-project", nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var prj Project
+
+	resp, apiErr := s.client.Do(req, &prj)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &prj, resp, nil
 }
 
-type ProjectCreateResponse struct {
+// ListProjectsResponse represents ListProjects() response.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/list_projects
+type ListProjectsResponse struct {
+	Projects []*Project `json:"projects"`
+}
+
+// ListProjects lists all projects that the requesting user has access to.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/list_projects
+func (s *ProjectService) ListProjects(options ...RequestOptionFunc) (*ListProjectsResponse, *http.Response, error) {
+	req, err := s.client.NewRequest(http.MethodGet, "/project-list", nil, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var prjs ListProjectsResponse
+
+	resp, apiErr := s.client.Do(req, &prjs)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &prjs, resp, nil
+}
+
+// CreateProjectOptions represents CreateProject() options.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/create_project
+type CreateProjectOptions struct {
+	ID   *string `json:"project-id,omitempty"` // Request a specific project ID - optional. If not provided, a new project ID will be generated (recommended)
+	Name string  `json:"project-name"`
+}
+
+// createProjectResponse represents the response on project creation.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/create_project
+type createProjectResponse struct {
 	ID string `json:"project-id"`
 }
 
-func (client *Client) ListProjects(ctx context.Context) (*Projects, error) {
-	var projects Projects
-	err := client.get(ctx, "/management/v1/project-list", &projects, nil)
+// CreateProject creates a new project with the specified configuration.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/create_project
+func (s *ProjectService) CreateProject(opts *CreateProjectOptions, options ...RequestOptionFunc) (*Project, *http.Response, error) {
+	req, err := s.client.NewRequest(http.MethodPost, "/project", opts, options)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &projects, nil
-}
+	var prjResp createProjectResponse
 
-func (client *Client) GetProjectByID(ctx context.Context, id string) (*Project, error) {
-	var project Project
-	path := fmt.Sprintf("/management/v1/project/%s", id)
-	err := client.get(ctx, path, &project, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &project, nil
-}
-
-func (client *Client) GetProjectByName(ctx context.Context, name string) (*Project, error) {
-	projects, err := client.ListProjects(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for _, p := range projects.Projects {
-		if p.Name == name {
-			return &p, nil
-		}
-	}
-	return nil, fmt.Errorf("could not find project with name: %s", name)
-}
-
-func (client *Client) GetDefaultProject(ctx context.Context) (*Project, error) {
-	var project Project
-	err := client.get(ctx, "/management/v1/project", &project, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &project, nil
-}
-
-func (client *Client) NewProject(ctx context.Context, name string) (*Project, error) {
-	if name == "" {
-		return nil, fmt.Errorf("project name can't be empty")
-	}
-	body, err := json.Marshal(ProjectCreateRequest{Name: name})
-	if err != nil {
-		return nil, fmt.Errorf("could not marshall project creation request, %s", err.Error())
-	}
-
-	resp, apiErr := client.post(ctx, "/management/v1/project", body)
+	resp, apiErr := s.client.Do(req, &prjResp)
 	if apiErr != nil {
-		return nil, apiErr
+		return nil, resp, apiErr
 	}
 
-	var r ProjectCreateResponse
-	if err := json.Unmarshal(resp, &r); err != nil {
-		return nil, fmt.Errorf("could not unmarshall project creation response, %s", err.Error())
+	project, _, err := s.GetProject(prjResp.ID, options...)
+	if err != nil {
+		return nil, resp, fmt.Errorf("project is created but could not be read, %w", err)
 	}
 
-	project := &Project{
-		ID:   r.ID,
-		Name: name,
-	}
-
-	return project, nil
+	return project, resp, nil
 }
 
-func (client *Client) DeleteProject(ctx context.Context, id string) error {
-	if err := client.delete(ctx, fmt.Sprintf("/management/v1/project/%s", id)); err != nil {
-		return fmt.Errorf("could not delete project with id %s, %s", id, err.Error())
+// DeleteProject delete a project.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/delete_default_project
+func (s *ProjectService) DeleteProject(id string, options ...RequestOptionFunc) (*http.Response, error) {
+	options = append(options, WithProject(id))
+
+	req, err := s.client.NewRequest(http.MethodDelete, "/project", nil, options)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
 }

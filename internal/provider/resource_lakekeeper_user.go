@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -45,7 +44,7 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 	resp.Schema = schema.Schema{
 		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_user`" + ` resource allows to manage the lifecycle of a lakekeeper user.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user/operation/get_user)`),
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user)`),
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -53,7 +52,7 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(fmt.Sprintf("^(%s).+$", strings.Join(lakekeeper.ValidUserIDPPrefixes, "|"))),
+						regexp.MustCompile("^(oidc|kubernetes)~.+$"),
 						"The id must be prefixed with `<idp-identifier>~`. `<idp-identifier>` can be `oidc` or `kubernetes`.",
 					),
 				},
@@ -64,12 +63,13 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "The email of the user.",
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
 			},
 			"user_type": schema.StringAttribute{
 				MarkdownDescription: "The type of the user, must be `human` or `application`",
 				Required:            true,
-				Validators:          []validator.String{stringvalidator.OneOf(lakekeeper.ValidUserTypes...)},
+				Validators:          []validator.String{stringvalidator.OneOf("application", "human")},
 			},
 			"created_at": schema.StringAttribute{
 				MarkdownDescription: "When the user has been created.",
@@ -109,14 +109,33 @@ func (r *lakekeeperUserResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	user, err := r.client.NewUser(ctx, state.ID.ValueString(), state.Email.ValueString(), state.Name.ValueString(), state.UserType.ValueString(), false)
+	userType := state.UserType.ValueStringPointer()
+
+	updateIfExists := false
+	opts := lakekeeper.ProvisionUserOptions{
+		ID:             state.ID.ValueStringPointer(),
+		Name:           state.Name.ValueStringPointer(),
+		Email:          state.Email.ValueStringPointer(),
+		UpdateIfExists: &updateIfExists,
+	}
+
+	if userType != nil && *userType != "" {
+		uType := lakekeeper.UserType(*userType)
+		opts.UserType = &uType
+	}
+
+	user, _, err := r.client.User.ProvisionUser(&opts, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create user: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create user %s, %v", state.ID.ValueString(), err))
 		return
 	}
 
+	state.ID = types.StringValue(user.ID)
+	state.Name = types.StringValue(user.Name)
+	state.Email = types.StringPointerValue(user.Email)
+	state.UserType = types.StringValue(string(user.UserType))
 	state.CreatedAt = types.StringValue(user.CreatedAt)
-	state.UpdatedAt = types.StringValue(user.UpdatedAt)
+	state.UpdatedAt = types.StringPointerValue(user.UpdatedAt)
 	state.LastUpdatedWith = types.StringValue(user.LastUpdatedWith)
 
 	// Log the creation of the resource
@@ -138,17 +157,20 @@ func (r *lakekeeperUserResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	user, err := r.client.GetUserByID(ctx, state.ID.ValueString())
+	id := state.ID.ValueString()
+
+	user, _, err := r.client.User.GetUser(id, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read user: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read user %s, %v", id, err))
 		return
 	}
 
+	state.ID = types.StringValue(user.ID)
 	state.Name = types.StringValue(user.Name)
-	state.Email = types.StringValue(user.Email)
-	state.UserType = types.StringValue(user.UserType)
+	state.Email = types.StringPointerValue(user.Email)
+	state.UserType = types.StringValue(string(user.UserType))
 	state.CreatedAt = types.StringValue(user.CreatedAt)
-	state.UpdatedAt = types.StringValue(user.UpdatedAt)
+	state.UpdatedAt = types.StringPointerValue(user.UpdatedAt)
 	state.LastUpdatedWith = types.StringValue(user.LastUpdatedWith)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -174,17 +196,33 @@ func (r *lakekeeperUserResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	user, err := r.client.NewUser(ctx, state.ID.ValueString(), plan.Email.ValueString(), plan.Name.ValueString(), plan.UserType.ValueString(), true)
+	userType := plan.UserType.ValueStringPointer()
+
+	updateIfExists := true
+	opts := lakekeeper.ProvisionUserOptions{
+		ID:             plan.ID.ValueStringPointer(),
+		Name:           plan.Name.ValueStringPointer(),
+		Email:          plan.Email.ValueStringPointer(),
+		UpdateIfExists: &updateIfExists,
+	}
+
+	if userType != nil && *userType != "" {
+		uType := lakekeeper.UserType(*userType)
+		opts.UserType = &uType
+	}
+
+	user, _, err := r.client.User.ProvisionUser(&opts, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update user: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update user: %v", err))
 		return
 	}
 
+	state.ID = types.StringValue(user.ID)
 	state.Name = types.StringValue(user.Name)
-	state.Email = types.StringValue(user.Email)
-	state.UserType = types.StringValue(user.UserType)
+	state.Email = types.StringPointerValue(user.Email)
+	state.UserType = types.StringValue(string(user.UserType))
 	state.CreatedAt = types.StringValue(user.CreatedAt)
-	state.UpdatedAt = types.StringValue(user.UpdatedAt)
+	state.UpdatedAt = types.StringPointerValue(user.UpdatedAt)
 	state.LastUpdatedWith = types.StringValue(user.LastUpdatedWith)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -201,9 +239,16 @@ func (r *lakekeeperUserResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	err := r.client.DeleteUser(ctx, state.ID.ValueString())
+	id := state.ID.ValueString()
+
+	if id == "" {
+		resp.Diagnostics.AddError("Incorrect state", "Unable to delete user without ID")
+		return
+	}
+
+	_, err := r.client.User.DeleteUser(id, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete user: %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete user %s, %v", id, err))
 		return
 	}
 

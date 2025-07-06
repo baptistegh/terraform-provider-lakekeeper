@@ -6,10 +6,8 @@ import (
 
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -66,19 +64,15 @@ func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.S
 			},
 			"warehouse_id": schema.StringAttribute{
 				MarkdownDescription: "The ID the warehouse.",
-				Computed:            true,
+				Required:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of the warehouse.",
-				Required:            true,
-				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
+				Computed:            true,
 			},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "The project ID to which the warehouse belongs. If not provided, the default project will be used.",
-				// Currently the datasource can only read from the default project.
-				// Optional:            true,
-				Computed:   true,
-				Validators: []validator.String{stringvalidator.LengthAtLeast(1)},
+				Required:            true,
 			},
 			"protected": schema.BoolAttribute{
 				MarkdownDescription: "Whether the warehouse is protected from being deleted.",
@@ -115,9 +109,12 @@ func (d *LakekeeperWarehouseDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	warehouse, err := d.client.GetWarehouseByName(ctx, state.ProjectID.ValueString(), state.Name.ValueString())
+	id := state.WarehouseID.ValueString()
+	projectID := state.ProjectID.ValueString()
+
+	warehouse, _, err := d.client.Warehouse.GetWarehouse(id, projectID, lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse with name %s, %v", state.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s, %v", state.Name.ValueString(), err))
 		return
 	}
 

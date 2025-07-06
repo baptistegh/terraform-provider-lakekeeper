@@ -14,8 +14,10 @@ import (
 
 func TestAccDataLakekeeperWarehouse_basic(t *testing.T) {
 
+	project := testutil.CreateProject(t)
+
 	keyPrefix := acctest.RandString(8)
-	warehouse := testutil.CreateWarehouse(t, "", keyPrefix)
+	warehouse := testutil.CreateWarehouse(t, project.ID, keyPrefix)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -23,13 +25,14 @@ func TestAccDataLakekeeperWarehouse_basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				data "lakekeeper_warehouse" "default" {
-					name = "%s"
-				}`, warehouse.Name),
+					warehouse_id = "%s"
+					project_id = "%s"
+				}`, warehouse.ID, project.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// warehouse in default project
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "id", "00000000-0000-0000-0000-000000000000:"+warehouse.ID),
+					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "id", project.ID+":"+warehouse.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "warehouse_id", warehouse.ID),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "project_id", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "project_id", project.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "name", warehouse.Name),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "storage_profile.type", "s3"),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "storage_profile.path_style_access", "true"),

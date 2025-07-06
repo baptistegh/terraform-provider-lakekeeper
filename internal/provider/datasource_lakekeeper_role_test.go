@@ -23,13 +23,15 @@ func TestAccDataLakekeeperRole_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
+				data "lakekeeper_default_project" "default" {}
 				data "lakekeeper_role" "default" {
-					name = "%s"
+					project_id = data.lakekeeper_default_project.default.id
+					role_id = "%s"
 				}
 				data "lakekeeper_role" "new" {
-					name = "%s"
+					role_id = "%s"
 					project_id = "%s"
-				}`, roleDefaultProject.Name, roleNewProject.Name, project.ID),
+				}`, roleDefaultProject.ID, roleNewProject.ID, project.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// role in default project
 					resource.TestCheckResourceAttr("data.lakekeeper_role.default", "id", "00000000-0000-0000-0000-000000000000:"+roleDefaultProject.ID),

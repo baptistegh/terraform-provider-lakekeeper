@@ -4,14 +4,14 @@ page_title: "lakekeeper_role Resource - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
   The lakekeeper_role resource allows to manage the lifecycle of a lakekeeper role.
-  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/get_role
+  Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role
 ---
 
 # lakekeeper_role (Resource)
 
 The `lakekeeper_role` resource allows to manage the lifecycle of a lakekeeper role.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/get_role)
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role)
 
 ## Example Usage
 
@@ -33,11 +33,11 @@ resource "lakekeeper_user" "john_doe" {
 ### Required
 
 - `name` (String) The name of the role.
+- `project_id` (String) The ID of the project the role belongs to.
 
 ### Optional
 
 - `description` (String) The description of the role.
-- `project_id` (String) The ID of the project the role belongs to.
 - `updated_at` (String) When the role has last been modified.
 
 ### Read-Only

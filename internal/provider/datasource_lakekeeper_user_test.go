@@ -20,17 +20,17 @@ func TestAccDataLakekeeperUser_basic(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`data "lakekeeper_user" "foo" {
+				Config: fmt.Sprintf(`
+				data "lakekeeper_user" "foo" {
 					id = "%s"
 				}`, user.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "id", rID),
 					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "name", user.Name),
-					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "email", user.Email),
+					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "email", *user.Email),
 					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "created_at", user.CreatedAt),
-					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "updated_at", user.UpdatedAt),
 					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "last_updated_with", user.LastUpdatedWith),
-					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "user_type", user.UserType),
+					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "user_type", string(user.UserType)),
 				),
 			},
 		},

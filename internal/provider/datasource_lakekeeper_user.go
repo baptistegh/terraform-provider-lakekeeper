@@ -107,18 +107,18 @@ func (d *LakekeeperUserDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	user, err := d.client.GetUserByID(ctx, state.ID.ValueString())
+	user, _, err := d.client.User.GetUser(state.ID.ValueString(), lakekeeper.WithContext(ctx))
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read user with ID %s, %s", state.ID.ValueString(), err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read user %s, %v", state.ID.ValueString(), err))
 		return
 	}
 
 	state.ID = types.StringValue(user.ID)
 	state.Name = types.StringValue(user.Name)
-	state.Email = types.StringValue(user.Email)
-	state.UserType = types.StringValue(user.UserType)
+	state.Email = types.StringPointerValue(user.Email)
+	state.UserType = types.StringValue(string(user.UserType))
 	state.CreatedAt = types.StringValue(user.CreatedAt)
-	state.UpdatedAt = types.StringValue(user.UpdatedAt)
+	state.UpdatedAt = types.StringPointerValue(user.UpdatedAt)
 	state.LastUpdatedWith = types.StringValue(user.LastUpdatedWith)
 
 	diags := resp.State.Set(ctx, &state)

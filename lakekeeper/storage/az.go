@@ -1,4 +1,4 @@
-package credential
+package storage
 
 type AZCredential interface {
 	GetAZCredentialType() string

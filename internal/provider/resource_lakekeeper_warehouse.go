@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -61,7 +62,7 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 	resp.Schema = schema.Schema{
 		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_warehouse`" + ` resource allows to manage the lifecycle of a lakekeeper warehouse.
 
-**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)`),
+**Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The internale ID the warehouse. In the form: <project_id>:<warehouse_id>",
@@ -79,17 +80,20 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 			},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "The project ID to which the warehouse belongs. If not provided, the default project will be used.",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
 			},
 			"protected": schema.BoolAttribute{
 				MarkdownDescription: "Whether the warehouse is protected from being deleted.",
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
 			},
 			"active": schema.BoolAttribute{
 				MarkdownDescription: "Whether the warehouse is active.",
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
 			},
 			"storage_profile":    tftypes.StorageProfileResourceSchema(),
 			"delete_profile":     tftypes.DeleteProfileResourceSchema(),
@@ -128,16 +132,16 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	request, err := state.ToWarehouseCreateRequest()
+	opts, err := state.ToWarehouseCreateRequest()
 	if err != nil {
-		resp.Diagnostics.AddError("Incorrect Warehouse creation request", err.Error())
+		resp.Diagnostics.AddError("Error decoding state to model", fmt.Sprintf("Incorrect Warehouse creation request, %v", err))
 		return
 	}
 
-	warehouse, apiErr := r.client.NewWarehouse(ctx, request)
-	if apiErr != nil {
+	warehouse, _, err := r.client.Warehouse.CreateWarehouse(opts, lakekeeper.WithContext(ctx))
+	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred",
-			fmt.Sprintf("Unable to create warehouse: %v", apiErr))
+			fmt.Sprintf("Unable to create warehouse: %v", err))
 		return
 	}
 
@@ -162,7 +166,7 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	projectID, warehouseID := splitInternalID(state.ID)
-	warehouse, err := r.client.GetWarehouseByID(ctx, projectID, warehouseID)
+	warehouse, _, err := r.client.Warehouse.GetWarehouse(warehouseID, projectID, lakekeeper.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse: %s in project %s, %s", warehouseID, projectID, err.Error()))
 		return
@@ -198,7 +202,12 @@ func (r *lakekeeperWarehouseResource) Delete(ctx context.Context, req resource.D
 
 	projectID, warehouseID := splitInternalID(state.ID)
 
-	if err := r.client.DeleteWarehouseByID(ctx, projectID, warehouseID); err != nil {
+	opts := lakekeeper.DeleteWarehouseOptions{
+		Force:     true,
+		ProjectID: &projectID,
+	}
+
+	if _, err := r.client.Warehouse.DeleteWarehouse(warehouseID, &opts, lakekeeper.WithContext(ctx)); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete warehouse: %s in project %s, %s", warehouseID, projectID, err.Error()))
 		return
 	}
