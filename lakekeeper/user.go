@@ -14,7 +14,8 @@ type (
 
 	// UserService handles communication with user endpoints of the Lakekeeper API.
 	//
-	// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user
+	// Lakekeeper API docs:
+	// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/user
 	UserService struct {
 		client *Client
 	}

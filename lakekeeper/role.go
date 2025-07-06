@@ -16,7 +16,8 @@ type (
 
 	// RoleService handles communication with role endpoints of the Lakekeeper API.
 	//
-	// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role
+	//
+	// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role
 	RoleService struct {
 		client *Client
 	}
@@ -37,7 +38,8 @@ type Role struct {
 
 // GetRole retrieves information about a role.
 //
-// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/get_role
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/get_role
 func (s *RoleService) GetRole(id string, projectID string, options ...RequestOptionFunc) (*Role, *http.Response, error) {
 	if projectID != "" {
 		options = append(options, WithProject(id))
@@ -190,7 +192,8 @@ func (s *RoleService) UpdateRole(id string, opts *UpdateRoleOptions, options ...
 
 // DeleteRole permanently removes a role and all its associated permissions.
 //
-// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/delete_role
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/role/operation/delete_role
 func (s *RoleService) DeleteRole(id string, projectID string, options ...RequestOptionFunc) (*http.Response, error) {
 	if projectID != "" {
 		options = append(options, WithProject(id))
