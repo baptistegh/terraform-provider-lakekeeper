@@ -158,6 +158,10 @@ func (s *ProjectService) CreateProject(opts *CreateProjectOptions, options ...Re
 // Lakekeeper API docs:
 // https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/rename_project
 func (s *ProjectService) RenameProject(id string, opts *RenameProjectOptions, options ...RequestOptionFunc) (*http.Response, error) {
+	if opts == nil {
+		return nil, fmt.Errorf("RenameProjectOptions cannot be nil")
+	}
+
 	options = append(options, WithProject(id))
 
 	req, err := s.client.NewRequest(http.MethodPost, "/project/rename", opts, options)
