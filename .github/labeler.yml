@@ -1,0 +1,23 @@
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - docs/**
+      - examples/**
+      - playground/**
+      - '**/*.md'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: .github/**
+
+go:
+  - changed-files:
+    - any-glob-to-any-file: '**/*.go'
+
+client:
+  - changed-files:
+    - any-glob-to-any-file: 'lakekeeper/**'
+
+provider:
+  - changed-files:
+    - any-glob-to-any-file: 'internal/provider/**'
