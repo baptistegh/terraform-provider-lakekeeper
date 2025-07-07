@@ -1,8 +1,10 @@
 package lakekeeper
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -52,7 +54,24 @@ func (e *ApiError) WithMessage(format string, a ...any) *ApiError {
 func ApiErrorFromResponse(response *http.Response) *ApiError {
 	var apiErr ApiError
 
+	// Read the body once
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		apiErr.Message = "failed to read response body"
+		apiErr.Status = response.Status
+		apiErr.StatusCode = response.StatusCode
+		return &apiErr
+	}
+
+	// Restore the body for potential further use
+	response.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	_ = json.NewDecoder(response.Body).Decode(&apiErr)
+
+	// Try to unmarshal into ApiError
+	if err := json.Unmarshal(bodyBytes, &apiErr); err != nil {
+		apiErr.Message = string(bodyBytes) // fallback: use raw body as message
+	}
 
 	apiErr.Status = response.Status
 	apiErr.StatusCode = response.StatusCode

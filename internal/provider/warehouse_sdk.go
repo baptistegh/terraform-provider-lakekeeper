@@ -1,11 +1,13 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
 
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/profile"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -32,7 +34,7 @@ func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeep
 		if err != nil {
 			return nil, err
 		}
-		req.StorageProfile = storage.StorageProfileWrapper{StorageProfile: storageProfile}
+		req.StorageProfile = *storageProfile
 	}
 
 	if m.StorageCredential != nil {
@@ -224,44 +226,45 @@ func (m *lakekeeperWarehouseResourceModel) DeleteProfileSettings() (lakekeeper.D
 	}
 }
 
-func (m *lakekeeperWarehouseResourceModel) StorageProfileSettings() (storage.StorageProfile, error) {
+func (m *lakekeeperWarehouseResourceModel) StorageProfileSettings() (*profile.StorageProfile, error) {
 	if m.StorageProfile == nil {
 		return nil, nil
 	}
 	switch m.StorageProfile.Type.ValueString() {
 	case "s3":
-		profile := storage.NewStorageProfileS3(
-			m.StorageProfile.Bucket.ValueString(),
-			m.StorageProfile.Region.ValueString(),
-			m.StorageProfile.STSEnabled.ValueBool(),
-		)
+		opts := []profile.StorageProfileS3Options{}
+
 		if !m.StorageProfile.Endpoint.IsNull() && !m.StorageProfile.Endpoint.IsUnknown() {
-			profile.Endpoint = m.StorageProfile.Endpoint.ValueStringPointer()
-		} else {
-			profile.Endpoint = nil
+			opts = append(opts, profile.WithEndpoint(m.StorageProfile.Endpoint.ValueString()))
 		}
 
-		if !m.StorageProfile.PathStyleAccess.IsNull() && !m.StorageProfile.PathStyleAccess.IsUnknown() {
-			profile.PathStyleAccess = m.StorageProfile.PathStyleAccess.ValueBoolPointer()
-		} else {
-			profile.PathStyleAccess = nil
+		if !m.StorageProfile.PathStyleAccess.IsNull() && !m.StorageProfile.PathStyleAccess.IsUnknown() && m.StorageProfile.PathStyleAccess.ValueBool() {
+			opts = append(opts, profile.WithPathStyleAccess())
 		}
 
 		if !m.StorageProfile.KeyPrefix.IsNull() && !m.StorageProfile.KeyPrefix.IsUnknown() {
-			profile.KeyPrefix = m.StorageProfile.KeyPrefix.ValueStringPointer()
-		} else {
-			profile.KeyPrefix = nil
+			opts = append(opts, profile.WithS3KeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
 		}
-		return profile, nil
-	case "adls":
-		return storage.NewStorageProfileADLS(
-			m.StorageProfile.AccountName.ValueString(),
-			m.StorageProfile.Filesystem.ValueString(),
-		), nil
-	case "gcs":
-		return storage.NewStorageProfileGCS(
+
+		profile, err := profile.NewStorageProfileS3(
 			m.StorageProfile.Bucket.ValueString(),
-		), nil
+			m.StorageProfile.Region.ValueString(),
+			opts...,
+		)
+		if err != nil {
+			return nil, err
+		}
+		p := profile.AsProfile()
+		if p == nil {
+			return nil, errors.New("error during storage profile conversion, storage profile is undefined")
+		}
+		return p, nil
+	case "adls":
+		// TODO: implements for ADLS
+		return nil, errors.New("storage profile conversion is not implemented for ADLS")
+	case "gcs":
+		// TODO: implements for GCS
+		return nil, errors.New("storage profile conversion is not implemented for GCS")
 	}
 	return nil, fmt.Errorf("invalid storage profile definitions, type must be [s3,gcs,adls]")
 }

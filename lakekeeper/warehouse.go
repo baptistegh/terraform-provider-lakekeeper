@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/profile"
 )
 
 type (
@@ -122,7 +123,7 @@ func (s *WarehouseService) ListWarehouses(opts *ListWarehousesOptions, options .
 type CreateWarehouseOptions struct {
 	Name              string                           `json:"warehouse-name"`
 	ProjectID         string                           `json:"project-id"`
-	StorageProfile    storage.StorageProfileWrapper    `json:"storage-profile"`
+	StorageProfile    profile.StorageProfile           `json:"storage-profile"`
 	StorageCredential storage.StorageCredentialWrapper `json:"storage-credential"`
 	DeleteProfile     DeleteProfile                    `json:"delete-profile,omitempty"`
 }
