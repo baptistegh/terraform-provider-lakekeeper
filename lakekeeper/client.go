@@ -64,12 +64,21 @@ type Client struct {
 	Role      RoleServiceInterface
 }
 
+// NewClient returns a new Lakekeeper API client.
+// You must provide a valid access token.
+func NewClient(token string, baseURL string, options ...ClientOptionFunc) (*Client, error) {
+	as := AccessTokenAuthSource{Token: token}
+	return NewAuthSourceClient(as, baseURL, options...)
+}
+
 // NewAuthSourceClient returns a new GitLab API client that uses the AuthSource for authentication.
 func NewAuthSourceClient(as AuthSource, baseURL string, options ...ClientOptionFunc) (*Client, error) {
+	var err error
+
 	c := &Client{
 		UserAgent:  userAgent,
 		authSource: as,
-		bootstrap:  true,
+		bootstrap:  false,
 	}
 
 	// Configure the HTTP client.
@@ -105,15 +114,18 @@ func NewAuthSourceClient(as AuthSource, baseURL string, options ...ClientOptionF
 	c.Warehouse = &WarehouseService{client: c}
 	c.Project = &ProjectService{client: c}
 
-	info, _, err := c.Server.Info()
-	if err != nil {
-		return nil, fmt.Errorf("error contacting server, %w", err)
-	}
-
-	boostapped := info != nil && info.Bootstrapped
-
 	c.bootstrapInit.Do(func() {
-		if !c.bootstrap || boostapped {
+		if !c.bootstrap {
+			return
+		}
+
+		var info *ServerInfo
+		info, _, err = c.Server.Info()
+		if err != nil {
+			return
+		}
+
+		if info != nil && info.Bootstrapped {
 			return
 		}
 
@@ -125,7 +137,6 @@ func NewAuthSourceClient(as AuthSource, baseURL string, options ...ClientOptionF
 			IsOperator:       &isOperator,
 			UserType:         &userType,
 		}
-
 		_, err = c.Server.Bootstrap(bootstrapOpts)
 	})
 	if err != nil {

@@ -81,8 +81,8 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		))
 	}
 
-	if !c.InitialBootstrap {
-		opts = append(opts, lakekeeper.WithBootstrapDisabled())
+	if c.InitialBootstrap {
+		opts = append(opts, lakekeeper.WithInitialBootstrapEnabled())
 	}
 
 	oauthConfig := &clientcredentials.Config{
