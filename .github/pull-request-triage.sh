@@ -13,7 +13,7 @@ REGEX="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\([^)]+\))?(!)?:
 
 if [[ "$PR_TITLE" =~ $REGEX ]]; then
     echo "✅ PR title follows Conventional Commit format."
-    gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label "invalid-title"
+    gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label "invalid-title" 2> /dev/null || echo "error removing label"
 else
     # Tag invalid title
     LABEL_EXISTS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json labels --jq '.labels[].name | select(. == "invalid-title")')
