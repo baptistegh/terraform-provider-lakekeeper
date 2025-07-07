@@ -84,11 +84,11 @@ func WithHTTPClient(httpClient *http.Client) ClientOptionFunc {
 	}
 }
 
-// DisableBootstrap can be used to disable the client to
-// try to bootstrap the server on startup.
-func WithBootstrapDisabled() ClientOptionFunc {
+// WithInitialBootstrapEnabled enables automatic server
+// bootstrap on client startup.
+func WithInitialBootstrapEnabled() ClientOptionFunc {
 	return func(c *Client) error {
-		c.bootstrap = false
+		c.bootstrap = true
 		return nil
 	}
 }

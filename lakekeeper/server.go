@@ -10,7 +10,8 @@ type (
 
 	// BootstrapService handles communication with server endpoints of the Lakekeeper API.
 	//
-	// Lakekeeper API docs: https://docs.lakekeeper.io/docs/nightly/api/management/#tag/server
+	// Lakekeeper API docs:
+	// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/server
 	ServerService struct {
 		client *Client
 	}

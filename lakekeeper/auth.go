@@ -35,3 +35,17 @@ func (as OAuthTokenSource) Header(_ context.Context) (string, string, error) {
 
 	return "Authorization", fmt.Sprintf("%s %s", t.TokenType, t.AccessToken), nil
 }
+
+// AccessTokenAuthSource is an AuthSource that uses a static access token.
+// The token is added to the Authorization header using the Bearer scheme.
+type AccessTokenAuthSource struct {
+	Token string
+}
+
+func (AccessTokenAuthSource) Init(context.Context, *Client) error {
+	return nil
+}
+
+func (s AccessTokenAuthSource) Header(_ context.Context) (string, string, error) {
+	return "Authorization", "Bearer " + s.Token, nil
+}
