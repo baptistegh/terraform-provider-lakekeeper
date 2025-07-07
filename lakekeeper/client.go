@@ -174,7 +174,7 @@ func (c *Client) setBaseURL(urlStr string) error {
 
 // NewRequest creates a new API request. The method expects a relative URL
 // path that will be resolved relative to the base URL of the Client.
-// Relative URL paths should always be specified without a preceding slash.
+// Relative URL paths should always be specified with a preceding slash.
 // If specified, the value pointed to by body is JSON encoded and included
 // as the request body.
 func (c *Client) NewRequest(method, path string, opt any, options []RequestOptionFunc) (*retryablehttp.Request, error) {
