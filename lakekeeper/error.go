@@ -66,7 +66,10 @@ func ApiErrorFromResponse(response *http.Response) *ApiError {
 	// Restore the body for potential further use
 	response.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
-	_ = json.NewDecoder(response.Body).Decode(&apiErr)
+	// Try to unmarshal into ApiError
+	if err := json.Unmarshal(bodyBytes, &apiErr); err != nil {
+		apiErr.Message = string(bodyBytes) // fallback: use raw body as message
+	}
 
 	// Try to unmarshal into ApiError
 	if err := json.Unmarshal(bodyBytes, &apiErr); err != nil {
