@@ -55,15 +55,3 @@ if [[ "$TYPE" == "fix" ]]; then
     gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "bug"
     exit 0
 fi
-
-if [[ "$TYPE" == "docs" ]]; then
-    echo "🏷️ Added label: documentation"
-    gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "documentation"
-    exit 0
-fi
-
-if [[ "$TYPE" == "ci" ]]; then
-    echo "🏷️ Added label: ci"
-    gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "ci"
-    exit 0
-fi
