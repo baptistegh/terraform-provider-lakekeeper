@@ -20,9 +20,9 @@ resource "lakekeeper_project" "awesome" {
   name = "awesome"
 }
 
-resource "lakekeeper_user" "john_doe" {
+resource "lakekeeper_role" "editors" {
   project_id  = lakekeeper_project.awesome.id
-  name        = "toto-editors"
+  name        = "editors"
   description = "Here I can describe the role."
 }
 ```
@@ -54,5 +54,5 @@ The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/c
 
 ```shell
 # id is "<project_id>:<role_id>"
-terraform import lakekeeper_use.role "261bd4e4-5c57-4707-96ad-44128f9038c0:37cf8760-5092-4d5d-8b29-a6b46a45f067"
+terraform import lakekeeper_role.admin "261bd4e4-5c57-4707-96ad-44128f9038c0:37cf8760-5092-4d5d-8b29-a6b46a45f067"
 ```

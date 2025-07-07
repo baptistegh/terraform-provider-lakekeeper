@@ -13,7 +13,7 @@ REGEX="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\([^)]+\))?(!)?:
 
 if [[ "$PR_TITLE" =~ $REGEX ]]; then
     echo "✅ PR title follows Conventional Commit format."
-    gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label "invalid-title"
+    gh pr edit "$PR_NUMBER" --repo "$REPO" --remove-label "invalid-title" 2> /dev/null || echo "error removing label"
 else
     # Tag invalid title
     LABEL_EXISTS=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json labels --jq '.labels[].name | select(. == "invalid-title")')
@@ -53,17 +53,5 @@ fi
 if [[ "$TYPE" == "fix" ]]; then
     echo "🏷️ Added label: bug"
     gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "bug"
-    exit 0
-fi
-
-if [[ "$TYPE" == "docs" ]]; then
-    echo "🏷️ Added label: documentation"
-    gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "documentation"
-    exit 0
-fi
-
-if [[ "$TYPE" == "ci" ]]; then
-    echo "🏷️ Added label: ci"
-    gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "ci"
     exit 0
 fi
