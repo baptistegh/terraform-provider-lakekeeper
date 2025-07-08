@@ -37,6 +37,18 @@ terraform {
 }
 ```
 
+## Supported Versions
+
+This provider will officially support the latest three last versions of Lakekeeper, although older versions may still work.
+
+The following Lakekeeper versions are used when running acceptance tests in CI:
+
+- 0.9.2 (latest)
+- 0.9.1
+- 0.9.0
+
+_Acceptance tests are executed using Terraform v1.12.2._
+
 ## Releases
 
 This provider uses [GoReleaser](https://goreleaser.com/]) to build and publish releases. Each release published to GitHub contains binary files for Linux, macOS (darwin), and Windows, as configured within the [`.goreleaser.yml`](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/.goreleaser.yml) file.
@@ -53,7 +65,7 @@ After cloning the repository, you can build the project by running `make build`
 
 ### Local Environment
 
-You can spin up a local developer environment via [Docker Compose](https://docs.docker.com/compose/) by running `make testacc-up`. This will spin up a few containers for Lakekeeper, Keycloak, PostgreSQL and OpenFGA, which can be used for testing the provider. This environment and its setup via make local is not intended for production use.
+You can spin up a local developer environment via [Docker Compose](https://docs.docker.com/compose/) by running `make testacc-up`. This will spin up a few containers for Lakekeeper, Keycloak, PostgreSQL and OpenFGA, which can be used for testing the provider.
 
 To stop the environment you can use the `make clean`.
 
