@@ -14,6 +14,7 @@ type (
 		ListWarehouses(opts *ListWarehousesOptions, options ...RequestOptionFunc) ([]*Warehouse, *http.Response, error)
 		CreateWarehouse(opts *CreateWarehouseOptions, options ...RequestOptionFunc) (*Warehouse, *http.Response, error)
 		DeleteWarehouse(id string, opts *DeleteWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
+		SetWarehouseProtection(id string, protected bool, projectID string, options ...RequestOptionFunc) (*SetWarehouseProtectionResponse, *http.Response, error)
 		ActivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
 		DeactivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
 		RenameWarehouse(id string, opts *RenameWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
@@ -242,6 +243,46 @@ func (s *WarehouseService) DeleteWarehouse(id string, opts *DeleteWarehouseOptio
 	}
 
 	return resp, nil
+}
+
+// SetWarehouseProtectionResponse represent the reponse sent by SetWarehouseProtection()
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/set_warehouse_protection
+type SetWarehouseProtectionResponse struct {
+	Protected bool   `json:"protected"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+// setWarehouseProtectionOptions represent the request sent to SetWarehouseProtection()
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/set_warehouse_protection
+type setWarehouseProtectionOptions struct {
+	Protected bool `json:"protected"`
+}
+
+// SetWarehouseProtection configures whether a warehouse should be protected from deletion.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/set_warehouse_protection
+func (s *WarehouseService) SetWarehouseProtection(id string, protected bool, projectID string, options ...RequestOptionFunc) (*SetWarehouseProtectionResponse, *http.Response, error) {
+	opts := setWarehouseProtectionOptions{
+		Protected: protected,
+	}
+
+	req, err := s.client.NewRequest(http.MethodDelete, fmt.Sprintf("/warehouse/%s/protection", id), &opts, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var wProtec SetWarehouseProtectionResponse
+	resp, apiErr := s.client.Do(req, &wProtec)
+	if apiErr != nil {
+		return nil, resp, apiErr
+	}
+
+	return &wProtec, resp, nil
 }
 
 // ActivateWarehouse re-enables access to a previously deactivated warehouse.
