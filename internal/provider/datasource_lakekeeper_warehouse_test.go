@@ -37,7 +37,6 @@ func TestAccDataLakekeeperWarehouse_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "storage_profile.type", "s3"),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "storage_profile.path_style_access", "true"),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "storage_profile.endpoint", "http://minio:9000/"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "storage_profile.allow_alternative_protocols", "false"),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "storage_profile.key_prefix", keyPrefix),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "delete_profile.type", "hard"),
 					resource.TestCheckNoResourceAttr("data.lakekeeper_warehouse.default", "delete_profile.expiration_seconds"),

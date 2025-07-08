@@ -85,8 +85,8 @@ func WithHost(host string) ADLSStorageSettingsOptions {
 	}
 }
 
-func (s *ADLSStorageSettings) AsProfile() *StorageProfile {
-	return &StorageProfile{s}
+func (s *ADLSStorageSettings) AsProfile() StorageProfile {
+	return StorageProfile{s}
 }
 
 func (s ADLSStorageSettings) MarshalJSON() ([]byte, error) {

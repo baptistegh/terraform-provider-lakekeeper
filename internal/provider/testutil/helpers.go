@@ -11,7 +11,7 @@ import (
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/api"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/credential"
 	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/profile"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 )
@@ -65,7 +65,7 @@ func CreateProject(t *testing.T) *lakekeeper.Project {
 func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *lakekeeper.Warehouse {
 	t.Helper()
 
-	profile, err := profile.NewS3StorageSettings("testacc", "local-01",
+	storage, err := profile.NewS3StorageSettings("testacc", "local-01",
 		profile.WithEndpoint("http://minio:9000/"),
 		profile.WithPathStyleAccess(),
 		profile.WithS3KeyPrefix(keyPrefix),
@@ -74,12 +74,17 @@ func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *lakekeeper.Ware
 		t.Fatalf("error creating storage profile, %v", err)
 	}
 
+	creds, err := credential.NewS3CredentialAccessKey("minio-root-user", "minio-root-password")
+	if err != nil {
+		t.Fatalf("error creating storage credential, %v", err)
+	}
+
 	opts := lakekeeper.CreateWarehouseOptions{
 		Name:              acctest.RandString(8),
 		ProjectID:         projectID,
-		StorageProfile:    *profile.AsProfile(),
-		StorageCredential: storage.StorageCredentialWrapper{StorageCredential: storage.NewS3CredentialAccessKey("minio-root-user", "minio-root-password", "")},
-		DeleteProfile:     &lakekeeper.HardDeleteProfile{Type: "hard"},
+		StorageProfile:    storage.AsProfile(),
+		StorageCredential: creds.AsCredential(),
+		DeleteProfile:     profile.NewTabularDeleteProfileHard().AsProfile(),
 	}
 
 	warehouse, _, err := TestLakekeeperClient.Warehouse.CreateWarehouse(&opts)

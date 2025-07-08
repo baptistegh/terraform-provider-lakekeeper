@@ -7,13 +7,13 @@ import (
 
 type StorageSettings interface {
 	GetStorageFamily() StorageFamily
-	AsProfile() *StorageProfile
+	AsProfile() StorageProfile
 
 	json.Marshaler
 }
 
 type StorageProfile struct {
-	StorageProfile StorageSettings
+	StorageSettings StorageSettings
 }
 
 type StorageFamily string
@@ -45,19 +45,19 @@ func (sc *StorageProfile) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(data, &cfg); err != nil {
 			return err
 		}
-		sc.StorageProfile = &cfg
+		sc.StorageSettings = &cfg
 	case "adls":
 		var cfg ADLSStorageSettings
 		if err := json.Unmarshal(data, &cfg); err != nil {
 			return err
 		}
-		sc.StorageProfile = &cfg
+		sc.StorageSettings = &cfg
 	case "gcs":
 		var cfg GCSStorageSettings
 		if err := json.Unmarshal(data, &cfg); err != nil {
 			return err
 		}
-		sc.StorageProfile = &cfg
+		sc.StorageSettings = &cfg
 	default:
 		return fmt.Errorf("unsupported storage type: %s", peek.Type)
 	}
@@ -65,21 +65,21 @@ func (sc *StorageProfile) UnmarshalJSON(data []byte) error {
 }
 
 func (sc StorageProfile) MarshalJSON() ([]byte, error) {
-	return json.Marshal(sc.StorageProfile)
+	return json.Marshal(sc.StorageSettings)
 }
 
 // Type-safe helpers
 func (sc StorageProfile) AsS3() (*S3StorageSettings, bool) {
-	cfg, ok := sc.StorageProfile.(*S3StorageSettings)
+	cfg, ok := sc.StorageSettings.(*S3StorageSettings)
 	return cfg, ok
 }
 
 func (sc StorageProfile) AsADLS() (*ADLSStorageSettings, bool) {
-	cfg, ok := sc.StorageProfile.(*ADLSStorageSettings)
+	cfg, ok := sc.StorageSettings.(*ADLSStorageSettings)
 	return cfg, ok
 }
 
 func (sc StorageProfile) AsGCS() (*GCSStorageSettings, bool) {
-	cfg, ok := sc.StorageProfile.(*GCSStorageSettings)
+	cfg, ok := sc.StorageSettings.(*GCSStorageSettings)
 	return cfg, ok
 }

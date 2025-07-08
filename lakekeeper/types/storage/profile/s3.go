@@ -88,8 +88,6 @@ func (sp *S3StorageSettings) GetStorageFamily() StorageFamily {
 
 type S3StorageSettingsOptions func(*S3StorageSettings) error
 
-func (s *S3StorageSettings) StorageType() string { return "s3" }
-
 // NewS3StorageSettings creates a new S3 storage profile considering
 // the options given.
 func NewS3StorageSettings(bucket, region string, opts ...S3StorageSettingsOptions) (*S3StorageSettings, error) {
@@ -198,10 +196,8 @@ func WithSTSTokenValiditySeconds(seconds int64) S3StorageSettingsOptions {
 	}
 }
 
-func (s *S3StorageSettings) AsProfile() *StorageProfile {
-	return &StorageProfile{
-		StorageProfile: s,
-	}
+func (s *S3StorageSettings) AsProfile() StorageProfile {
+	return StorageProfile{StorageSettings: s}
 }
 
 func (s S3StorageSettings) MarshalJSON() ([]byte, error) {

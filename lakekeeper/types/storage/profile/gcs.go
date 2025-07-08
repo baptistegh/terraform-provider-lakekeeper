@@ -44,8 +44,8 @@ func WithGCSKeyPrefix(prefix string) GCSStorageSettingsOptions {
 	}
 }
 
-func (s *GCSStorageSettings) AsProfile() *StorageProfile {
-	return &StorageProfile{s}
+func (s *GCSStorageSettings) AsProfile() StorageProfile {
+	return StorageProfile{s}
 }
 
 func (s GCSStorageSettings) MarshalJSON() ([]byte, error) {
