@@ -9,6 +9,7 @@ on:
 
 jobs:
   labeler:
+    name: Check Pull Request Title
     if: github.repository == 'baptistegh/terraform-provider-lakekeeper'
     permissions:
       contents: read
