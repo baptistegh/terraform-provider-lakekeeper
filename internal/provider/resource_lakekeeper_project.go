@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -62,7 +60,6 @@ func (r *lakekeeperProjectResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "Name of the project.",
 				Required:            true,
 				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
-				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 		},
 	}
@@ -140,10 +137,36 @@ func (r *lakekeeperProjectResource) Read(ctx context.Context, req resource.ReadR
 
 // Updates updates the resource in-place.
 func (r *lakekeeperProjectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.AddError(
-		"Provider Error, report upstream",
-		"Somehow the resource was requested to perform an in-place upgrade which is not possible.",
-	)
+	var plan, state lakekeeperProjectResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if plan.Name.ValueString() != state.Name.ValueString() {
+		tflog.Debug(ctx, "renaming project", map[string]any{
+			"id":      state.ID.ValueString(),
+			"oldName": state.Name.ValueString(),
+			"newName": plan.Name.ValueString(),
+		})
+
+		opts := lakekeeper.RenameProjectOptions{
+			NewName: plan.Name.ValueString(),
+		}
+
+		_, err := r.client.Project.RenameProject(state.ID.ValueString(), &opts, lakekeeper.WithContext(ctx))
+		if err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to rename project %s, %v", state.ID.ValueString(), err.Error()))
+			return
+		}
+	}
+
+	// Update the state with the new name
+	state.Name = plan.Name
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 // Deletes removes the resource.

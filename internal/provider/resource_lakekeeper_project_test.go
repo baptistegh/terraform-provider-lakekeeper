@@ -57,3 +57,36 @@ func testAccCheckLakekeeperProjectDestroy(s *terraform.State) error {
 	}
 	return nil
 }
+
+func TestAccLakekeeperProject_rename(t *testing.T) {
+	rName := acctest.RandString(8)
+	rNameRenamed := rName + "-renamed"
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckLakekeeperProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "lakekeeper_project" "foo" {
+				  name = "%s"
+				}
+				`, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("lakekeeper_project.foo", "name", rName),
+					resource.TestCheckResourceAttrSet("lakekeeper_project.foo", "id"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+				resource "lakekeeper_project" "foo" {
+				  name = "%s"
+				}
+				`, rNameRenamed),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("lakekeeper_project.foo", "name", rNameRenamed),
+				),
+			},
+		},
+	})
+}
