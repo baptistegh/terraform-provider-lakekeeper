@@ -15,6 +15,9 @@ type (
 		CreateWarehouse(opts *CreateWarehouseOptions, options ...RequestOptionFunc) (*Warehouse, *http.Response, error)
 		DeleteWarehouse(id string, opts *DeleteWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
 		SetWarehouseProtection(id string, protected bool, projectID string, options ...RequestOptionFunc) (*SetWarehouseProtectionResponse, *http.Response, error)
+		ActivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
+		DeactivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
+		RenameWarehouse(id string, opts *RenameWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
 	}
 
 	// WarehouseService handles communication with warehouse endpoints of the Lakekeeper API.
@@ -173,6 +176,41 @@ func (s *WarehouseService) CreateWarehouse(opts *CreateWarehouseOptions, options
 	return warehouse, resp, nil
 }
 
+// RenameWarehouseOptions represents RenameWarehouse() options.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/rename_warehouse
+type RenameWarehouseOptions struct {
+	NewName   string `json:"new-name"`
+	ProjectID string `json:"-"`
+}
+
+// RenameWarehouse updates the name of a specific warehouse.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/rename_warehouse
+func (s *WarehouseService) RenameWarehouse(id string, opts *RenameWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error) {
+	if opts == nil {
+		return nil, errors.New("RenameWarehouse received empty options")
+	}
+
+	if opts.ProjectID != "" {
+		options = append(options, WithProject(opts.ProjectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/rename", id), opts, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
+}
+
 // DeleteWarehouseOptions represents DeleteWarehouse() options.
 //
 // force parameters needs to be true to delete protected warehouses.
@@ -229,10 +267,6 @@ type setWarehouseProtectionOptions struct {
 // Lakekeeper API docs:
 // https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/set_warehouse_protection
 func (s *WarehouseService) SetWarehouseProtection(id string, protected bool, projectID string, options ...RequestOptionFunc) (*SetWarehouseProtectionResponse, *http.Response, error) {
-	if projectID != "" {
-		options = append(options, WithProject(projectID))
-	}
-
 	opts := setWarehouseProtectionOptions{
 		Protected: protected,
 	}
@@ -249,4 +283,48 @@ func (s *WarehouseService) SetWarehouseProtection(id string, protected bool, pro
 	}
 
 	return &wProtec, resp, nil
+}
+
+// ActivateWarehouse re-enables access to a previously deactivated warehouse.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/activate_warehouse
+func (s *WarehouseService) ActivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error) {
+	if projectID != "" {
+		options = append(options, WithProject(projectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/activate", id), nil, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
+}
+
+// DeactivateWarehouse temporarily disables access to a warehouse without deleting its data.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/deactivate_warehouse
+func (s *WarehouseService) DeactivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error) {
+	if projectID != "" {
+		options = append(options, WithProject(projectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/deactivate", id), nil, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
 }
