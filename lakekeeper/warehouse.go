@@ -14,6 +14,8 @@ type (
 		ListWarehouses(opts *ListWarehousesOptions, options ...RequestOptionFunc) ([]*Warehouse, *http.Response, error)
 		CreateWarehouse(opts *CreateWarehouseOptions, options ...RequestOptionFunc) (*Warehouse, *http.Response, error)
 		DeleteWarehouse(id string, opts *DeleteWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
+		ActivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
+		DeactivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
 	}
 
 	// WarehouseService handles communication with warehouse endpoints of the Lakekeeper API.
@@ -194,6 +196,50 @@ func (s *WarehouseService) DeleteWarehouse(id string, opts *DeleteWarehouseOptio
 	}
 
 	req, err := s.client.NewRequest(http.MethodDelete, "/warehouse/"+id, opts, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
+}
+
+// ActivateWarehouse re-enables access to a previously deactivated warehouse.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/activate_warehouse
+func (s *WarehouseService) ActivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error) {
+	if projectID != "" {
+		options = append(options, WithProject(projectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/activate", id), nil, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
+}
+
+// DeactivateWarehouse temporarily disables access to a warehouse without deleting its data.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/deactivate_warehouse
+func (s *WarehouseService) DeactivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error) {
+	if projectID != "" {
+		options = append(options, WithProject(projectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/deactivate", id), nil, options)
 	if err != nil {
 		return nil, err
 	}
