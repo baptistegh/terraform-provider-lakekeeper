@@ -29,7 +29,7 @@ func TestStorageProfileWrapper_S3_MarshalJSON(t *testing.T) {
 
 func TestStorageProfileWrapper_GCS_MarshalJSON(t *testing.T) {
 	given := StorageProfileWrapper{
-		StorageProfile: StorageProfileGCS{
+		StorageProfile: GCSStorageSettings{
 			Type:   "gcs",
 			Bucket: "test-bucket",
 		},
@@ -55,10 +55,10 @@ func TestStorageProfileWrapper_ADLS_UnmarshalJSON(t *testing.T) {
 	}
 
 	switch given.StorageProfile.(type) {
-	case StorageProfileADLS:
+	case ADLSStorageSettings:
 		// expected type
 	default:
-		t.Errorf("expected StorageProfileADLS, got %T", given.StorageProfile)
+		t.Errorf("expected ADLSStorageSettings, got %T", given.StorageProfile)
 	}
 }
 
@@ -85,9 +85,9 @@ func TestStorageProfileWrapper_GCS_UnmarshalJSON(t *testing.T) {
 	}
 
 	switch given.StorageProfile.(type) {
-	case StorageProfileGCS:
+	case GCSStorageSettings:
 		// expected type
 	default:
-		t.Errorf("expected StorageProfileGCS, got %T", given.StorageProfile)
+		t.Errorf("expected GCSStorageSettings, got %T", given.StorageProfile)
 	}
 }

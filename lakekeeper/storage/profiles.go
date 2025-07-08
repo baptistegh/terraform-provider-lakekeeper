@@ -9,8 +9,8 @@ var ValidStorageProfileTypes = []string{"adls", "s3", "gcs"}
 
 // validate implementations
 var (
-	_ StorageProfile = &StorageProfileADLS{}
-	_ StorageProfile = &StorageProfileGCS{}
+	_ StorageProfile = &ADLSStorageSettings{}
+	_ StorageProfile = &GCSStorageSettings{}
 	_ StorageProfile = &StorageProfileS3{}
 )
 
@@ -18,7 +18,7 @@ type StorageProfile interface {
 	GetStorageType() string
 }
 
-type StorageProfileADLS struct {
+type ADLSStorageSettings struct {
 	Type                      string  `json:"type"`
 	AccountName               string  `json:"account-name"`
 	AllowAlternativeProtocols bool    `json:"allow-alternative-protocols,omitempty"`
@@ -29,12 +29,12 @@ type StorageProfileADLS struct {
 	SASTokenValiditySeconds   *int64  `json:"sas-token-validity-seconds,omitempty"`
 }
 
-func (StorageProfileADLS) GetStorageType() string {
+func (ADLSStorageSettings) GetStorageType() string {
 	return "adls"
 }
 
-func NewStorageProfileADLS(accountName, fileSystem string) *StorageProfileADLS {
-	return &StorageProfileADLS{
+func NewADLSStorageSettings(accountName, fileSystem string) *ADLSStorageSettings {
+	return &ADLSStorageSettings{
 		Type:                      "adls",
 		AccountName:               accountName,
 		Filesystem:                fileSystem,
@@ -73,18 +73,18 @@ func NewStorageProfileS3(bucket, region string, stsEnabled bool) *StorageProfile
 	}
 }
 
-type StorageProfileGCS struct {
+type GCSStorageSettings struct {
 	Type      string  `json:"type"`
 	Bucket    string  `json:"bucket"`
 	KeyPrefix *string `json:"key-prefix,omitempty"`
 }
 
-func (s StorageProfileGCS) GetStorageType() string {
+func (s GCSStorageSettings) GetStorageType() string {
 	return "gcs"
 }
 
-func NewStorageProfileGCS(bucket string) *StorageProfileGCS {
-	return &StorageProfileGCS{
+func NewGCSStorageSettings(bucket string) *GCSStorageSettings {
+	return &GCSStorageSettings{
 		Type:   "gcs",
 		Bucket: bucket,
 	}
@@ -103,7 +103,7 @@ func (w *StorageProfileWrapper) UnmarshalJSON(data []byte) error {
 	t, _ := raw["type"].(string)
 	switch t {
 	case "adls":
-		var s StorageProfileADLS
+		var s ADLSStorageSettings
 		if err := json.Unmarshal(data, &s); err != nil {
 			return err
 		}
@@ -115,7 +115,7 @@ func (w *StorageProfileWrapper) UnmarshalJSON(data []byte) error {
 		}
 		w.StorageProfile = s
 	case "gcs":
-		var s StorageProfileGCS
+		var s GCSStorageSettings
 		if err := json.Unmarshal(data, &s); err != nil {
 			return err
 		}

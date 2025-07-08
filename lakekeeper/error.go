@@ -71,6 +71,11 @@ func ApiErrorFromResponse(response *http.Response) *ApiError {
 		apiErr.Message = string(bodyBytes) // fallback: use raw body as message
 	}
 
+	// Try to unmarshal into ApiError
+	if err := json.Unmarshal(bodyBytes, &apiErr); err != nil {
+		apiErr.Message = string(bodyBytes) // fallback: use raw body as message
+	}
+
 	apiErr.Status = response.Status
 	apiErr.StatusCode = response.StatusCode
 

@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/credential"
+	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/profile"
 )
 
 type (
@@ -33,13 +34,13 @@ var _ WarehouseServiceInterface = (*WarehouseService)(nil)
 
 // Warehouse represents a lakekeeper warehouse
 type Warehouse struct {
-	ID                    string                         `json:"id"`
-	ProjectID             string                         `json:"project-id"`
-	Name                  string                         `json:"name"`
-	Protected             bool                           `json:"protected"`
-	Status                WarehouseStatus                `json:"status"`
-	StorageProfileWrapper *storage.StorageProfileWrapper `json:"storage-profile"`
-	DeleteProfileWrapper  *DeleteProfileWrapper          `json:"delete-profile"`
+	ID             string                 `json:"id"`
+	ProjectID      string                 `json:"project-id"`
+	Name           string                 `json:"name"`
+	Protected      bool                   `json:"protected"`
+	Status         WarehouseStatus        `json:"status"`
+	StorageProfile profile.StorageProfile `json:"storage-profile"`
+	DeleteProfile  *profile.DeleteProfile `json:"delete-profile,omitempty"`
 }
 
 type WarehouseStatus string
@@ -124,11 +125,11 @@ func (s *WarehouseService) ListWarehouses(opts *ListWarehousesOptions, options .
 // Lakekeeper API docs:
 // https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/create_warehouse
 type CreateWarehouseOptions struct {
-	Name              string                           `json:"warehouse-name"`
-	ProjectID         string                           `json:"project-id"`
-	StorageProfile    storage.StorageProfileWrapper    `json:"storage-profile"`
-	StorageCredential storage.StorageCredentialWrapper `json:"storage-credential"`
-	DeleteProfile     DeleteProfile                    `json:"delete-profile,omitempty"`
+	Name              string                       `json:"warehouse-name"`
+	ProjectID         string                       `json:"project-id"`
+	StorageProfile    profile.StorageProfile       `json:"storage-profile"`
+	StorageCredential credential.StorageCredential `json:"storage-credential"`
+	DeleteProfile     *profile.DeleteProfile       `json:"delete-profile,omitempty"`
 }
 
 // CreateWarehouseOptions represents the response from the API
