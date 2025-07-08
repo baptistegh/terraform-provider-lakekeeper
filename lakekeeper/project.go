@@ -12,6 +12,7 @@ type (
 		DeleteProject(id string, options ...RequestOptionFunc) (*http.Response, error)
 		GetDefaultProject(options ...RequestOptionFunc) (*Project, *http.Response, error)
 		CreateProject(opts *CreateProjectOptions, options ...RequestOptionFunc) (*Project, *http.Response, error)
+		RenameProject(id string, opts *RenameProjectOptions, options ...RequestOptionFunc) (*http.Response, error)
 	}
 
 	// ProjectService handles communication with project endpoints of the Lakekeeper API.
@@ -82,6 +83,14 @@ type ListProjectsResponse struct {
 	Projects []*Project `json:"projects"`
 }
 
+// RenameProjectOptions represents RenameProject() options.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/rename_project
+type RenameProjectOptions struct {
+	NewName string `json:"new-name"`
+}
+
 // ListProjects lists all projects that the requesting user has access to.
 //
 // Lakekeeper API docs:
@@ -142,6 +151,30 @@ func (s *ProjectService) CreateProject(opts *CreateProjectOptions, options ...Re
 	}
 
 	return project, resp, nil
+}
+
+// RenameProject renames a project.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/project/operation/rename_project
+func (s *ProjectService) RenameProject(id string, opts *RenameProjectOptions, options ...RequestOptionFunc) (*http.Response, error) {
+	if opts == nil {
+		return nil, fmt.Errorf("RenameProjectOptions cannot be nil")
+	}
+
+	options = append(options, WithProject(id))
+
+	req, err := s.client.NewRequest(http.MethodPost, "/project/rename", opts, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
 }
 
 // DeleteProject delete a project.

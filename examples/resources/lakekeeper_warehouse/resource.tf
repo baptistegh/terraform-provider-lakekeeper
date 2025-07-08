@@ -3,7 +3,7 @@ resource "lakekeeper_project" "bi" {
 }
 
 resource "lakekeeper_warehouse" "aws" {
-  project_id = data.lakekeeper_project.bi.id
+  project_id = lakekeeper_project.bi.id
   name       = "aws"
   protected  = false
   active     = true
