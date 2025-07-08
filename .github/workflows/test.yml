@@ -101,21 +101,6 @@ jobs:
           terraform_version: 1.12.2
           terraform_wrapper: false
       - run: go mod download
-      - name: Restore Docker image cache
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.docker-cache
-          key: docker-cache-${{ runner.os }}-lakekeeper
-          restore-keys: |
-            docker-cache-${{ runner.os }}-
-      - name: Load Docker images (if cache hit)
-        run: |
-          if [ -f /tmp/.docker-cache/images.tar ]; then
-            docker load -i /tmp/.docker-cache/images.tar
-          fi
-          if [ -f /tmp/.docker-cache/lakekeeper-${{ matrix.lakekeeper-version }}.tar ]; then
-            docker load -i /tmp/.docker-cache/lakekeeper-${{ matrix.lakekeeper-version }}.tar
-          fi
       - name: Starting Lakekeeper instance (and third parties)
         run: make testacc-up
       - run: |
@@ -123,13 +108,3 @@ jobs:
           ./scripts/await-healthy.sh
       - run: go test -v -cover --tags acceptance -v ./internal/provider/
         timeout-minutes: 10
-      - name: Save Docker images for cache
-        # To avoid redundant uploads, save Docker image cache only for one matrix job (Terraform 1.4.*)
-        if: matrix.lakekeeper-version == 'v0.9.0'
-        run: |
-          mkdir -p /tmp/.docker-cache
-          docker save $(docker compose -f run/docker-compose.yml config | grep image | awk '{print $2}') -o /tmp/.docker-cache/images.tar
-      - name: Save Docker Lakekeeper image for cache
-        run: |
-          mkdir -p /tmp/.docker-cache
-          docker save quay.io/lakekeeper/catalog:${{ matrix.lakekeeper-version }} -o /tmp/.docker-cache/lakekeeper-${{ matrix.lakekeeper-version }}.tar
