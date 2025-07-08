@@ -3,7 +3,7 @@
 version: "3"
 services:
   lakekeeper:
-    image: quay.io/lakekeeper/catalog:v0.9.0
+    image: quay.io/lakekeeper/catalog:v0.9.2
     pull_policy: &lakekeeper-pull-policy if_not_present
     labels:
       terraform-provider-lakekeeper/owned: ""
@@ -38,7 +38,7 @@ services:
       iceberg_net:
   
   migrate:
-    image: quay.io/lakekeeper/catalog:v0.9.0
+    image: quay.io/lakekeeper/catalog:v0.9.2
     pull_policy: *lakekeeper-pull-policy
     environment:
       - LAKEKEEPER__PG_ENCRYPTION_KEY=This-is-NOT-Secure!
