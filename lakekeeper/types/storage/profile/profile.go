@@ -5,15 +5,15 @@ import (
 	"fmt"
 )
 
-type StorageProfileSettings interface {
-	GetStorageProfileType() StorageFamily
+type StorageSettings interface {
+	GetStorageFamily() StorageFamily
 	AsProfile() *StorageProfile
 
 	json.Marshaler
 }
 
 type StorageProfile struct {
-	StorageProfile StorageProfileSettings
+	StorageProfile StorageSettings
 }
 
 type StorageFamily string
@@ -26,9 +26,9 @@ const (
 
 // Check the implementation
 var (
-	_ StorageProfileSettings = (*StorageProfileADLS)(nil)
-	_ StorageProfileSettings = (*StorageProfileGCS)(nil)
-	_ StorageProfileSettings = (*StorageProfileS3)(nil)
+	_ StorageSettings = (*ADLSStorageSettings)(nil)
+	_ StorageSettings = (*GCSStorageSettings)(nil)
+	_ StorageSettings = (*S3StorageSettings)(nil)
 )
 
 func (sc *StorageProfile) UnmarshalJSON(data []byte) error {
@@ -41,19 +41,19 @@ func (sc *StorageProfile) UnmarshalJSON(data []byte) error {
 
 	switch peek.Type {
 	case "s3":
-		var cfg StorageProfileS3
+		var cfg S3StorageSettings
 		if err := json.Unmarshal(data, &cfg); err != nil {
 			return err
 		}
 		sc.StorageProfile = &cfg
 	case "adls":
-		var cfg StorageProfileADLS
+		var cfg ADLSStorageSettings
 		if err := json.Unmarshal(data, &cfg); err != nil {
 			return err
 		}
 		sc.StorageProfile = &cfg
 	case "gcs":
-		var cfg StorageProfileGCS
+		var cfg GCSStorageSettings
 		if err := json.Unmarshal(data, &cfg); err != nil {
 			return err
 		}
@@ -69,17 +69,17 @@ func (sc StorageProfile) MarshalJSON() ([]byte, error) {
 }
 
 // Type-safe helpers
-func (sc StorageProfile) AsS3() (*StorageProfileS3, bool) {
-	cfg, ok := sc.StorageProfile.(*StorageProfileS3)
+func (sc StorageProfile) AsS3() (*S3StorageSettings, bool) {
+	cfg, ok := sc.StorageProfile.(*S3StorageSettings)
 	return cfg, ok
 }
 
-func (sc StorageProfile) AsADLS() (*StorageProfileADLS, bool) {
-	cfg, ok := sc.StorageProfile.(*StorageProfileADLS)
+func (sc StorageProfile) AsADLS() (*ADLSStorageSettings, bool) {
+	cfg, ok := sc.StorageProfile.(*ADLSStorageSettings)
 	return cfg, ok
 }
 
-func (sc StorageProfile) AsGCS() (*StorageProfileGCS, bool) {
-	cfg, ok := sc.StorageProfile.(*StorageProfileGCS)
+func (sc StorageProfile) AsGCS() (*GCSStorageSettings, bool) {
+	cfg, ok := sc.StorageProfile.(*GCSStorageSettings)
 	return cfg, ok
 }

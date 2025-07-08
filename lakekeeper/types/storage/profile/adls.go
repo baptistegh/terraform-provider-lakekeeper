@@ -2,9 +2,9 @@ package profile
 
 import "encoding/json"
 
-// StorageProfileADLS represents the storage settings for a warehouse
+// ADLSStorageSettings represents the storage settings for a warehouse
 // where data are stored on Azure Data Lake Storage.
-type StorageProfileADLS struct {
+type ADLSStorageSettings struct {
 	// Name of the azure storage account.
 	AccountName string `json:"account-name"`
 	// Name of the adls filesystem, in blobstorage also known as container.
@@ -24,17 +24,17 @@ type StorageProfileADLS struct {
 	SASTokenValiditySeconds *int64 `json:"sas-token-validity-seconds,omitempty"`
 }
 
-func (sp *StorageProfileADLS) GetStorageProfileType() StorageFamily {
+func (sp *ADLSStorageSettings) GetStorageFamily() StorageFamily {
 	return StorageFamilyADLS
 }
 
-type StorageProfileADLSOptions func(*StorageProfileADLS) error
+type ADLSStorageSettingsOptions func(*ADLSStorageSettings) error
 
-// NewStorageProfileADLS creates a new ADLS storage profile considering
+// NewADLSStorageSettings creates a new ADLS storage profile considering
 // the options given.
-func NewStorageProfileADLS(accountName, fs string, opts ...StorageProfileADLSOptions) (*StorageProfileADLS, error) {
+func NewADLSStorageSettings(accountName, fs string, opts ...ADLSStorageSettingsOptions) (*ADLSStorageSettings, error) {
 	// Default configuration
-	profile := StorageProfileADLS{
+	profile := ADLSStorageSettings{
 		AccountName: accountName,
 		Filesystem:  fs,
 	}
@@ -49,48 +49,48 @@ func NewStorageProfileADLS(accountName, fs string, opts ...StorageProfileADLSOpt
 	return &profile, nil
 }
 
-func WithADLSAlternativeProtocols() StorageProfileADLSOptions {
-	return func(sp *StorageProfileADLS) error {
+func WithADLSAlternativeProtocols() ADLSStorageSettingsOptions {
+	return func(sp *ADLSStorageSettings) error {
 		activated := true
 		sp.AllowAlternativeProtocols = &activated
 		return nil
 	}
 }
 
-func WithAuthorityHost(host string) StorageProfileADLSOptions {
-	return func(sp *StorageProfileADLS) error {
+func WithAuthorityHost(host string) ADLSStorageSettingsOptions {
+	return func(sp *ADLSStorageSettings) error {
 		sp.AuthorityHost = &host
 		return nil
 	}
 }
 
-func WithADLSKeyPrefix(prefix string) StorageProfileADLSOptions {
-	return func(sp *StorageProfileADLS) error {
+func WithADLSKeyPrefix(prefix string) ADLSStorageSettingsOptions {
+	return func(sp *ADLSStorageSettings) error {
 		sp.KeyPrefix = &prefix
 		return nil
 	}
 }
 
-func WithSASTokenValiditySeconds(seconds int64) StorageProfileADLSOptions {
-	return func(sp *StorageProfileADLS) error {
+func WithSASTokenValiditySeconds(seconds int64) ADLSStorageSettingsOptions {
+	return func(sp *ADLSStorageSettings) error {
 		sp.SASTokenValiditySeconds = &seconds
 		return nil
 	}
 }
 
-func WithHost(host string) StorageProfileADLSOptions {
-	return func(sp *StorageProfileADLS) error {
+func WithHost(host string) ADLSStorageSettingsOptions {
+	return func(sp *ADLSStorageSettings) error {
 		sp.Host = &host
 		return nil
 	}
 }
 
-func (s *StorageProfileADLS) AsProfile() *StorageProfile {
+func (s *ADLSStorageSettings) AsProfile() *StorageProfile {
 	return &StorageProfile{s}
 }
 
-func (s StorageProfileADLS) MarshalJSON() ([]byte, error) {
-	type Alias StorageProfileADLS
+func (s ADLSStorageSettings) MarshalJSON() ([]byte, error) {
+	type Alias ADLSStorageSettings
 	aux := struct {
 		Type string `json:"type"`
 		Alias

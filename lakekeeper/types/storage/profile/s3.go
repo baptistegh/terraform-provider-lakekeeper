@@ -5,9 +5,9 @@ import (
 	"errors"
 )
 
-// StorageProfileS3 represents the storage settings for a warehouse
+// S3StorageSettings represents the storage settings for a warehouse
 // where data are stored on AWS S3 or S3-compatible storage.
-type StorageProfileS3 struct {
+type S3StorageSettings struct {
 	// Name of the S3 bucket
 	Bucket string `json:"bucket"`
 	// Region to use for S3 requests.
@@ -82,19 +82,19 @@ const (
 	VirtualHostSigningURLStyle RemoteSigningURLStyle = "virtual-host"
 )
 
-func (sp *StorageProfileS3) GetStorageProfileType() StorageFamily {
+func (sp *S3StorageSettings) GetStorageFamily() StorageFamily {
 	return StorageFamilyS3
 }
 
-type StorageProfileS3Options func(*StorageProfileS3) error
+type S3StorageSettingsOptions func(*S3StorageSettings) error
 
-func (s *StorageProfileS3) StorageType() string { return "s3" }
+func (s *S3StorageSettings) StorageType() string { return "s3" }
 
-// NewStorageProfileS3 creates a new S3 storage profile considering
+// NewS3StorageSettings creates a new S3 storage profile considering
 // the options given.
-func NewStorageProfileS3(bucket, region string, opts ...StorageProfileS3Options) (*StorageProfileS3, error) {
+func NewS3StorageSettings(bucket, region string, opts ...S3StorageSettingsOptions) (*S3StorageSettings, error) {
 	// Default configuration
-	profile := StorageProfileS3{
+	profile := S3StorageSettings{
 		Bucket:     bucket,
 		Region:     region,
 		STSEnabled: false,
@@ -113,8 +113,8 @@ func NewStorageProfileS3(bucket, region string, opts ...StorageProfileS3Options)
 // WithSTSEnabled enable STS for the storage profile
 // stsRoleARN can be passed in order to select the correct role
 // or AssumeRoleARN will be used
-func WithSTSEnabled(stsRoleARN *string) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithSTSEnabled(stsRoleARN *string) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		if stsRoleARN == nil && sp.AssumeRoleARN == nil {
 			return errors.New("in order to activate STS, you must provider either STSRoleARN or AssumeRoleARN")
 		}
@@ -126,86 +126,86 @@ func WithSTSEnabled(stsRoleARN *string) StorageProfileS3Options {
 	}
 }
 
-func WithS3KeyPrefix(prefix string) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithS3KeyPrefix(prefix string) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.KeyPrefix = &prefix
 		return nil
 	}
 }
 
-func WithEndpoint(endpoint string) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithEndpoint(endpoint string) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.Endpoint = &endpoint
 		return nil
 	}
 }
 
-func WithS3AlternativeProtocols() StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithS3AlternativeProtocols() S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		activated := true
 		sp.AllowAlternativeProtocols = &activated
 		return nil
 	}
 }
 
-func WithAssumeRoleARN(arn string) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithAssumeRoleARN(arn string) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.AssumeRoleARN = &arn
 		return nil
 	}
 }
 
-func WithAWSKMSKeyARN(arn string) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithAWSKMSKeyARN(arn string) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.AWSKMSKeyARN = &arn
 		return nil
 	}
 }
 
-func WithFlavor(flavor S3Flavor) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithFlavor(flavor S3Flavor) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.Flavor = &flavor
 		return nil
 	}
 }
 
-func WithPathStyleAccess() StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithPathStyleAccess() S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		activated := true
 		sp.PathStyleAccess = &activated
 		return nil
 	}
 }
 
-func WithPushS3DeleteDisabled(active bool) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithPushS3DeleteDisabled(active bool) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.PushS3DeleteDisabled = &active
 		return nil
 	}
 }
 
-func WithRemoteSigningURLStyle(style RemoteSigningURLStyle) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithRemoteSigningURLStyle(style RemoteSigningURLStyle) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.RemoteSigningURLStyle = &style
 		return nil
 	}
 }
 
-func WithSTSTokenValiditySeconds(seconds int64) StorageProfileS3Options {
-	return func(sp *StorageProfileS3) error {
+func WithSTSTokenValiditySeconds(seconds int64) S3StorageSettingsOptions {
+	return func(sp *S3StorageSettings) error {
 		sp.STSTokenValiditySeconds = &seconds
 		return nil
 	}
 }
 
-func (s *StorageProfileS3) AsProfile() *StorageProfile {
+func (s *S3StorageSettings) AsProfile() *StorageProfile {
 	return &StorageProfile{
 		StorageProfile: s,
 	}
 }
 
-func (s StorageProfileS3) MarshalJSON() ([]byte, error) {
-	type Alias StorageProfileS3
+func (s S3StorageSettings) MarshalJSON() ([]byte, error) {
+	type Alias S3StorageSettings
 	aux := struct {
 		Type string `json:"type"`
 		Alias

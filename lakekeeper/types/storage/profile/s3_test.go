@@ -6,7 +6,7 @@ import (
 )
 
 func TestS3StorageProfile_Marshal(t *testing.T) {
-	storageProfile, err := NewStorageProfileS3(
+	storageProfile, err := NewS3StorageSettings(
 		"bucket1",
 		"eu-west-1",
 		WithEndpoint("http://minio:9000/"),

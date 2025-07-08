@@ -4,26 +4,26 @@ import (
 	"encoding/json"
 )
 
-// StorageProfileGCS represents the storage settings for a warehouse
+// GCSStorageSettings represents the storage settings for a warehouse
 // where data are stored on Google Cloud Storage.
-type StorageProfileGCS struct {
+type GCSStorageSettings struct {
 	// Name of the GCS bucket
 	Bucket string `json:"bucket"`
 	// Subpath in the bucket to use.
 	KeyPrefix *string `json:"key-prefix,omitempty"`
 }
 
-type StorageProfileGCSOptions func(*StorageProfileGCS) error
+type GCSStorageSettingsOptions func(*GCSStorageSettings) error
 
-func (sp *StorageProfileGCS) GetStorageProfileType() StorageFamily {
+func (sp *GCSStorageSettings) GetStorageFamily() StorageFamily {
 	return StorageFamilyADLS
 }
 
-// NewStorageProfileGCS creates a new GCS storage profile considering
+// NewGCSStorageSettings creates a new GCS storage profile considering
 // the options given.
-func NewStorageProfileGCS(bucket string, opts ...StorageProfileGCSOptions) (*StorageProfileGCS, error) {
+func NewGCSStorageSettings(bucket string, opts ...GCSStorageSettingsOptions) (*GCSStorageSettings, error) {
 	// Default configuration
-	profile := StorageProfileGCS{
+	profile := GCSStorageSettings{
 		Bucket: bucket,
 	}
 
@@ -37,19 +37,19 @@ func NewStorageProfileGCS(bucket string, opts ...StorageProfileGCSOptions) (*Sto
 	return &profile, nil
 }
 
-func WithGCSKeyPrefix(prefix string) StorageProfileGCSOptions {
-	return func(sp *StorageProfileGCS) error {
+func WithGCSKeyPrefix(prefix string) GCSStorageSettingsOptions {
+	return func(sp *GCSStorageSettings) error {
 		sp.KeyPrefix = &prefix
 		return nil
 	}
 }
 
-func (s *StorageProfileGCS) AsProfile() *StorageProfile {
+func (s *GCSStorageSettings) AsProfile() *StorageProfile {
 	return &StorageProfile{s}
 }
 
-func (s StorageProfileGCS) MarshalJSON() ([]byte, error) {
-	type Alias StorageProfileGCS
+func (s GCSStorageSettings) MarshalJSON() ([]byte, error) {
+	type Alias GCSStorageSettings
 	aux := struct {
 		Type string `json:"type"`
 		Alias

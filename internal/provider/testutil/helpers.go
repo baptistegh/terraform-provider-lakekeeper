@@ -65,7 +65,7 @@ func CreateProject(t *testing.T) *lakekeeper.Project {
 func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *lakekeeper.Warehouse {
 	t.Helper()
 
-	profile, err := profile.NewStorageProfileS3("testacc", "local-01",
+	profile, err := profile.NewS3StorageSettings("testacc", "local-01",
 		profile.WithEndpoint("http://minio:9000/"),
 		profile.WithPathStyleAccess(),
 		profile.WithS3KeyPrefix(keyPrefix),

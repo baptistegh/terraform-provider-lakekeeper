@@ -70,7 +70,7 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *lakekeeper.War
 		storageProfile := w.StorageProfileWrapper.StorageProfile
 
 		switch sp := storageProfile.(type) {
-		case storage.StorageProfileADLS:
+		case storage.ADLSStorageSettings:
 			m.StorageProfile.Type = types.StringValue(sp.GetStorageType())
 			m.StorageProfile.AccountName = types.StringValue(sp.AccountName)
 			m.StorageProfile.AllowAlternativeProtocols = types.BoolValue(sp.AllowAlternativeProtocols)
@@ -79,7 +79,7 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *lakekeeper.War
 			m.StorageProfile.Host = types.StringPointerValue(sp.Host)
 			m.StorageProfile.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
 			m.StorageProfile.SASTokenValiditySeconds = types.Int64PointerValue(sp.SASTokenValiditySeconds)
-		case storage.StorageProfileGCS:
+		case storage.GCSStorageSettings:
 			m.StorageProfile.Type = types.StringValue(sp.GetStorageType())
 			m.StorageProfile.Bucket = types.StringValue(sp.Bucket)
 			m.StorageProfile.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
@@ -150,7 +150,7 @@ func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *lakekeeper.W
 		storageProfile := w.StorageProfileWrapper.StorageProfile
 
 		switch sp := storageProfile.(type) {
-		case storage.StorageProfileADLS:
+		case storage.ADLSStorageSettings:
 			m.StorageProfile.Type = types.StringValue(sp.GetStorageType())
 			m.StorageProfile.AccountName = types.StringValue(sp.AccountName)
 			m.StorageProfile.AllowAlternativeProtocols = types.BoolValue(sp.AllowAlternativeProtocols)
@@ -159,7 +159,7 @@ func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *lakekeeper.W
 			m.StorageProfile.Host = types.StringPointerValue(sp.Host)
 			m.StorageProfile.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
 			m.StorageProfile.SASTokenValiditySeconds = types.Int64PointerValue(sp.SASTokenValiditySeconds)
-		case storage.StorageProfileGCS:
+		case storage.GCSStorageSettings:
 			m.StorageProfile.Type = types.StringValue(sp.GetStorageType())
 			m.StorageProfile.Bucket = types.StringValue(sp.Bucket)
 			m.StorageProfile.KeyPrefix = types.StringPointerValue(sp.KeyPrefix)
@@ -232,7 +232,7 @@ func (m *lakekeeperWarehouseResourceModel) StorageProfileSettings() (*profile.St
 	}
 	switch m.StorageProfile.Type.ValueString() {
 	case "s3":
-		opts := []profile.StorageProfileS3Options{}
+		opts := []profile.S3StorageSettingsOptions{}
 
 		if !m.StorageProfile.Endpoint.IsNull() && !m.StorageProfile.Endpoint.IsUnknown() {
 			opts = append(opts, profile.WithEndpoint(m.StorageProfile.Endpoint.ValueString()))
@@ -246,7 +246,7 @@ func (m *lakekeeperWarehouseResourceModel) StorageProfileSettings() (*profile.St
 			opts = append(opts, profile.WithS3KeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
 		}
 
-		profile, err := profile.NewStorageProfileS3(
+		profile, err := profile.NewS3StorageSettings(
 			m.StorageProfile.Bucket.ValueString(),
 			m.StorageProfile.Region.ValueString(),
 			opts...,
