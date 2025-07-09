@@ -21,6 +21,7 @@ type (
 		RenameWarehouse(id string, opts *RenameWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
 		UpdateStorageProfile(id string, opts *UpdateStorageProfileOptions, options ...RequestOptionFunc) (*http.Response, error)
 		UpdateDeleteProfile(id string, opts *UpdateDeleteProfileOptions, options ...RequestOptionFunc) (*http.Response, error)
+		UpdateStorageCredential(id string, opts *UpdateStorageCredentialOptions, options ...RequestOptionFunc) (*http.Response, error)
 	}
 
 	// WarehouseService handles communication with warehouse endpoints of the Lakekeeper API.
@@ -386,7 +387,39 @@ func (s *WarehouseService) UpdateDeleteProfile(id string, opts *UpdateDeleteProf
 		return nil, errors.New("update delete profile received empty options")
 	}
 
-	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/delete-credential", id), opts, options)
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/delete-profile", id), opts, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
+}
+
+// UpdateStorageCredentialOptions represent UpdateStorageCredential() options
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/update_storage_credential
+type UpdateStorageCredentialOptions struct {
+	ProjectID         *string                       `json:"-"`
+	StorageCredential *credential.StorageCredential `json:"new-storage-credential,omitempty"`
+}
+
+// DeactivateWarehouse updates only the storage credential of a warehouse without modifying the storage profile.
+// Useful for refreshing expiring credentials.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/update_storage_credential
+func (s *WarehouseService) UpdateStorageCredential(id string, opts *UpdateStorageCredentialOptions, options ...RequestOptionFunc) (*http.Response, error) {
+	if opts != nil && opts.ProjectID != nil {
+		options = append(options, WithProject(*opts.ProjectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/storage-credential", id), opts, options)
 	if err != nil {
 		return nil, err
 	}
