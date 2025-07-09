@@ -82,7 +82,6 @@ func (r *lakekeeperRoleResource) Schema(ctx context.Context, req resource.Schema
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "When the role has last been modified.",
 				Computed:            true,
-				Optional:            true,
 			},
 		},
 	}

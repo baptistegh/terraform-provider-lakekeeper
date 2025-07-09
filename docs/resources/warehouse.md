@@ -53,7 +53,7 @@ resource "lakekeeper_warehouse" "aws" {
 ### Optional
 
 - `active` (Boolean) Whether the warehouse is active.
-- `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
+- `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. Default: `hard` (see [below for nested schema](#nestedatt--delete_profile))
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
 - `storage_credential` (Attributes) The credentials used to access the storage. This is required for the warehouse to be able to access the storage profile. (see [below for nested schema](#nestedatt--storage_credential))
 

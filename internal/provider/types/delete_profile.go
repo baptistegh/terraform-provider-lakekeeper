@@ -30,13 +30,13 @@ func (d DeleteProfileModel) AttributeTypes() map[string]attr.Type {
 
 func DeleteProfileResourceSchema() rschema.SingleNestedAttribute {
 	return rschema.SingleNestedAttribute{
-		MarkdownDescription: "The delete profile for the warehouse. It can be either a soft or hard delete profile.",
+		MarkdownDescription: "The delete profile for the warehouse. It can be either a soft or hard delete profile. Default: `hard`",
 		Optional:            true,
 		Computed:            true,
 		Attributes: map[string]rschema.Attribute{
 			"type": rschema.StringAttribute{
-				Computed: true,
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("soft", "hard"),
 				},
