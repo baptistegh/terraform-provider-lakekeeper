@@ -387,7 +387,7 @@ func (s *WarehouseService) UpdateDeleteProfile(id string, opts *UpdateDeleteProf
 		return nil, errors.New("update delete profile received empty options")
 	}
 
-	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/delete-credential", id), opts, options)
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/delete-profile", id), opts, options)
 	if err != nil {
 		return nil, err
 	}
