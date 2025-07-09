@@ -31,7 +31,7 @@ terraform {
   required_providers {
     lakekeeper = {
       source = "baptistegh/lakekeeper"
-      version = "<version>"
+      version = "0.2.0"
     }
   }
 }
