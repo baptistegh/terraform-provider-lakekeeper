@@ -1,3 +1,9 @@
+## 0.2.1 (2025-07-09)
+
+MISCELLANEOUS CHORES:
+
+* docs: fix some inconsistencies by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/89
+
 ## 0.2.0 (2025-07-09)
 
 BREAKING CHANGES:
