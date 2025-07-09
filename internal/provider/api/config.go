@@ -9,7 +9,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
+	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -77,7 +78,7 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 			stringMap[k] = fmt.Sprintf("%v", v)
 		}
 		opts = append(opts, lakekeeper.WithRequestOptions(
-			lakekeeper.WithHeaders(stringMap),
+			core.WithHeaders(stringMap),
 		))
 	}
 
@@ -97,7 +98,7 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		return nil, err
 	}
 
-	client, err := lakekeeper.NewAuthSourceClient(lakekeeper.OAuthTokenSource{
+	client, err := lakekeeper.NewAuthSourceClient(core.OAuthTokenSource{
 		TokenSource: oauth2.ReuseTokenSource(initialToken, oauthConfig.TokenSource(ctx)),
 	}, c.BaseURL, opts...)
 	if err != nil {
@@ -106,7 +107,7 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 
 	// Test the credentials by checking we can get information about the authenticated user.
 	if c.EarlyAuthFail {
-		_, _, err = client.Server.Info(lakekeeper.WithContext(ctx))
+		_, _, err = client.ServerV1().Info(core.WithContext(ctx))
 	}
 
 	return client, err

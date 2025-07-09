@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/storage"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/profile"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type storageProfileValidator struct{}
+
+func validStorageProfileTypes() []string {
+	return []string{string(profile.StorageFamilyADLS), string(profile.StorageFamilyGCS), string(profile.StorageFamilyS3)}
+}
 
 func (v storageProfileValidator) Description(ctx context.Context) string {
 	return "Validates storage_profile fields depending on the type"
@@ -100,7 +104,7 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 		resp.Diagnostics.AddAttributeError(
 			path.Root("type"),
 			"Unsupported storage profile type",
-			fmt.Sprintf("The given type '%s' is not supported. Valid %v", profile.Type.ValueString(), storage.ValidStorageProfileTypes),
+			fmt.Sprintf("The given type '%s' is not supported. Valid %v", profile.Type.ValueString(), validStorageProfileTypes()),
 		)
 	}
 }

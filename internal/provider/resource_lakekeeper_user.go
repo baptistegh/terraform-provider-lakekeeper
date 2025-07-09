@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
+	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
+	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -112,7 +114,7 @@ func (r *lakekeeperUserResource) Create(ctx context.Context, req resource.Create
 	userType := state.UserType.ValueStringPointer()
 
 	updateIfExists := false
-	opts := lakekeeper.ProvisionUserOptions{
+	opts := v1.ProvisionUserOptions{
 		ID:             state.ID.ValueStringPointer(),
 		Name:           state.Name.ValueStringPointer(),
 		Email:          state.Email.ValueStringPointer(),
@@ -120,11 +122,11 @@ func (r *lakekeeperUserResource) Create(ctx context.Context, req resource.Create
 	}
 
 	if userType != nil && *userType != "" {
-		uType := lakekeeper.UserType(*userType)
+		uType := v1.UserType(*userType)
 		opts.UserType = &uType
 	}
 
-	user, _, err := r.client.User.ProvisionUser(&opts, lakekeeper.WithContext(ctx))
+	user, _, err := r.client.UserV1().Provision(&opts, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create user %s, %v", state.ID.ValueString(), err))
 		return
@@ -159,7 +161,7 @@ func (r *lakekeeperUserResource) Read(ctx context.Context, req resource.ReadRequ
 
 	id := state.ID.ValueString()
 
-	user, _, err := r.client.User.GetUser(id, lakekeeper.WithContext(ctx))
+	user, _, err := r.client.UserV1().Get(id, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read user %s, %v", id, err))
 		return
@@ -199,7 +201,7 @@ func (r *lakekeeperUserResource) Update(ctx context.Context, req resource.Update
 	userType := plan.UserType.ValueStringPointer()
 
 	updateIfExists := true
-	opts := lakekeeper.ProvisionUserOptions{
+	opts := v1.ProvisionUserOptions{
 		ID:             plan.ID.ValueStringPointer(),
 		Name:           plan.Name.ValueStringPointer(),
 		Email:          plan.Email.ValueStringPointer(),
@@ -207,11 +209,11 @@ func (r *lakekeeperUserResource) Update(ctx context.Context, req resource.Update
 	}
 
 	if userType != nil && *userType != "" {
-		uType := lakekeeper.UserType(*userType)
+		uType := v1.UserType(*userType)
 		opts.UserType = &uType
 	}
 
-	user, _, err := r.client.User.ProvisionUser(&opts, lakekeeper.WithContext(ctx))
+	user, _, err := r.client.UserV1().Provision(&opts, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update user: %v", err))
 		return
@@ -246,7 +248,7 @@ func (r *lakekeeperUserResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	_, err := r.client.User.DeleteUser(id, lakekeeper.WithContext(ctx))
+	_, err := r.client.UserV1().Delete(id, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete user %s, %v", id, err))
 		return

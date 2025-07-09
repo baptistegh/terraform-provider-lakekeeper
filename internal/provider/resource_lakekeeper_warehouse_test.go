@@ -20,17 +20,18 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 	rName := acctest.RandString(8)
 	rPrefix := acctest.RandString(12)
 
+	project := testutil.CreateProject(t)
+
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckLakekeeperWarehouseDestroy,
 		Steps: []resource.TestStep{
 			// Create a warehouse with S3 storage profile
 			{
-				Config: fmt.Sprintf(`
-				data "lakekeeper_default_project" "default" {}			
+				Config: fmt.Sprintf(`		
 				resource "lakekeeper_warehouse" "s3" {
 					name = "%s"
-					project_id = data.lakekeeper_default_project.default.id
+					project_id = "%s"
 					storage_profile = {
 						type = "s3"
 						bucket = "testacc"
@@ -46,8 +47,11 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 						secret_access_key = "minio-root-password"
 					}
 				}
-				`, rName, rPrefix),
+				`, rName, project.ID, rPrefix),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.s3", "id"),
+					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.s3", "warehouse_id"),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "project_id", project.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "active", "true"),
@@ -185,7 +189,7 @@ func testAccCheckLakekeeperWarehouseDestroy(s *terraform.State) error {
 		}
 
 		projectID, warehouseID := splitInternalID(types.StringValue(rs.Primary.ID))
-		if _, _, err := testutil.TestLakekeeperClient.Warehouse.GetWarehouse(warehouseID, projectID); err == nil {
+		if _, _, err := testutil.TestLakekeeperClient.WarehouseV1(projectID).Get(warehouseID); err == nil {
 			return fmt.Errorf("Warehouse with id %s still exists", rs.Primary.ID)
 		}
 		return nil

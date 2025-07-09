@@ -165,7 +165,7 @@ func testAccCheckLakekeeperRoleDestroy(s *terraform.State) error {
 
 		projectID, roleID := splitInternalID(types.StringValue(rs.Primary.ID))
 
-		_, _, err := testutil.TestLakekeeperClient.Role.GetRole(roleID, projectID)
+		_, _, err := testutil.TestLakekeeperClient.RoleV1(projectID).Get(roleID)
 		if err == nil {
 			return fmt.Errorf("Role with id %s still exists", rs.Primary.ID)
 		}
