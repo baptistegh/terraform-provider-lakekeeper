@@ -58,7 +58,7 @@ services:
       iceberg_net:
 
   db:
-    image: bitnami/postgresql:16.6.0
+    image: bitnami/postgresql:17.5.0
     environment:
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=postgres
@@ -75,7 +75,7 @@ services:
       iceberg_net:
   
   openfga-db:
-    image: bitnami/postgresql:16.3.0
+    image: bitnami/postgresql:17.5.0
     environment:
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=postgres
