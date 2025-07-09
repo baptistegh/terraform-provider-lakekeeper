@@ -82,7 +82,6 @@ func (d *LakekeeperRoleDataSource) Schema(_ context.Context, _ datasource.Schema
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "When the role has last been modified.",
 				Computed:            true,
-				Optional:            true,
 			},
 		},
 	}
