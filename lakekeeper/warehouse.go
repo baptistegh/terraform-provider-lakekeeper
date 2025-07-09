@@ -20,6 +20,7 @@ type (
 		DeactivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
 		RenameWarehouse(id string, opts *RenameWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
 		UpdateStorageProfile(id string, opts *UpdateStorageProfileOptions, options ...RequestOptionFunc) (*http.Response, error)
+		UpdateDeleteProfile(id string, opts *UpdateDeleteProfileOptions, options ...RequestOptionFunc) (*http.Response, error)
 	}
 
 	// WarehouseService handles communication with warehouse endpoints of the Lakekeeper API.
@@ -355,6 +356,37 @@ func (s *WarehouseService) UpdateStorageProfile(id string, opts *UpdateStoragePr
 	}
 
 	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/storage", id), opts, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
+}
+
+// UpdateDeleteProfileOptions represent UpdateDeleteProfile() options
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/update_warehouse_delete_profile
+type UpdateDeleteProfileOptions struct {
+	ProjectID     *string               `json:"-"`
+	DeleteProfile profile.DeleteProfile `json:"delete-profile"`
+}
+
+// UpdateDeleteProfile configures the soft-delete behavior for a warehouse.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/update_warehouse_delete_profile
+func (s *WarehouseService) UpdateDeleteProfile(id string, opts *UpdateDeleteProfileOptions, options ...RequestOptionFunc) (*http.Response, error) {
+	if opts == nil {
+		return nil, errors.New("update delete profile received empty options")
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/delete-credential", id), opts, options)
 	if err != nil {
 		return nil, err
 	}
