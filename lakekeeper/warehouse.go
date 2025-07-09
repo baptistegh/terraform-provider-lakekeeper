@@ -19,6 +19,7 @@ type (
 		ActivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
 		DeactivateWarehouse(id, projectID string, options ...RequestOptionFunc) (*http.Response, error)
 		RenameWarehouse(id string, opts *RenameWarehouseOptions, options ...RequestOptionFunc) (*http.Response, error)
+		UpdateStorageProfile(id string, opts *UpdateStorageProfileOptions, options ...RequestOptionFunc) (*http.Response, error)
 	}
 
 	// WarehouseService handles communication with warehouse endpoints of the Lakekeeper API.
@@ -318,6 +319,42 @@ func (s *WarehouseService) DeactivateWarehouse(id, projectID string, options ...
 	}
 
 	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/deactivate", id), nil, options)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, apiErr := s.client.Do(req, nil)
+	if apiErr != nil {
+		return resp, apiErr
+	}
+
+	return resp, nil
+}
+
+// UpdateStorageProfileOptions represent UpdateStorageProfile() options
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/update_storage_profile
+type UpdateStorageProfileOptions struct {
+	ProjectID         *string                       `json:"-"`
+	StorageCredential *credential.StorageCredential `json:"storage-credential,omitempty"`
+	StorageProfile    profile.StorageProfile        `json:"storage-profile"`
+}
+
+// DeactivateWarehouse updates both the storage profile and credentials of a warehouse.
+//
+// Lakekeeper API docs:
+// https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/update_storage_profile
+func (s *WarehouseService) UpdateStorageProfile(id string, opts *UpdateStorageProfileOptions, options ...RequestOptionFunc) (*http.Response, error) {
+	if opts == nil {
+		return nil, errors.New("update storage profile received empty options")
+	}
+
+	if opts.ProjectID != nil {
+		options = append(options, WithProject(*opts.ProjectID))
+	}
+
+	req, err := s.client.NewRequest(http.MethodPost, fmt.Sprintf("/warehouse/%s/storage", id), opts, options)
 	if err != nil {
 		return nil, err
 	}
