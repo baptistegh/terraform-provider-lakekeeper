@@ -14,8 +14,12 @@ import (
 func TestAccDataLakekeeperRole_basic(t *testing.T) {
 
 	project := testutil.CreateProject(t)
+	defaultProject, _, err := testutil.TestLakekeeperClient.ProjectV1().Default()
+	if err != nil {
+		t.Fatalf("could not get default project, %v", err)
+	}
 
-	roleDefaultProject := testutil.CreateRole(t, "")
+	roleDefaultProject := testutil.CreateRole(t, defaultProject.ID)
 	roleNewProject := testutil.CreateRole(t, project.ID)
 
 	resource.ParallelTest(t, resource.TestCase{

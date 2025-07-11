@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -15,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
+
+var validDeleteProfileTypes = []string{"soft", "hard"}
 
 type DeleteProfileModel struct {
 	Type              types.String `tfsdk:"type"`
@@ -86,25 +87,25 @@ func (v deleteProfileValidator) ValidateObject(ctx context.Context, req validato
 		return
 	}
 
-	var profile = DeleteProfileModel{}
+	var deleteProfile DeleteProfileModel
 
-	diags := val.As(ctx, &profile, basetypes.ObjectAsOptions{})
+	diags := val.As(ctx, &deleteProfile, basetypes.ObjectAsOptions{})
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	switch profile.Type.ValueString() {
+	switch deleteProfile.Type.ValueString() {
 	case "soft":
-		if profile.ExpirationSeconds.IsNull() || profile.ExpirationSeconds.IsUnknown() {
+		if deleteProfile.ExpirationSeconds.IsNull() || deleteProfile.ExpirationSeconds.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("expiration_seconds"),
 				"'expiration_seconds' required for type 'soft'",
 				"When 'type' is 'soft', you must set the 'expiration_seconds' attribute.",
 			)
 		}
-	case "hard":
-		if !profile.ExpirationSeconds.IsNull() && !profile.ExpirationSeconds.IsUnknown() {
+	case deleteProfile.Type.ValueString():
+		if !deleteProfile.ExpirationSeconds.IsNull() && !deleteProfile.ExpirationSeconds.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("expiration_seconds"),
 				"'expiration_seconds' can't be set for type 'hard'",
@@ -115,7 +116,7 @@ func (v deleteProfileValidator) ValidateObject(ctx context.Context, req validato
 		resp.Diagnostics.AddAttributeError(
 			path.Root("type"),
 			"Unsupported delete profile type",
-			fmt.Sprintf("The given type '%s' is not supported. Valid %v", profile.Type.ValueString(), lakekeeper.ValidDeleteProfileTypes),
+			fmt.Sprintf("The given type '%s' is not supported. Valid %v", deleteProfile.Type.ValueString(), validDeleteProfileTypes),
 		)
 	}
 }

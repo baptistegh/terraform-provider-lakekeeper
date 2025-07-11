@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
+	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -74,7 +75,6 @@ func (d *LakekeeperProjectDataSource) Configure(_ context.Context, req datasourc
 // Read refreshes the Terraform state with the latest data.
 func (d *LakekeeperProjectDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state LakekeeperProjectDataSourceModel
-	var project *lakekeeper.Project
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
@@ -85,7 +85,7 @@ func (d *LakekeeperProjectDataSource) Read(ctx context.Context, req datasource.R
 
 	id := state.ID.ValueString()
 
-	project, _, err := d.client.Project.GetProject(id, lakekeeper.WithContext(ctx))
+	project, _, err := d.client.ProjectV1().Get(id, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project %s, %v", id, err))
 		return

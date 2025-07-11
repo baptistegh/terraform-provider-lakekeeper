@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -112,7 +113,7 @@ func (d *LakekeeperWarehouseDataSource) Read(ctx context.Context, req datasource
 	id := state.WarehouseID.ValueString()
 	projectID := state.ProjectID.ValueString()
 
-	warehouse, _, err := d.client.Warehouse.GetWarehouse(id, projectID, lakekeeper.WithContext(ctx))
+	warehouse, _, err := d.client.WarehouseV1(projectID).Get(id, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s, %v", state.Name.ValueString(), err))
 		return

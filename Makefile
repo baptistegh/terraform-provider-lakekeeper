@@ -4,7 +4,6 @@ reviewable: build fmt generate test ## Run before committing.
 
 GOBIN = $(shell pwd)/bin
 PROVIDER_SRC_DIR := ./internal/provider/...
-CLIENT_SRC_DIR := ./lakekeeper
 CONTAINER_COMPOSE_ENGINE ?= $(shell docker compose version >/dev/null 2>&1 && echo 'docker compose' || echo 'docker-compose')
 
 build: ## Build the provider binary.
@@ -19,7 +18,7 @@ TESTARGS += -test.run $(RUN)
 endif
 
 test: ## Run unit tests.
-	go test $(TESTARGS) $(PROVIDER_SRC_DIR) $(CLIENT_SRC_DIR)
+	go test -cover $(TESTARGS) $(PROVIDER_SRC_DIR)
 
 fmt: tool-golangci-lint tool-terraform tool-shfmt ## Format files and fix issues.
 	gofmt -s -w -e .
@@ -63,13 +62,13 @@ testacc-down: ## Teardown a Lakekeeper instance.
 	cd run; $(CONTAINER_COMPOSE_ENGINE) down --volumes
 
 testacc: ## Run acceptance tests against a Lakekeeper instance.
-	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test --tags acceptance -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
+	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test -cover --tags acceptance -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
 
 testacc-flakey: ## Run flakey acceptance tests against a Lakekeeper instance.
-	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test --tags flakey -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
+	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test -cover --tags flakey -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
 
 testacc-settings: ## Run application settings acceptance tests against a Lakekeeper instance.
-	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test --tags settings -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
+	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test -cover --tags settings -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
 
 # TOOLS
 # Tool dependencies are installed into a project-local /bin folder.

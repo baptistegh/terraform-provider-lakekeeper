@@ -5,20 +5,20 @@ import (
 	"fmt"
 
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/credential"
-	"github.com/baptistegh/terraform-provider-lakekeeper/lakekeeper/types/storage/profile"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/credential"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/profile"
 )
 
-func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeeper.CreateWarehouseOptions, error) {
+func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*v1.CreateWarehouseOptions, error) {
 	if !m.Active.ValueBool() {
 		return nil, fmt.Errorf("could not create a warehouse with inactive status")
 	}
-	req := lakekeeper.CreateWarehouseOptions{
-		Name:      m.Name.ValueString(),
-		ProjectID: m.ProjectID.ValueString(),
+	req := v1.CreateWarehouseOptions{
+		Name: m.Name.ValueString(),
 	}
 
 	if m.DeleteProfile != nil {
@@ -60,7 +60,7 @@ func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*lakekeep
 // TODO: refactor RefreshFromSettings on datasource and resource
 // because these functions are almost identical
 
-func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *lakekeeper.Warehouse) diag.Diagnostics {
+func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *v1.Warehouse) diag.Diagnostics {
 	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)
@@ -139,7 +139,7 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *lakekeeper.War
 	return diags
 }
 
-func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *lakekeeper.Warehouse) diag.Diagnostics {
+func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *v1.Warehouse) diag.Diagnostics {
 	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)

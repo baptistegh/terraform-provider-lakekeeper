@@ -66,7 +66,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
-      - run: go test -v -cover ./internal/provider/ ./lakekeeper
+      - run: make test
         timeout-minutes: 10
 
   # Run acceptance tests in a matrix with Terraform CLI versions
@@ -106,5 +106,5 @@ jobs:
       - run: |
           echo "Waiting for Lakekeeper to be healthy"
           ./scripts/await-healthy.sh
-      - run: go test -v -cover --tags acceptance -v ./internal/provider/
+      - run: make testacc
         timeout-minutes: 10

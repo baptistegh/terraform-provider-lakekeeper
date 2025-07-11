@@ -145,7 +145,7 @@ func testAccCheckLakekeeperUserDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, _, err := testutil.TestLakekeeperClient.User.GetUser(rs.Primary.ID)
+		_, _, err := testutil.TestLakekeeperClient.UserV1().Get(rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("User with id %s still exists", rs.Primary.ID)
 		}
