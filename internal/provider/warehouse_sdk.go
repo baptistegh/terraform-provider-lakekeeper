@@ -76,9 +76,9 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.W
 		diags.AddError(errorMessage, "Storage profile must be defined")
 	} else {
 		m.StorageProfile = &tftypes.StorageProfileModel{}
-		storageProfile := w.StorageProfile.StorageSettings
+		settings := w.StorageProfile.StorageSettings
 
-		switch sp := storageProfile.(type) {
+		switch sp := settings.(type) {
 		case *profile.ADLSStorageSettings:
 			m.StorageProfile.Type = types.StringValue(string(sp.GetStorageFamily()))
 			m.StorageProfile.AccountName = types.StringValue(sp.AccountName)
@@ -219,6 +219,10 @@ func (m *lakekeeperWarehouseResourceModel) DeleteProfileSettings() (profile.Dele
 		return nil, nil
 	}
 
+	if m.DeleteProfile.Type.IsNull() || m.DeleteProfile.Type.IsUnknown() {
+		return profile.NewTabularDeleteProfileHard(), nil
+	}
+
 	switch m.DeleteProfile.Type.ValueString() {
 	case "soft":
 		return profile.NewTabularDeleteProfileSoft(m.DeleteProfile.ExpirationSeconds.ValueInt32()), nil
@@ -237,16 +241,54 @@ func (m *lakekeeperWarehouseResourceModel) StorageSettings() (profile.StorageSet
 	case "s3":
 		opts := []profile.S3StorageSettingsOptions{}
 
+		if !m.StorageProfile.STSEnabled.IsNull() && !m.StorageProfile.STSEnabled.IsUnknown() && m.StorageProfile.STSEnabled.ValueBool() {
+			opts = append(opts, profile.WithSTSEnabled())
+		}
+
+		if !m.StorageProfile.AllowAlternativeProtocols.IsNull() && !m.StorageProfile.AllowAlternativeProtocols.IsUnknown() && m.StorageProfile.AllowAlternativeProtocols.ValueBool() {
+			opts = append(opts, profile.WithS3AlternativeProtocols())
+		}
+
+		if !m.StorageProfile.AssumeRoleARN.IsNull() && !m.StorageProfile.AssumeRoleARN.IsUnknown() {
+			opts = append(opts, profile.WithAssumeRoleARN(m.StorageProfile.AssumeRoleARN.ValueString()))
+		}
+
+		if !m.StorageProfile.AWSKMSKeyARN.IsNull() && !m.StorageProfile.AWSKMSKeyARN.IsUnknown() {
+			opts = append(opts, profile.WithAWSKMSKeyARN(m.StorageProfile.AWSKMSKeyARN.ValueString()))
+		}
+
 		if !m.StorageProfile.Endpoint.IsNull() && !m.StorageProfile.Endpoint.IsUnknown() {
 			opts = append(opts, profile.WithEndpoint(m.StorageProfile.Endpoint.ValueString()))
+		}
+
+		if !m.StorageProfile.Flavor.IsNull() && !m.StorageProfile.Flavor.IsUnknown() {
+			flavor := profile.S3Flavor(m.StorageProfile.Flavor.ValueString())
+			opts = append(opts, profile.WithFlavor(flavor))
+		}
+
+		if !m.StorageProfile.KeyPrefix.IsNull() && !m.StorageProfile.KeyPrefix.IsUnknown() {
+			opts = append(opts, profile.WithS3KeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
 		}
 
 		if !m.StorageProfile.PathStyleAccess.IsNull() && !m.StorageProfile.PathStyleAccess.IsUnknown() && m.StorageProfile.PathStyleAccess.ValueBool() {
 			opts = append(opts, profile.WithPathStyleAccess())
 		}
 
-		if !m.StorageProfile.KeyPrefix.IsNull() && !m.StorageProfile.KeyPrefix.IsUnknown() {
-			opts = append(opts, profile.WithS3KeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
+		if !m.StorageProfile.PushS3DeleteDisabled.IsNull() && !m.StorageProfile.PushS3DeleteDisabled.IsUnknown() {
+			opts = append(opts, profile.WithPushS3DeleteDisabled(m.StorageProfile.PushS3DeleteDisabled.ValueBool()))
+		}
+
+		if !m.StorageProfile.RemoteSigningURLStyle.IsNull() && !m.StorageProfile.RemoteSigningURLStyle.IsUnknown() {
+			style := profile.RemoteSigningURLStyle(m.StorageProfile.RemoteSigningURLStyle.ValueString())
+			opts = append(opts, profile.WithRemoteSigningURLStyle(style))
+		}
+
+		if !m.StorageProfile.STSRoleARN.IsNull() && !m.StorageProfile.STSRoleARN.IsUnknown() {
+			opts = append(opts, profile.WithSTSRoleARN(m.StorageProfile.STSRoleARN.ValueString()))
+		}
+
+		if !m.StorageProfile.STSTokenValiditySeconds.IsNull() && !m.StorageProfile.STSTokenValiditySeconds.IsUnknown() {
+			opts = append(opts, profile.WithSTSTokenValiditySeconds(m.StorageProfile.STSTokenValiditySeconds.ValueInt64()))
 		}
 
 		profile := profile.NewS3StorageSettings(
@@ -257,13 +299,53 @@ func (m *lakekeeperWarehouseResourceModel) StorageSettings() (profile.StorageSet
 
 		return profile, nil
 	case "adls":
-		// TODO: implements for ADLS
-		return nil, errors.New("storage profile conversion is not implemented for ADLS")
+		opts := []profile.ADLSStorageSettingsOptions{}
+
+		if !m.StorageProfile.AllowAlternativeProtocols.IsNull() && !m.StorageProfile.AllowAlternativeProtocols.IsUnknown() && m.StorageProfile.AllowAlternativeProtocols.ValueBool() {
+			opts = append(opts, profile.WithADLSAlternativeProtocols())
+		}
+
+		if !m.StorageProfile.AuthorityHost.IsNull() && !m.StorageProfile.AuthorityHost.IsUnknown() {
+			opts = append(opts, profile.WithAuthorityHost(m.StorageProfile.AuthorityHost.ValueString()))
+		}
+
+		if !m.StorageProfile.Host.IsNull() && !m.StorageProfile.Host.IsUnknown() {
+			opts = append(opts, profile.WithHost(m.StorageProfile.Host.ValueString()))
+		}
+
+		if !m.StorageProfile.KeyPrefix.IsNull() && !m.StorageProfile.KeyPrefix.IsUnknown() {
+			opts = append(opts, profile.WithADLSKeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
+		}
+
+		if !m.StorageProfile.SASTokenValiditySeconds.IsNull() && !m.StorageProfile.SASTokenValiditySeconds.IsUnknown() {
+			opts = append(opts, profile.WithSASTokenValiditySeconds(m.StorageProfile.SASTokenValiditySeconds.ValueInt64()))
+		}
+
+		profile := profile.NewADLSStorageSettings(
+			m.StorageProfile.AccountName.ValueString(),
+			m.StorageProfile.Filesystem.ValueString(),
+			opts...,
+		)
+
+		return profile, nil
 	case "gcs":
-		// TODO: implements for GCS
-		return nil, errors.New("storage profile conversion is not implemented for GCS")
+		opts := []profile.GCSStorageSettingsOptions{}
+
+		if !m.StorageProfile.KeyPrefix.IsNull() && !m.StorageProfile.KeyPrefix.IsUnknown() {
+			opts = append(opts, profile.WithGCSKeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
+		}
+
+		profile := profile.NewGCSStorageSettings(
+			m.StorageProfile.Bucket.ValueString(),
+			opts...,
+		)
+
+		return profile, nil
+
+	default:
+		return nil, fmt.Errorf("invalid storage profile definitions, type must be [s3,gcs,adls]")
 	}
-	return nil, fmt.Errorf("invalid storage profile definitions, type must be [s3,gcs,adls]")
+
 }
 
 func (m *lakekeeperWarehouseResourceModel) StorageCredentialSettings() (credential.CredentialSettings, error) {
@@ -284,6 +366,45 @@ func (m *lakekeeperWarehouseResourceModel) StorageCredentialSettings() (credenti
 		)
 
 		return creds, nil
+	case "s3_aws_system_identity":
+		return credential.NewS3CredentialSystemIdentity(m.StorageCredential.AccountID.ValueString()), nil
+	case "s3_cloudflare_r2":
+		return credential.NewCloudflareR2Credential(
+			m.StorageCredential.AccessKeyID.ValueString(),
+			m.StorageCredential.SecretAccessKey.ValueString(),
+			m.StorageCredential.AccountID.ValueString(),
+			m.StorageCredential.Token.ValueString(),
+		), nil
+	case "az_client_credentials":
+		return credential.NewAZCredentialClientCredentials(
+			m.StorageCredential.ClientID.ValueString(),
+			m.StorageCredential.ClientSecret.ValueString(),
+			m.StorageCredential.TenantID.ValueString(),
+		), nil
+	case "az_shared_access_key":
+		return credential.NewAZCredentialSharedAccessKey(
+			m.StorageCredential.AZKey.ValueString(),
+		), nil
+	case "az_azure_system_identity":
+		return credential.NewAZCredentialManagedIdentity(), nil
+	case "gcs_service_account_key":
+		return credential.NewGCSCredentialServiceAccountKey(
+			credential.GCSServiceKey{
+				AuthProviderX509CertURL: m.StorageCredential.Key.AuthProviderX509CertURL.ValueString(),
+				AuthURI:                 m.StorageCredential.Key.AuthURI.ValueString(),
+				ClientEmail:             m.StorageCredential.Key.ClientEmail.ValueString(),
+				ClientID:                m.StorageCredential.Key.ClientID.ValueString(),
+				ClientX509CertURL:       m.StorageCredential.Key.ClientX509CertURL.ValueString(),
+				PrivateKey:              m.StorageCredential.Key.PrivateKey.ValueString(),
+				PrivateKeyID:            m.StorageCredential.Key.PrivateKeyID.ValueString(),
+				ProjectID:               m.StorageCredential.Key.ProjectID.ValueString(),
+				TokenURI:                m.StorageCredential.Key.TokenURI.ValueString(),
+				Type:                    m.StorageCredential.Key.Type.ValueString(),
+				UniverseDomain:          m.StorageCredential.Key.UniverseDomain.ValueString(),
+			},
+		), nil
+	case "gcs_gcp_system_identity":
+		return credential.NewGCSCredentialSystemIdentity(), nil
 	default:
 		return nil, fmt.Errorf("incorrect storage credential definition, type must be one of %v, got %s", tftypes.ValidStorageCredentialTypes, storageType)
 	}

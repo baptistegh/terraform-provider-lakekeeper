@@ -62,6 +62,7 @@ func StorageProfileResourceSchema() rschema.SingleNestedAttribute {
 			},
 			"authority_host": rschema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The authority host for ADLS storage profile. Defaults to `https://login.microsoftonline.com`.",
 			},
 			"filesystem": rschema.StringAttribute{
@@ -70,10 +71,12 @@ func StorageProfileResourceSchema() rschema.SingleNestedAttribute {
 			},
 			"host": rschema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The host for ADLS storage profile. Defaults to `dfs.core.windows.net`.",
 			},
 			"sas_token_validity_seconds": rschema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.AtLeast(0),
 				},
@@ -126,6 +129,7 @@ func StorageProfileResourceSchema() rschema.SingleNestedAttribute {
 			},
 			"sts_enabled": rschema.BoolAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.",
 			},
 			"sts_role_arn": rschema.StringAttribute{

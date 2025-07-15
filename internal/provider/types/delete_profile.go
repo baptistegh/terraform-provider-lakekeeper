@@ -9,10 +9,12 @@ import (
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	rschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/terraform-community-providers/terraform-plugin-framework-utils/modifiers"
 )
 
 var validDeleteProfileTypes = []string{"soft", "hard"}
@@ -34,6 +36,9 @@ func DeleteProfileResourceSchema() rschema.SingleNestedAttribute {
 		MarkdownDescription: "The delete profile for the warehouse. It can be either a soft or hard delete profile. Default: `hard`",
 		Optional:            true,
 		Computed:            true,
+		PlanModifiers: []planmodifier.Object{
+			modifiers.UnknownAttributesOnUnknown(),
+		},
 		Attributes: map[string]rschema.Attribute{
 			"type": rschema.StringAttribute{
 				Optional: true,

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
