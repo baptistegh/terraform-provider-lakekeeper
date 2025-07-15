@@ -12,9 +12,9 @@ import (
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 
-	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/credential"
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/profile"
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/credential"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 )
 
@@ -42,10 +42,10 @@ func init() {
 }
 
 // CreateProject is a test helper for creating a project.
-func CreateProject(t *testing.T) *v1.Project {
+func CreateProject(t *testing.T) *managementv1.Project {
 	t.Helper()
 
-	opts := v1.CreateProjectOptions{
+	opts := managementv1.CreateProjectOptions{
 		Name: acctest.RandomWithPrefix("acctest"),
 	}
 
@@ -69,24 +69,18 @@ func CreateProject(t *testing.T) *v1.Project {
 }
 
 // CreateWarehouse is a test helper for creating a warehouse.
-func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *v1.Warehouse {
+func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *managementv1.Warehouse {
 	t.Helper()
 
-	storage, err := profile.NewS3StorageSettings("testacc", "local-01",
+	storage := profile.NewS3StorageSettings("testacc", "local-01",
 		profile.WithEndpoint("http://minio:9000/"),
 		profile.WithPathStyleAccess(),
 		profile.WithS3KeyPrefix(keyPrefix),
 	)
-	if err != nil {
-		t.Fatalf("error creating storage profile, %v", err)
-	}
 
-	creds, err := credential.NewS3CredentialAccessKey("minio-root-user", "minio-root-password")
-	if err != nil {
-		t.Fatalf("error creating storage credential, %v", err)
-	}
+	creds := credential.NewS3CredentialAccessKey("minio-root-user", "minio-root-password")
 
-	opts := v1.CreateWarehouseOptions{
+	opts := managementv1.CreateWarehouseOptions{
 		Name:              acctest.RandString(8),
 		StorageProfile:    storage.AsProfile(),
 		StorageCredential: creds.AsCredential(),
@@ -99,7 +93,7 @@ func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *v1.Warehouse {
 	}
 
 	t.Cleanup(func() {
-		opts := v1.DeleteWarehouseOptions{
+		opts := managementv1.DeleteWarehouseOptions{
 			Force: true,
 		}
 		if _, err := TestLakekeeperClient.WarehouseV1(projectID).Delete(w.ID, &opts); err != nil {
@@ -116,12 +110,12 @@ func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *v1.Warehouse {
 }
 
 // CreateRole is a test helper for creating a role.
-func CreateRole(t *testing.T, projectID string) *v1.Role {
+func CreateRole(t *testing.T, projectID string) *managementv1.Role {
 	t.Helper()
 
 	description := acctest.RandString(32)
 
-	opts := v1.CreateRoleOptions{
+	opts := managementv1.CreateRoleOptions{
 		Name:        acctest.RandString(8),
 		Description: &description,
 	}
@@ -141,14 +135,14 @@ func CreateRole(t *testing.T, projectID string) *v1.Role {
 }
 
 // CreateUser is a test helper for creating a user.
-func CreateUser(t *testing.T, id string) *v1.User {
+func CreateUser(t *testing.T, id string) *managementv1.User {
 	t.Helper()
 
 	name := acctest.RandomWithPrefix("acctest")
 	email := fmt.Sprintf("%s@test.com", name)
-	userType := v1.HumanUserType
+	userType := managementv1.HumanUserType
 
-	opts := v1.ProvisionUserOptions{
+	opts := managementv1.ProvisionUserOptions{
 		ID:       &id,
 		Name:     &name,
 		Email:    &email,

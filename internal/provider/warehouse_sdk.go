@@ -8,16 +8,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/credential"
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/profile"
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/credential"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
 )
 
-func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*v1.CreateWarehouseOptions, error) {
+func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*managementv1.CreateWarehouseOptions, error) {
 	if !m.Active.ValueBool() {
 		return nil, fmt.Errorf("could not create a warehouse with inactive status")
 	}
-	req := v1.CreateWarehouseOptions{
+	req := managementv1.CreateWarehouseOptions{
 		Name: m.Name.ValueString(),
 	}
 
@@ -60,7 +60,7 @@ func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*v1.Creat
 // TODO: refactor RefreshFromSettings on datasource and resource
 // because these functions are almost identical
 
-func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *v1.Warehouse) diag.Diagnostics {
+func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.Warehouse) diag.Diagnostics {
 	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)
@@ -139,7 +139,7 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *v1.Warehouse) 
 	return diags
 }
 
-func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *v1.Warehouse) diag.Diagnostics {
+func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *managementv1.Warehouse) diag.Diagnostics {
 	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)
@@ -249,14 +249,12 @@ func (m *lakekeeperWarehouseResourceModel) StorageSettings() (profile.StorageSet
 			opts = append(opts, profile.WithS3KeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
 		}
 
-		profile, err := profile.NewS3StorageSettings(
+		profile := profile.NewS3StorageSettings(
 			m.StorageProfile.Bucket.ValueString(),
 			m.StorageProfile.Region.ValueString(),
 			opts...,
 		)
-		if err != nil {
-			return nil, err
-		}
+
 		return profile, nil
 	case "adls":
 		// TODO: implements for ADLS
@@ -279,14 +277,12 @@ func (m *lakekeeperWarehouseResourceModel) StorageCredentialSettings() (credenti
 		if !m.StorageCredential.ExternalID.IsNull() && !m.StorageCredential.ExternalID.IsUnknown() {
 			opts = append(opts, credential.WithExternalID(m.StorageCredential.ExternalID.ValueString()))
 		}
-		creds, err := credential.NewS3CredentialAccessKey(
+		creds := credential.NewS3CredentialAccessKey(
 			m.StorageCredential.AccessKeyID.ValueString(),
 			m.StorageCredential.SecretAccessKey.ValueString(),
 			opts...,
 		)
-		if err != nil {
-			return nil, err
-		}
+
 		return creds, nil
 	default:
 		return nil, fmt.Errorf("incorrect storage credential definition, type must be one of %v, got %s", tftypes.ValidStorageCredentialTypes, storageType)

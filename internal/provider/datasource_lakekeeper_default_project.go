@@ -84,7 +84,7 @@ func (d *LakekeeperDefaultProjectDataSource) Read(ctx context.Context, req datas
 	}
 
 	// Make API call to read default project
-	project, _, err := d.client.ProjectV1().Default(core.WithContext(ctx))
+	project, _, err := d.client.ProjectV1().GetDefault(core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read default project, %v", err))
 		return

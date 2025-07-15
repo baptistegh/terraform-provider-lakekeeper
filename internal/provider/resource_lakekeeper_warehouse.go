@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
@@ -211,7 +211,7 @@ func (r *lakekeeperWarehouseResource) Delete(ctx context.Context, req resource.D
 
 	projectID, warehouseID := splitInternalID(state.ID)
 
-	opts := v1.DeleteWarehouseOptions{
+	opts := managementv1.DeleteWarehouseOptions{
 		Force: true,
 	}
 

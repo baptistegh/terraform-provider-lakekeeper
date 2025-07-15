@@ -98,7 +98,7 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		return nil, err
 	}
 
-	client, err := lakekeeper.NewAuthSourceClient(core.OAuthTokenSource{
+	client, err := lakekeeper.NewAuthSourceClient(&core.OAuthTokenSource{
 		TokenSource: oauth2.ReuseTokenSource(initialToken, oauthConfig.TokenSource(ctx)),
 	}, c.BaseURL, opts...)
 	if err != nil {

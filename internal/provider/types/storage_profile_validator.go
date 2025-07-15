@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/v1/storage/profile"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
