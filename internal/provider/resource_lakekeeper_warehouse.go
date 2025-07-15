@@ -192,10 +192,36 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 
 // Updates updates the resource in-place.
 func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.AddError(
-		"Provider Error, report upstream",
-		"Somehow the resource was requested to perform an in-place upgrade which is not possible.",
-	)
+	var plan, state lakekeeperWarehouseResourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	projectID, warehouseID := splitInternalID(state.ID)
+
+	// Deactivate the warehouse if the active field is set to false
+	if !plan.Active.IsNull() && !plan.Active.ValueBool() {
+		if _, err := r.client.WarehouseV1(projectID).Deactivate(warehouseID, core.WithContext(ctx)); err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to deactivate warehouse: %s in project %s, %s", warehouseID, projectID, err.Error()))
+			return
+		}
+	}
+
+	// Rename the warehouse if the name field is different
+	if !plan.Name.IsNull() && plan.Name.ValueString() != state.Name.ValueString() {
+		if _, err := r.client.WarehouseV1(projectID).Rename(warehouseID, managementv1.RenameWarehouseOptions{
+			NewName: plan.Name.ValueString(),
+		}, core.WithContext(ctx)); err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to rename warehouse: %s in project %s, %s", warehouseID, projectID, err.Error()))
+			return
+		}
+	}
+
 }
 
 // Deletes removes the resource.
