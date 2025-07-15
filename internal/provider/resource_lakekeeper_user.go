@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -114,7 +114,7 @@ func (r *lakekeeperUserResource) Create(ctx context.Context, req resource.Create
 	userType := state.UserType.ValueStringPointer()
 
 	updateIfExists := false
-	opts := v1.ProvisionUserOptions{
+	opts := managementv1.ProvisionUserOptions{
 		ID:             state.ID.ValueStringPointer(),
 		Name:           state.Name.ValueStringPointer(),
 		Email:          state.Email.ValueStringPointer(),
@@ -122,7 +122,7 @@ func (r *lakekeeperUserResource) Create(ctx context.Context, req resource.Create
 	}
 
 	if userType != nil && *userType != "" {
-		uType := v1.UserType(*userType)
+		uType := managementv1.UserType(*userType)
 		opts.UserType = &uType
 	}
 
@@ -201,7 +201,7 @@ func (r *lakekeeperUserResource) Update(ctx context.Context, req resource.Update
 	userType := plan.UserType.ValueStringPointer()
 
 	updateIfExists := true
-	opts := v1.ProvisionUserOptions{
+	opts := managementv1.ProvisionUserOptions{
 		ID:             plan.ID.ValueStringPointer(),
 		Name:           plan.Name.ValueStringPointer(),
 		Email:          plan.Email.ValueStringPointer(),
@@ -209,7 +209,7 @@ func (r *lakekeeperUserResource) Update(ctx context.Context, req resource.Update
 	}
 
 	if userType != nil && *userType != "" {
-		uType := v1.UserType(*userType)
+		uType := managementv1.UserType(*userType)
 		opts.UserType = &uType
 	}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -111,7 +111,7 @@ func (r *lakekeeperRoleResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	opts := v1.CreateRoleOptions{
+	opts := managementv1.CreateRoleOptions{
 		Name:        state.Name.ValueString(),
 		Description: state.Description.ValueStringPointer(),
 	}
@@ -194,7 +194,7 @@ func (r *lakekeeperRoleResource) Update(ctx context.Context, req resource.Update
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	opts := v1.UpdateRoleOptions{
+	opts := managementv1.UpdateRoleOptions{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueStringPointer(),
 	}

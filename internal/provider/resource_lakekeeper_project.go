@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/v1"
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -91,7 +91,7 @@ func (r *lakekeeperProjectResource) Create(ctx context.Context, req resource.Cre
 
 	name := state.Name.ValueString()
 
-	opts := v1.CreateProjectOptions{
+	opts := managementv1.CreateProjectOptions{
 		Name: name,
 	}
 
@@ -154,7 +154,7 @@ func (r *lakekeeperProjectResource) Update(ctx context.Context, req resource.Upd
 			"newName": plan.Name.ValueString(),
 		})
 
-		opts := v1.RenameProjectOptions{
+		opts := managementv1.RenameProjectOptions{
 			NewName: plan.Name.ValueString(),
 		}
 
