@@ -1,3 +1,15 @@
+## 0.2.2 (2025-07-15)
+
+IMPROVEMENTS:
+
+* feat: implements update method for warehouse resource by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/96
+
+MISCELLANEOUS CHORES:
+
+* chore: skip storage validation and bump go client to v0.0.6 by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/95
+* ci: fix labeler to run on PR by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/92
+* chore(deps): lakekeeper go client is now a dependency by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/91
+
 ## 0.2.1 (2025-07-09)
 
 MISCELLANEOUS CHORES:
