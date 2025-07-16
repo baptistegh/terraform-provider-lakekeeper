@@ -21,37 +21,37 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &lakekeeperServerAssignmentResource{}
-	_ resource.ResourceWithConfigure   = &lakekeeperServerAssignmentResource{}
-	_ resource.ResourceWithImportState = &lakekeeperServerAssignmentResource{}
+	_ resource.Resource                = &lakekeeperServerUserAssignmentResource{}
+	_ resource.ResourceWithConfigure   = &lakekeeperServerUserAssignmentResource{}
+	_ resource.ResourceWithImportState = &lakekeeperServerUserAssignmentResource{}
 )
 
 func init() {
-	registerResource(NewLakekeeperServerAssignment)
+	registerResource(NewLakekeeperServerUserAssignment)
 }
 
 // NewLakekeeperServerAssignment is a helper function to simplify the provider implementation.
-func NewLakekeeperServerAssignment() resource.Resource {
-	return &lakekeeperServerAssignmentResource{}
+func NewLakekeeperServerUserAssignment() resource.Resource {
+	return &lakekeeperServerUserAssignmentResource{}
 }
 
-func (r *lakekeeperServerAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *lakekeeperServerUserAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_server_user_assignment"
 }
 
-// lakekeeperServerAssignmentResource defines the resource implementation.
-type lakekeeperServerAssignmentResource struct {
+// lakekeeperServerUserAssignmentResource defines the resource implementation.
+type lakekeeperServerUserAssignmentResource struct {
 	client *lakekeeper.Client
 }
 
-// lakekeeperServerAssignmentResourceModel describes the resource data model.
-type lakekeeperServerAssignmentResourceModel struct {
+// lakekeeperServerUserAssignmentResourceModel describes the resource data model.
+type lakekeeperServerUserAssignmentResourceModel struct {
 	ID          types.String `tfsdk:"id"` // form: user_id (internal ID)
 	UserID      types.String `tfsdk:"user_id"`
 	Assignments types.Set    `tfsdk:"assignments"`
 }
 
-func (r *lakekeeperServerAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *lakekeeperServerUserAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_server_assignment`" + ` resource allows to manage the lifecycle of a user assignement to the server.
 
@@ -79,7 +79,7 @@ func (r *lakekeeperServerAssignmentResource) Schema(ctx context.Context, req res
 }
 
 // Configure adds the provider configured client to the resource.
-func (r *lakekeeperServerAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *lakekeeperServerUserAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -90,8 +90,8 @@ func (r *lakekeeperServerAssignmentResource) Configure(ctx context.Context, req 
 }
 
 // Create creates a new upstream resources and adds it into the Terraform state.
-func (r *lakekeeperServerAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var state, plan lakekeeperServerAssignmentResourceModel
+func (r *lakekeeperServerUserAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var state, plan lakekeeperServerUserAssignmentResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -133,8 +133,8 @@ func (r *lakekeeperServerAssignmentResource) Create(ctx context.Context, req res
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *lakekeeperServerAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state lakekeeperServerAssignmentResourceModel
+func (r *lakekeeperServerUserAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state lakekeeperServerUserAssignmentResourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -170,8 +170,8 @@ func (r *lakekeeperServerAssignmentResource) Read(ctx context.Context, req resou
 }
 
 // Updates updates the resource in-place.
-func (r *lakekeeperServerAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state lakekeeperServerAssignmentResourceModel
+func (r *lakekeeperServerUserAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state lakekeeperServerUserAssignmentResourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -232,8 +232,8 @@ func (r *lakekeeperServerAssignmentResource) Update(ctx context.Context, req res
 }
 
 // Deletes removes the resource.
-func (r *lakekeeperServerAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state lakekeeperServerAssignmentResourceModel
+func (r *lakekeeperServerUserAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state lakekeeperServerUserAssignmentResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -270,6 +270,6 @@ func (r *lakekeeperServerAssignmentResource) Delete(ctx context.Context, req res
 }
 
 // ImportState imports the resource into the Terraform state.
-func (r *lakekeeperServerAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *lakekeeperServerUserAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

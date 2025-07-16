@@ -15,14 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccLakekeeperServerAssignment_basic(t *testing.T) {
+func TestAccLakekeeperServerUserAssignment_basic(t *testing.T) {
 
 	userID := fmt.Sprintf("oidc~%s", acctest.RandString(32))
 	user := testutil.CreateUser(t, userID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckLakekeeperServerAssignmentDestroy,
+		CheckDestroy:             testAccCheckLakekeeperServerUserAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`				
@@ -108,7 +108,7 @@ func TestAccLakekeeperServerAssignment_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLakekeeperServerAssignmentDestroy(s *terraform.State) error {
+func testAccCheckLakekeeperServerUserAssignmentDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "lakekeeper_server_user_assignment" {
 			continue
