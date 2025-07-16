@@ -20,7 +20,3 @@ updates:
           - "*" # Group all GitHub Actions dependencies together
     schedule:
       interval: "daily"
-  - package-ecosystem: "docker-compose"
-    directory: "/run"
-    schedule:
-      interval: "daily"
