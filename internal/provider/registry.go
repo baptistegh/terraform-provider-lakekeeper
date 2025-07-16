@@ -27,3 +27,34 @@ func splitInternalID(s types.String) (string, string) {
 	splitted := strings.Split(s.ValueString(), ":")
 	return splitted[0], splitted[1]
 }
+
+func DiffTypedStrings(oldList, newList []types.String) (added, removed []types.String) {
+	oldMap := make(map[string]struct{})
+	newMap := make(map[string]struct{})
+
+	for _, v := range oldList {
+		if !v.IsNull() && !v.IsUnknown() {
+			oldMap[v.ValueString()] = struct{}{}
+		}
+	}
+	for _, v := range newList {
+		if !v.IsNull() && !v.IsUnknown() {
+			newMap[v.ValueString()] = struct{}{}
+		}
+	}
+
+	for _, v := range newList {
+		val := v.ValueString()
+		if _, found := oldMap[val]; !found {
+			added = append(added, v)
+		}
+	}
+	for _, v := range oldList {
+		val := v.ValueString()
+		if _, found := newMap[val]; !found {
+			removed = append(removed, v)
+		}
+	}
+
+	return
+}
