@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/baptistegh/go-lakekeeper v0.0.6
+	github.com/baptistegh/go-lakekeeper v0.0.7
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 )
 
