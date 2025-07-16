@@ -3,13 +3,13 @@
 page_title: "lakekeeper_server_user_assignment Resource - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
-  The lakekeeper__server_assignment resource allows to manage the lifecycle of a user assignement to the server.
+  The lakekeeper_server_assignment resource allows to manage the lifecycle of a user assignement to the server.
   Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_server_assignments
 ---
 
 # lakekeeper_server_user_assignment (Resource)
 
-The `lakekeeper__server_assignment` resource allows to manage the lifecycle of a user assignement to the server.
+The `lakekeeper_server_assignment` resource allows to manage the lifecycle of a user assignement to the server.
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_server_assignments)
 

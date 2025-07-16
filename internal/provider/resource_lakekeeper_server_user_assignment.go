@@ -53,7 +53,7 @@ type lakekeeperServerAssignmentResourceModel struct {
 
 func (r *lakekeeperServerAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper__server_assignment`" + ` resource allows to manage the lifecycle of a user assignement to the server.
+		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_server_assignment`" + ` resource allows to manage the lifecycle of a user assignement to the server.
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_server_assignments)`),
 		Attributes: map[string]schema.Attribute{
