@@ -1,3 +1,16 @@
+## 0.2.3 (2025-07-17)
+
+IMPROVEMENTS:
+
+* feat: add lakekeeper_server_user_assignment resource by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/101
+* feat: add lakekeeper_server_role_assignment resource by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/102
+* feat: add lakekeeper_project_user/role_assignment resources by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/103
+* feat: add role (role/user) assignments by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/104
+
+MISCELLANEOUS CHORES:
+
+* chore: disable dependabot on docker compose by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/100
+
 ## 0.2.2 (2025-07-15)
 
 IMPROVEMENTS:
