@@ -81,8 +81,7 @@ jobs:
         # we currently support the last 3 patchs within a minor
         lakekeeper-version:
           - 'latest-main'
-          # uncomment when released
-          # - 'v0.9.3'
+          - 'v0.9.3'
     env:
       LAKEKEEPER_ENDPOINT: http://localhost:8181
       LAKEKEEPER_AUTH_URL: http://localhost:30080/realms/iceberg/protocol/openid-connect/token
