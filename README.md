@@ -39,12 +39,12 @@ terraform {
 
 ## Supported Versions
 
-This provider will officially support the latest three last versions of Lakekeeper starting v0.9.3 (unreleased), although older versions may still work.
+This provider will officially support the latest three last versions of Lakekeeper starting v0.9.3, although older versions may still work.
 
 The following Lakekeeper versions are used when running acceptance tests in CI:
 
 - Unreleased (latest-main)
-- v0.9.3 (future release)
+- v0.9.3
 
 _The provider should be compatible with Lakekeeper >= v0.9.3 thanks to the introduction of skip storage validation._
 _See: [lakekeeper/lakekeeper#1239](https://github.com/lakekeeper/lakekeeper/pull/1239)_
