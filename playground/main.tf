@@ -13,14 +13,8 @@ provider "lakekeeper" {
   client_secret = "KNjaj1saNq5yRidVEMdf1vI09Hm0pQaL"
 }
 
-data "lakekeeper_server_info" "this" {}
+data "lakekeeper_default_project" "default" {}
 
-resource "lakekeeper_user" "peter" {
-  id        = "oidc~cfb55bf6-fcbb-4a1e-bfec-30c6649b52f8"
-  name      = "Peter Cold"
-  email     = "peter@example.com"
-  user_type = "human"
-}
 
 resource "lakekeeper_user" "anna" {
   id        = "oidc~d223d88c-85b6-4859-b5c5-27f3825e47f6"
@@ -29,28 +23,22 @@ resource "lakekeeper_user" "anna" {
   user_type = "human"
 }
 
-resource "lakekeeper_project" "main" {
-  name = "Main Project"
+resource "lakekeeper_user" "peter" {
+  id        = "oidc~cfb55bf6-fcbb-4a1e-bfec-30c6649b52f8"
+  name      = "Peter Cold"
+  email     = "peter@example.com"
+  user_type = "human"
 }
 
-resource "lakekeeper_project" "second" {
-  name = "Main Project 2"
-}
-
-resource "lakekeeper_role" "access" {
-  project_id = lakekeeper_project.second.id
-  name       = "access-warehouse"
-}
-
-resource "lakekeeper_project_user_assignment" "main_peter" {
-  project_id  = lakekeeper_project.main.id
-  user_id     = lakekeeper_user.peter.id
+resource "lakekeeper_project_user_assignment" "default_anna" {
+  project_id  = data.lakekeeper_default_project.default.id
+  user_id     = lakekeeper_user.anna.id
   assignments = ["project_admin"]
 }
 
-resource "lakekeeper_warehouse" "warehouse" {
+resource "lakekeeper_warehouse" "gcs" {
   name       = "test-warehouse"
-  project_id = lakekeeper_project.main.id
+  project_id = data.lakekeeper_default_project.default.id
   storage_profile = {
     type   = "gcs"
     bucket = "testbucket"
@@ -60,13 +48,20 @@ resource "lakekeeper_warehouse" "warehouse" {
   }
 }
 
-resource "lakekeeper_project_role_assignment" "test" {
-  project_id  = lakekeeper_project.second.id
-  role_id     = lakekeeper_role.access.role_id
-  assignments = ["project_admin"]
+resource "lakekeeper_role" "select" {
+  project_id  = data.lakekeeper_default_project.default.id
+  name        = "test-role"
+  description = "this role gives select permissions on test-warehouse"
 }
 
-resource "lakekeeper_server_user_assignment" "admin" {
+resource "lakekeeper_warehouse_role_assignment" "wh_select" {
+  warehouse_id = lakekeeper_warehouse.gcs.warehouse_id
+  role_id      = lakekeeper_role.select.role_id
+  assignments  = ["select", "describe"]
+}
+
+resource "lakekeeper_role_user_assignment" "select_peter" {
+  role_id     = lakekeeper_role.select.role_id
   user_id     = lakekeeper_user.peter.id
-  assignments = ["admin"]
+  assignments = ["assignee"]
 }

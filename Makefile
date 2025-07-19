@@ -57,7 +57,7 @@ LAKEKEEPER_CLIENT_SECRET ?= KNjaj1saNq5yRidVEMdf1vI09Hm0pQaL
 testacc-up: ## Launch a Lakekeeper instance.
 	cd run; $(CONTAINER_COMPOSE_ENGINE) up -d
 	LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) ./scripts/await-healthy.sh
-
+	
 testacc-down: ## Teardown a Lakekeeper instance.
 	cd run; $(CONTAINER_COMPOSE_ENGINE) down --volumes
 
@@ -84,11 +84,21 @@ define install-tool
 	GOBIN=$(GOBIN) go install $(1)
 endef
 
+playground: tool-terraform
+	@cd playground; \
+		TF_CLI_CONFIG_FILE=./.terraformrc $(GOBIN)/terraform init; \
+		$(GOBIN)/terraform apply -auto-approve
+
+playground-destroy:
+	@cd playground; \
+		$(GOBIN)/terraform destroy -auto-approve; \
+		rm -rf ./terraform.tfstate ./terraform.tfstate.backup .terraform .terraform.lock.hcl
+
 TERRAFORM_VERSION = v1.9.8
 tool-terraform:
 	@# See https://github.com/hashicorp/terraform/issues/30356
 	@[ -f $(GOBIN)/terraform ] || { mkdir -p tmp; cd tmp; rm -rf terraform; git clone --branch $(TERRAFORM_VERSION) --depth 1 https://github.com/hashicorp/terraform.git; cd terraform; GOBIN=$(GOBIN) go install; cd ../..; rm -rf tmp; }
 
-clean: testacc-down
+clean: playground-destroy testacc-down
 	go clean -testcache
 	rm -rf bin/

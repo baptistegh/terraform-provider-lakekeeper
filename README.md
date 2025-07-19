@@ -31,7 +31,6 @@ terraform {
   required_providers {
     lakekeeper = {
       source = "baptistegh/lakekeeper"
-      version = "0.2.3"
     }
   }
 }
@@ -58,6 +57,49 @@ This provider uses [GoReleaser](https://goreleaser.com/]) to build and publish r
 Each release also contains a `terraform-provider-lakekeeper_${RELEASE_VERSION}_SHA256SUMS` file that can be used to check integrity.
 
 You can find the list of releases [here](https://github.com/baptistegh/terraform-provider-lakekeeper/releases). You can find the changelog for each version [here](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/CHANGELOG.md).
+
+## Playground
+
+A sample playground project is available in the `/playground` directory. It is based on the [Official Lakekeeper Examples](https://github.com/lakekeeper/lakekeeper/tree/main/examples/access-control-simple).
+
+### Overview
+
+This playground will set up the following structure:
+
+* **Warehouse:**
+  * Configured using a `gcs` (Google Cloud Storage) storage profile.
+* **Roles:**
+  * with `select` and `describe` permissions on the warehouse. 
+* **Users:**
+  * **Anna:**
+    * username: `anna`
+    * password: `iceberg`
+    * `project_admin` assignment on the default project
+* **Peter:**
+  * username: `peter`
+  * password: `iceberg`
+  * assignee to the role
+
+### Setup Instructions
+
+To create and launch the playground:
+
+```sh
+make testacc-up   # Sets up required services via Docker Compose
+make playground   # Creates the playground structure
+```
+
+To tear down and clean up the playground:
+
+```sh
+make playground-destroy
+```
+
+### Usage
+
+You can connect to the web interface at http://localhost:8181 using one of the user credentials listed above to explore the configured resources.
+
+Feel free to modify `playground/main.tf` to customize the structure according to your needs.
 
 ## Development
 
