@@ -289,7 +289,7 @@ func (r *lakekeeperWarehouseResource) Delete(ctx context.Context, req resource.D
 	projectID, warehouseID := splitInternalID(state.ID)
 
 	opts := managementv1.DeleteWarehouseOptions{
-		Force: true,
+		Force: core.Ptr(true),
 	}
 
 	if _, err := r.client.WarehouseV1(projectID).Delete(warehouseID, &opts, core.WithContext(ctx)); err != nil {
