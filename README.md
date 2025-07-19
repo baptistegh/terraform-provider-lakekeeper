@@ -75,10 +75,10 @@ This playground will set up the following structure:
     * username: `anna`
     * password: `iceberg`
     * `project_admin` assignment on the default project
-* **Peter:**
-  * username: `peter`
-  * password: `iceberg`
-  * assignee to the role
+  * **Peter:**
+    * username: `peter`
+    * password: `iceberg`
+    * assignee to the role
 
 ### Setup Instructions
 
