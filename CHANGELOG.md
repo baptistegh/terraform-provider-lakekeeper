@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.2.4](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.3...v0.2.4) (2025-07-19)
+
+
+### Features
+
+* **permission:** add lakekeeper_warehouse_user/role_assignment resources ([#116](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/116)) ([7065514](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/7065514de26e2b1e0be13dac6f0e501823e65941))
+
+
+### Miscellaneous Chores
+
+* prepare next release ([6772777](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/6772777eb3e14e41076589065d6c2dc5e41efdec))
+
 ## 0.2.3 (2025-07-17)
 
 IMPROVEMENTS:
