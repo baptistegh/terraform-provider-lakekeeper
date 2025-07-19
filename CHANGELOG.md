@@ -1,5 +1,6 @@
 ## 0.2.3 (2025-07-17)
 
+
 IMPROVEMENTS:
 
 * feat: add lakekeeper_server_user_assignment resource by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/101
@@ -11,7 +12,9 @@ MISCELLANEOUS CHORES:
 
 * chore: disable dependabot on docker compose by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/100
 
+
 ## 0.2.2 (2025-07-15)
+
 
 IMPROVEMENTS:
 
@@ -23,11 +26,14 @@ MISCELLANEOUS CHORES:
 * ci: fix labeler to run on PR by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/92
 * chore(deps): lakekeeper go client is now a dependency by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/91
 
+
 ## 0.2.1 (2025-07-09)
+
 
 MISCELLANEOUS CHORES:
 
 * docs: fix some inconsistencies by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/89
+
 
 ## 0.2.0 (2025-07-09)
 
@@ -68,7 +74,9 @@ MISCELLANEOUS CHORES:
 * docs: fix some typo errors by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/53
 * ci: run acceptance tests on 3 last lakekeeper versions by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/82
 
+
 ## 0.1.1 (2025-07-06)
+
 
 IMPROVEMENTS:
 
@@ -86,7 +94,9 @@ MISCELLANEOUS CHORES:
 * ci: remove feature label by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/46
 * ci: add dependabot on docker compose images by @baptistegh in https://github.com/baptistegh/terraform-provider-lakekeeper/pull/40
 
+
 ## 0.1.0 (2025-07-05)
+
 
 FEATURES:
 
