@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"golang.org/x/oauth2"
@@ -83,7 +84,9 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 	}
 
 	if c.InitialBootstrap {
-		opts = append(opts, lakekeeper.WithInitialBootstrapEnabled())
+		opts = append(opts, lakekeeper.WithInitialBootstrapV1Enabled(
+			true, true, core.Ptr(managementv1.ApplicationUserType),
+		))
 	}
 
 	oauthConfig := &clientcredentials.Config{

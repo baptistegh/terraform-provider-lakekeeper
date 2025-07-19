@@ -16,6 +16,7 @@ import (
 	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/credential"
 	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/baptistegh/go-lakekeeper/pkg/core"
 )
 
 var testLakekeeperConfig = api.Config{
@@ -94,7 +95,7 @@ func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *managementv1.Wa
 
 	t.Cleanup(func() {
 		opts := managementv1.DeleteWarehouseOptions{
-			Force: true,
+			Force: core.Ptr(true),
 		}
 		if _, err := TestLakekeeperClient.WarehouseV1(projectID).Delete(w.ID, &opts); err != nil {
 			t.Fatalf("could not cleanup test warehouse: %v", err)
