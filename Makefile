@@ -92,7 +92,7 @@ playground: tool-terraform
 playground-destroy:
 	@cd playground; \
 		$(GOBIN)/terraform destroy -auto-approve; \
-		rm -rf ./terraform.tfstate* .terraform .terraform.lock.hcl
+		rm -rf ./terraform.tfstate ./terraform.tfstate.backup .terraform .terraform.lock.hcl
 
 TERRAFORM_VERSION = v1.9.8
 tool-terraform:
