@@ -19,6 +19,7 @@ services:
       - LAKEKEEPER__UI__OPENID_PROVIDER_URI=http://localhost:30080/realms/iceberg
       - LAKEKEEPER__UI__OPENID_CLIENT_ID=lakekeeper
       - LAKEKEEPER__SKIP_STORAGE_VALIDATION=true
+      - LAKEKEEPER__ALLOW_ORIGIN=*
       - RUST_LOG=INFO
     command: ["serve"]
     healthcheck:
@@ -68,6 +69,8 @@ services:
       timeout: 10s
       retries: 2
       start_period: 10s
+    ports:
+      - 5432:5432
     volumes:
       - volume-lakekeeper:/bitnami/postgresql
     networks:
@@ -115,6 +118,8 @@ services:
       - OPENFGA_PLAYGROUND_ENABLED=false
     networks:
       iceberg_net:
+    ports:
+      - "8081:8081"
     healthcheck:
       test:
         [

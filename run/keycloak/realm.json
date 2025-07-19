@@ -461,6 +461,61 @@
   "webAuthnPolicyPasswordlessExtraOrigins": [],
   "users": [
     {
+      "id": "d223d88c-85b6-4859-b5c5-27f3825e47f6",
+      "username": "anna",
+      "firstName": "Anna",
+      "lastName": "Cold",
+      "email": "anna@example.com",
+      "emailVerified": true,
+      "createdTimestamp": 1735995480968,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "id": "e53bf922-8fa5-43fd-9c0c-5c936eadc080",
+          "type": "password",
+          "userLabel": "My password",
+          "createdDate": 1735995502485,
+          "secretData": "{\"value\":\"CgUpPB1zcH+mqPbx6kGuDN31UcISJD1LtnELz7fAVKU=\",\"salt\":\"Ev9ZTEaC7PQsW80NTGEN3g==\",\"additionalParameters\":{}}",
+          "credentialData": "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-iceberg"
+      ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
+      "id": "cfb55bf6-fcbb-4a1e-bfec-30c6649b52f8",
+      "username": "peter",
+      "firstName": "Peter",
+      "lastName": "Cold",
+      "email": "peter@example.com",
+      "emailVerified": true,
+      "createdTimestamp": 1733664394353,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "id": "7e5e79aa-b5c7-48fa-a391-9fca6e07e99f",
+          "type": "password",
+          "createdDate": 1733666091191,
+          "secretData": "{\"value\":\"BuViHNDGmCq80fvpty/QoggTI8NSt0CuNDGgeoa5f5A=\",\"salt\":\"RJ0aLMQ2qKbZuROs7qQhcA==\",\"additionalParameters\":{}}",
+          "credentialData": "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-iceberg"
+      ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
       "id": "6deeb417-cdf9-4320-8a30-ddecea77a4bd",
       "username": "service-account-lakekeeper-admin",
       "emailVerified": false,
