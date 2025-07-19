@@ -1,6 +1,21 @@
 # Changelog
 
 
+## [0.2.5](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.4...v0.2.5) (2025-07-19)
+
+
+### Features
+
+* add playground examples ([#120](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/120)) ([f22dc38](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f22dc386a4c546b30c46d47feec2e017606623dc))
+
+
+### Miscellaneous Chores
+
+* fix release please config file ([#125](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/125)) ([48bb690](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/48bb690d51ffa3ccbc6ed89b51e3ca5e9d5d1c42))
+* release please ([#123](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/123)) ([f44d0bc](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f44d0bcf0ed2cbfb7e705ff89a3932cc7f243478))
+* release please changelog sections ([#124](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/124)) ([d34ada6](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/d34ada6c05dce722b55fcd244fe417fd54519776))
+* update readme ([#122](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/122)) ([6ebb300](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/6ebb30051a94b70a62e6696fcf5fcd18471a3348))
+
 ## [0.2.4](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.3...v0.2.4) (2025-07-19)
 
 
