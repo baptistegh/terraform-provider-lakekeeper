@@ -99,6 +99,6 @@ tool-terraform:
 	@# See https://github.com/hashicorp/terraform/issues/30356
 	@[ -f $(GOBIN)/terraform ] || { mkdir -p tmp; cd tmp; rm -rf terraform; git clone --branch $(TERRAFORM_VERSION) --depth 1 https://github.com/hashicorp/terraform.git; cd terraform; GOBIN=$(GOBIN) go install; cd ../..; rm -rf tmp; }
 
-clean: testacc-down
+clean: playground-destroy testacc-down
 	go clean -testcache
 	rm -rf bin/

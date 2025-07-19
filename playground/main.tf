@@ -36,31 +36,31 @@ resource "lakekeeper_project_user_assignment" "default_anna" {
 }
 
 resource "lakekeeper_role" "select" {
-    project_id = data.lakekeeper_default_project.default.id
-    name = "test-role"
-    description = "this role gives select permissions on test-warehouse"
+  project_id  = data.lakekeeper_default_project.default.id
+  name        = "test-role"
+  description = "this role gives select permissions on test-warehouse"
 }
 
 resource "lakekeeper_warehouse" "gcs" {
-    name = "test-warehouse"
-    project_id = data.lakekeeper_default_project.default.id
-    storage_profile = {
-      type = "gcs"
-      bucket = "testbucket"
-    }
-    storage_credential = {
-      type = "gcs_gcp_system_identity"
-    }
+  name       = "test-warehouse"
+  project_id = data.lakekeeper_default_project.default.id
+  storage_profile = {
+    type   = "gcs"
+    bucket = "testbucket"
+  }
+  storage_credential = {
+    type = "gcs_gcp_system_identity"
+  }
 }
 
 resource "lakekeeper_warehouse_role_assignment" "wh_select" {
-    warehouse_id = lakekeeper_warehouse.gcs.warehouse_id
-    role_id = lakekeeper_role.select.role_id
-    assignments = ["select", "describe"]
+  warehouse_id = lakekeeper_warehouse.gcs.warehouse_id
+  role_id      = lakekeeper_role.select.role_id
+  assignments  = ["select", "describe"]
 }
 
 resource "lakekeeper_role_user_assignment" "select_peter" {
-    role_id = lakekeeper_role.select.role_id
-    user_id = lakekeeper_user.peter.id
-    assignments = ["assignee"]
+  role_id     = lakekeeper_role.select.role_id
+  user_id     = lakekeeper_user.peter.id
+  assignments = ["assignee"]
 }
