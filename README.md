@@ -6,17 +6,17 @@ Terraform provider for <a href="https://docs.lakekeeper.io/">Lakekeeper</a>.<p>
   <a href="https://github.com/baptistegh/terraform-provider-lakekeeper/releases"><img src="https://img.shields.io/badge/status-preview-orange?style=for-the-badge" /></a>
 </div>
 
-### ⚠️ Preview Status Notice
-
-**🚧 This project is currently in _preview_ and under active development. It is _not production-ready_ and should not be used in production environments.**
-
-- ⚠️ **Breaking changes** may occur without notice  
-- 🔄 APIs and behavior may change significantly between versions  
-- 🧪 Use at your own risk for development and testing purposes only  
-
-💬 We welcome [feedback, bug reports, and contributions](https://github.com/baptistegh/terraform-provider-lakekeeper/issues) during this preview phase. Please report issues or share your experience to help us improve the provider before its stable release.
-
-
+> [!IMPORTANT]  
+> **⚠️ Preview Status Notice**
+> 
+> - ⚠️ **Breaking changes** may occur without notice  
+> - 🔄 APIs and behavior may change significantly between versions  
+> - 🧪 Use at your own risk for development and testing purposes only
+> 
+> **🚧 This project is currently in _preview_ and under active development. It is _not production-ready_ and should not be used in production environments.**
+> 
+> 💬 We welcome [feedback, bug reports, and contributions](https://github.com/baptistegh/terraform-provider-lakekeeper/issues) during this preview phase.
+> Please report issues or share your experience to help us improve the provider before its stable release.
 
 ## Docs
 
