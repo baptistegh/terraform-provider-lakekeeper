@@ -40,6 +40,7 @@ type lakekeeperWarehouseDataSourceModel struct {
 	ProjectID      types.String                 `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
 	Protected      types.Bool                   `tfsdk:"protected"`
 	Active         types.Bool                   `tfsdk:"active"`
+	ManagedAccess  types.Bool                   `tfsdk:"managed_access"`
 	StorageProfile *tftypes.StorageProfileModel `tfsdk:"storage_profile"`
 	DeleteProfile  *tftypes.DeleteProfileModel  `tfsdk:"delete_profile"`
 }
@@ -83,6 +84,10 @@ func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.S
 				MarkdownDescription: "Whether the warehouse is active.",
 				Computed:            true,
 			},
+			"managed_access": schema.BoolAttribute{
+				MarkdownDescription: "Whether managed access is active for this warehouse.",
+				Computed:            true,
+			},
 			"storage_profile": tftypes.StorageProfileDatasourceSchema(),
 			"delete_profile":  tftypes.DeleteProfileDatasourceSchema(),
 		},
@@ -118,6 +123,14 @@ func (d *LakekeeperWarehouseDataSource) Read(ctx context.Context, req datasource
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s, %v", state.Name.ValueString(), err))
 		return
 	}
+
+	// Authorization Properties
+	m, _, err := d.client.PermissionV1().WarehousePermission().GetAuthzProperties(id, core.WithContext(ctx))
+	if err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read authorization properties for warehouse %s, %v", state.Name.ValueString(), err))
+		return
+	}
+	state.ManagedAccess = types.BoolValue(m.ManagedAccess)
 
 	diags := state.RefreshFromSettings(warehouse)
 	if diags.HasError() {
