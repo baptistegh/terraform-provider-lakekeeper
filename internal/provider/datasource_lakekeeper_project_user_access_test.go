@@ -1,0 +1,75 @@
+//go:build acceptance
+// +build acceptance
+
+package provider
+
+import (
+	"fmt"
+	"testing"
+
+	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
+
+	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+func TestAccDataLakekeeperProjectUserAccess_basic(t *testing.T) {
+
+	project := testutil.CreateProject(t)
+
+	user := testutil.CreateUser(t, fmt.Sprintf("oidc~%s", acctest.RandString(8)))
+
+	// assignment
+	if _, err := testutil.TestLakekeeperClient.PermissionV1().ProjectPermission().Update(
+		project.ID,
+		&permissionv1.UpdateProjectPermissionsOptions{
+			Writes: []*permissionv1.ProjectAssignment{
+				{
+					Assignee: permissionv1.UserOrRole{
+						Type:  permissionv1.UserType,
+						Value: user.ID,
+					},
+					Assignment: permissionv1.AdminProjectAssignment,
+				},
+			},
+		},
+	); err != nil {
+		t.Fatalf("could not create project access, %v", err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				data "lakekeeper_project_user_access" "foo" {
+					project_id = "%s"
+					user_id = "%s"
+				}`, project.ID, user.ID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "id", fmt.Sprintf("%s:%s", project.ID, user.ID)),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "project_id", project.ID),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "user_id", user.ID),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.#", "16"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.0", "create_role"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.1", "create_warehouse"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.2", "delete"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.3", "grant_create"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.4", "grant_data_admin"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.5", "grant_describe"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.6", "grant_modify"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.7", "grant_project_admin"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.8", "grant_role_creator"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.9", "grant_security_admin"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.10", "grant_select"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.11", "list_roles"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.12", "list_warehouses"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.13", "read_assignments"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.14", "rename"),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "allowed_actions.15", "search_roles"),
+				),
+			},
+		},
+	})
+}
