@@ -3,16 +3,13 @@
 page_title: "lakekeeper_warehouse Data Source - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
-  The lakekeeper_warehouse data source retrieves information a lakekeeper warehouse.
-  Currently the datasource can only read from the default project
+  The lakekeeper_warehouse data source retrieves information about a lakekeeper warehouse.
   Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse
 ---
 
 # lakekeeper_warehouse (Data Source)
 
-The `lakekeeper_warehouse` data source retrieves information a lakekeeper warehouse.
-
-**Currently the datasource can only read from the default project**
+The `lakekeeper_warehouse` data source retrieves information about a lakekeeper warehouse.
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)
 

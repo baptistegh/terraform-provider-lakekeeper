@@ -53,9 +53,7 @@ func (d *LakekeeperWarehouseDataSource) Metadata(_ context.Context, req datasour
 // Schema defines the schema for the data source.
 func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_warehouse`" + ` data source retrieves information a lakekeeper warehouse.
-
-**Currently the datasource can only read from the default project**
+		MarkdownDescription: fmt.Sprintf(`The ` + "`lakekeeper_warehouse`" + ` data source retrieves information about a lakekeeper warehouse.
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)`),
 
