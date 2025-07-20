@@ -33,6 +33,8 @@ var testLakekeeperConfig = api.Config{
 
 var TestLakekeeperClient *lakekeeper.Client
 
+var DefaultUserID string
+
 func init() {
 	client, err := testLakekeeperConfig.NewLakekeeperClient(context.Background())
 	if err != nil {
@@ -40,6 +42,13 @@ func init() {
 	}
 
 	TestLakekeeperClient = client
+
+	user, _, err := TestLakekeeperClient.UserV1().Whoami()
+	if err != nil {
+		panic("failed to get current user: " + err.Error())
+	}
+
+	DefaultUserID = user.ID
 }
 
 // CreateProject is a test helper for creating a project.
