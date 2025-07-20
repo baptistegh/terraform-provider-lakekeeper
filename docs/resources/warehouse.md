@@ -21,10 +21,11 @@ resource "lakekeeper_project" "bi" {
 }
 
 resource "lakekeeper_warehouse" "aws" {
-  project_id = lakekeeper_project.bi.id
-  name       = "aws"
-  protected  = false
-  active     = true
+  project_id     = lakekeeper_project.bi.id
+  name           = "aws"
+  protected      = false
+  active         = true
+  managed_access = true
   storage_profile = {
     type   = "s3"
     region = "us-east-1"
@@ -54,6 +55,7 @@ resource "lakekeeper_warehouse" "aws" {
 
 - `active` (Boolean) Whether the warehouse is active.
 - `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. Default: `hard` (see [below for nested schema](#nestedatt--delete_profile))
+- `managed_access` (Boolean) Whether the managed access is configured on this warehouse. Default is `false`.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
 - `storage_credential` (Attributes) The credentials used to access the storage. This is required for the warehouse to be able to access the storage profile. (see [below for nested schema](#nestedatt--storage_credential))
 

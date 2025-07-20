@@ -3,10 +3,11 @@ resource "lakekeeper_project" "bi" {
 }
 
 resource "lakekeeper_warehouse" "aws" {
-  project_id = lakekeeper_project.bi.id
-  name       = "aws"
-  protected  = false
-  active     = true
+  project_id     = lakekeeper_project.bi.id
+  name           = "aws"
+  protected      = false
+  active         = true
+  managed_access = true
   storage_profile = {
     type   = "s3"
     region = "us-east-1"

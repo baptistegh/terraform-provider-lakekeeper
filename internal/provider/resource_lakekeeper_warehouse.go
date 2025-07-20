@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
+	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
+
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -55,6 +57,7 @@ type lakekeeperWarehouseResourceModel struct {
 	ProjectID         types.String                    `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
 	Protected         types.Bool                      `tfsdk:"protected"`
 	Active            types.Bool                      `tfsdk:"active"`
+	ManagedAccess     types.Bool                      `tfsdk:"managed_access"`
 	StorageProfile    *tftypes.StorageProfileModel    `tfsdk:"storage_profile"`
 	DeleteProfile     *tftypes.DeleteProfileModel     `tfsdk:"delete_profile"`
 	StorageCredential *tftypes.StorageCredentialModel `tfsdk:"storage_credential"`
@@ -97,6 +100,12 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
+			},
+			"managed_access": schema.BoolAttribute{
+				MarkdownDescription: "Whether the managed access is configured on this warehouse. Default is `false`.",
+				Computed:            true,
+				Optional:            true,
+				Default:             booldefault.StaticBool(false),
 			},
 			"storage_profile":    tftypes.StorageProfileResourceSchema(),
 			"delete_profile":     tftypes.DeleteProfileResourceSchema(),
@@ -144,15 +153,26 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 	w, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).Create(opts, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred",
-			fmt.Sprintf("Unable to create warehouse: %v", err))
+			fmt.Sprintf("Unable to create warehouse, %v", err))
 		return
 	}
 
 	warehouse, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).Get(w.ID, core.WithContext(ctx))
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred",
-			fmt.Sprintf("Unable to read warehouse: %v", err))
+			fmt.Sprintf("Unable to read warehouse, %v", err))
 		return
+	}
+
+	if !state.ManagedAccess.IsNull() {
+		_, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(warehouse.ID, &permissionv1.SetWarehouseManagedAccessOptions{
+			ManagedAccess: state.ManagedAccess.ValueBool(),
+		}, core.WithContext(ctx))
+		if err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred",
+				fmt.Sprintf("Unable to set managed access, %v", err))
+			return
+		}
 	}
 
 	diags := state.RefreshFromSettings(warehouse)
@@ -187,6 +207,13 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
 		return
 	}
+
+	// get managed access property
+	m, _, err := r.client.PermissionV1().WarehousePermission().GetAuthzProperties(warehouse.ID, core.WithContext(ctx))
+	if err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err.Error()))
+	}
+	state.ManagedAccess = types.BoolValue(m.ManagedAccess)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -255,6 +282,15 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update storage profile for warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
 		return
 	}
+
+	// Update the authorization property
+	if _, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(warehouseID, &permissionv1.SetWarehouseManagedAccessOptions{
+		ManagedAccess: plan.ManagedAccess.ValueBool(),
+	}, core.WithContext(ctx)); err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set authorization properties for warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+		return
+	}
+	state.ManagedAccess = plan.ManagedAccess
 
 	// Refresh the state with the updated warehouse settings
 	warehouse, _, err := r.client.WarehouseV1(projectID).Get(warehouseID, core.WithContext(ctx))
