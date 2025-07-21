@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.2.5](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.4...v0.2.5) (2025-07-21)
+
+
+### Features
+
+* add lakekeeeper_warehouse_user/role_access data sources ([0853f22](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/0853f2208fc814796b8a0a55d112d8c9831952f3))
+* add lakekeeper_warehouse_assignments datasource ([0853f22](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/0853f2208fc814796b8a0a55d112d8c9831952f3))
+* add lakekeeper_warehouse_assignments datasource ([#128](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/128)) ([0853f22](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/0853f2208fc814796b8a0a55d112d8c9831952f3))
+* add playground examples ([#120](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/120)) ([f22dc38](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f22dc386a4c546b30c46d47feec2e017606623dc))
+* **project:** add permission datasources ([#129](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/129)) ([08af17a](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/08af17a778a82afaa202f11abda2a1695f3d2264))
+* **warehouse:** add managed access property ([#127](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/127)) ([a06c619](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/a06c6191fe6ed852f7fa68f15f79115e73d9be02))
+
 ## [0.2.4](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.3...v0.2.4) (2025-07-19)
 
 
