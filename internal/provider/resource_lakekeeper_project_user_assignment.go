@@ -6,7 +6,6 @@ import (
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -137,9 +136,9 @@ func (r *lakekeeperProjectUserAssignmentResource) Create(ctx context.Context, re
 		})
 	}
 
-	_, err := r.client.PermissionV1().ProjectPermission().Update(projectID, &permissionv1.UpdateProjectPermissionsOptions{
+	_, err := r.client.PermissionV1().ProjectPermission().Update(ctx, projectID, &permissionv1.UpdateProjectPermissionsOptions{
 		Writes: opts,
-	}, core.WithContext(ctx))
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to write project assignment, %s", err.Error()))
 		return
@@ -166,7 +165,7 @@ func (r *lakekeeperProjectUserAssignmentResource) Read(ctx context.Context, req 
 
 	projectID, userID := splitInternalID(state.ID)
 
-	assignments, _, err := r.client.PermissionV1().ProjectPermission().GetAssignments(projectID, nil, core.WithContext(ctx))
+	assignments, _, err := r.client.PermissionV1().ProjectPermission().GetAssignments(ctx, projectID, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project assignments, %s", err.Error()))
 		return
@@ -241,10 +240,10 @@ func (r *lakekeeperProjectUserAssignmentResource) Update(ctx context.Context, re
 		})
 	}
 
-	if _, err := r.client.PermissionV1().ProjectPermission().Update(plan.ProjectID.ValueString(), &permissionv1.UpdateProjectPermissionsOptions{
+	if _, err := r.client.PermissionV1().ProjectPermission().Update(ctx, plan.ProjectID.ValueString(), &permissionv1.UpdateProjectPermissionsOptions{
 		Writes:  writes,
 		Deletes: deletes,
-	}, core.WithContext(ctx)); err != nil {
+	}); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update project assignment, %v", err.Error()))
 		return
 	}
@@ -283,9 +282,9 @@ func (r *lakekeeperProjectUserAssignmentResource) Delete(ctx context.Context, re
 		})
 	}
 
-	if _, err := r.client.PermissionV1().ProjectPermission().Update(state.ProjectID.ValueString(), &permissionv1.UpdateProjectPermissionsOptions{
+	if _, err := r.client.PermissionV1().ProjectPermission().Update(ctx, state.ProjectID.ValueString(), &permissionv1.UpdateProjectPermissionsOptions{
 		Deletes: deletes,
-	}, core.WithContext(ctx)); err != nil {
+	}); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete project assignment, %v", err.Error()))
 	}
 

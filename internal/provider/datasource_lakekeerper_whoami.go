@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -97,7 +96,7 @@ func (d *LakekeeperWhoamiDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	user, _, err := d.client.UserV1().Whoami(core.WithContext(ctx))
+	user, _, err := d.client.UserV1().Whoami(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read current user, %v", err))
 		return

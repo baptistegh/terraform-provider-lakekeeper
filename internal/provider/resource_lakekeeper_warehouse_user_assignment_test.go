@@ -4,6 +4,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -134,7 +135,7 @@ func testAccCheckLakekeeperWarehouseUserAssignmentDestroy(s *terraform.State) er
 
 		warehouseID, userID := splitInternalID(types.StringValue(rs.Primary.ID))
 
-		assignments, _, err := testutil.TestLakekeeperClient.PermissionV1().WarehousePermission().GetAssignments(warehouseID, nil)
+		assignments, _, err := testutil.TestLakekeeperClient.PermissionV1().WarehousePermission().GetAssignments(context.Background(), warehouseID, nil)
 		if err != nil {
 			return fmt.Errorf("could not list project assignments to check destroy, %w", err)
 		}

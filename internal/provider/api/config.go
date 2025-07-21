@@ -101,7 +101,7 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		return nil, err
 	}
 
-	client, err := lakekeeper.NewAuthSourceClient(&core.OAuthTokenSource{
+	client, err := lakekeeper.NewAuthSourceClient(ctx, &core.OAuthTokenSource{
 		TokenSource: oauth2.ReuseTokenSource(initialToken, oauthConfig.TokenSource(ctx)),
 	}, c.BaseURL, opts...)
 	if err != nil {
@@ -110,7 +110,7 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 
 	// Test the credentials by checking we can get information about the authenticated user.
 	if c.EarlyAuthFail {
-		_, _, err = client.ServerV1().Info(core.WithContext(ctx))
+		_, _, err = client.ServerV1().Info(ctx)
 	}
 
 	return client, err

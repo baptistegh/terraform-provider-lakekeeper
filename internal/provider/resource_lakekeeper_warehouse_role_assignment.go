@@ -6,7 +6,6 @@ import (
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -131,9 +130,9 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Create(ctx context.Context, 
 		})
 	}
 
-	_, err := r.client.PermissionV1().WarehousePermission().Update(plan.WarehouseID.ValueString(), &permissionv1.UpdateWarehousePermissionsOptions{
+	_, err := r.client.PermissionV1().WarehousePermission().Update(ctx, plan.WarehouseID.ValueString(), &permissionv1.UpdateWarehousePermissionsOptions{
 		Writes: opts,
-	}, core.WithContext(ctx))
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to write warehouse assignment, %s", err.Error()))
 		return
@@ -161,7 +160,7 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Read(ctx context.Context, re
 
 	warehouseID, roleID := splitInternalID(state.ID)
 
-	assignments, _, err := r.client.PermissionV1().WarehousePermission().GetAssignments(warehouseID, nil, core.WithContext(ctx))
+	assignments, _, err := r.client.PermissionV1().WarehousePermission().GetAssignments(ctx, warehouseID, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role assignments, %s", err.Error()))
 		return
@@ -238,10 +237,10 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Update(ctx context.Context, 
 
 	warehouseID, roleID := splitInternalID(state.ID)
 
-	if _, err := r.client.PermissionV1().WarehousePermission().Update(warehouseID, &permissionv1.UpdateWarehousePermissionsOptions{
+	if _, err := r.client.PermissionV1().WarehousePermission().Update(ctx, warehouseID, &permissionv1.UpdateWarehousePermissionsOptions{
 		Writes:  writes,
 		Deletes: deletes,
-	}, core.WithContext(ctx)); err != nil {
+	}); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update role assignment, %v", err.Error()))
 		return
 	}
@@ -281,9 +280,9 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Delete(ctx context.Context, 
 		})
 	}
 
-	if _, err := r.client.PermissionV1().WarehousePermission().Update(state.WarehouseID.ValueString(), &permissionv1.UpdateWarehousePermissionsOptions{
+	if _, err := r.client.PermissionV1().WarehousePermission().Update(ctx, state.WarehouseID.ValueString(), &permissionv1.UpdateWarehousePermissionsOptions{
 		Deletes: deletes,
-	}, core.WithContext(ctx)); err != nil {
+	}); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete role assignment, %v", err.Error()))
 	}
 

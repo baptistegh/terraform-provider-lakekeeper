@@ -6,7 +6,6 @@ import (
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -95,7 +94,7 @@ func (r *lakekeeperProjectResource) Create(ctx context.Context, req resource.Cre
 		Name: name,
 	}
 
-	project, _, err := r.client.ProjectV1().Create(&opts, core.WithContext(ctx))
+	project, _, err := r.client.ProjectV1().Create(ctx, &opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create project %s, %v", name, err.Error()))
 		return
@@ -124,7 +123,7 @@ func (r *lakekeeperProjectResource) Read(ctx context.Context, req resource.ReadR
 
 	id := state.ID.ValueString()
 
-	project, _, err := r.client.ProjectV1().Get(id, core.WithContext(ctx))
+	project, _, err := r.client.ProjectV1().Get(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project %s, %v", id, err.Error()))
 		return
@@ -158,7 +157,7 @@ func (r *lakekeeperProjectResource) Update(ctx context.Context, req resource.Upd
 			NewName: plan.Name.ValueString(),
 		}
 
-		_, err := r.client.ProjectV1().Rename(state.ID.ValueString(), &opts, core.WithContext(ctx))
+		_, err := r.client.ProjectV1().Rename(ctx, state.ID.ValueString(), &opts)
 		if err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to rename project %s, %v", state.ID.ValueString(), err.Error()))
 			return
@@ -183,7 +182,7 @@ func (r *lakekeeperProjectResource) Delete(ctx context.Context, req resource.Del
 
 	id := state.ID.ValueString()
 
-	_, err := r.client.ProjectV1().Delete(id, core.WithContext(ctx))
+	_, err := r.client.ProjectV1().Delete(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete project %s, %v", id, err))
 		return

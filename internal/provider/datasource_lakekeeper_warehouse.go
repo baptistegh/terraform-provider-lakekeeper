@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -116,14 +115,14 @@ func (d *LakekeeperWarehouseDataSource) Read(ctx context.Context, req datasource
 	id := state.WarehouseID.ValueString()
 	projectID := state.ProjectID.ValueString()
 
-	warehouse, _, err := d.client.WarehouseV1(projectID).Get(id, core.WithContext(ctx))
+	warehouse, _, err := d.client.WarehouseV1(projectID).Get(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s, %v", state.Name.ValueString(), err))
 		return
 	}
 
 	// Authorization Properties
-	m, _, err := d.client.PermissionV1().WarehousePermission().GetAuthzProperties(id, core.WithContext(ctx))
+	m, _, err := d.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read authorization properties for warehouse %s, %v", state.Name.ValueString(), err))
 		return

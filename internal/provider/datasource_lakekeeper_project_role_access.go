@@ -99,9 +99,9 @@ func (d *LakekeeperProjectRoleAccessDataSource) Read(ctx context.Context, req da
 
 	state.ID = types.StringValue(fmt.Sprintf("%s:%s", state.ProjectID.ValueString(), state.RoleID.ValueString()))
 
-	access, _, err := d.client.PermissionV1().ProjectPermission().GetAccess(state.ProjectID.ValueString(), &permissionv1.GetProjectAccessOptions{
+	access, _, err := d.client.PermissionV1().ProjectPermission().GetAccess(ctx, state.ProjectID.ValueString(), &permissionv1.GetProjectAccessOptions{
 		PrincipalRole: core.Ptr(state.RoleID.ValueString()),
-	}, core.WithContext(ctx))
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read acess for role %s on project %s, %v", state.RoleID.ValueString(), state.ID.ValueString(), err))
 		return

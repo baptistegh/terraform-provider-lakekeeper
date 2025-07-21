@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -85,7 +84,7 @@ func (d *LakekeeperProjectDataSource) Read(ctx context.Context, req datasource.R
 
 	id := state.ID.ValueString()
 
-	project, _, err := d.client.ProjectV1().Get(id, core.WithContext(ctx))
+	project, _, err := d.client.ProjectV1().Get(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project %s, %v", id, err))
 		return

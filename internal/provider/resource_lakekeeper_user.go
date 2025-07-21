@@ -7,7 +7,6 @@ import (
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -126,7 +125,7 @@ func (r *lakekeeperUserResource) Create(ctx context.Context, req resource.Create
 		opts.UserType = &uType
 	}
 
-	user, _, err := r.client.UserV1().Provision(&opts, core.WithContext(ctx))
+	user, _, err := r.client.UserV1().Provision(ctx, &opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create user %s, %v", state.ID.ValueString(), err))
 		return
@@ -161,7 +160,7 @@ func (r *lakekeeperUserResource) Read(ctx context.Context, req resource.ReadRequ
 
 	id := state.ID.ValueString()
 
-	user, _, err := r.client.UserV1().Get(id, core.WithContext(ctx))
+	user, _, err := r.client.UserV1().Get(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read user %s, %v", id, err))
 		return
@@ -213,7 +212,7 @@ func (r *lakekeeperUserResource) Update(ctx context.Context, req resource.Update
 		opts.UserType = &uType
 	}
 
-	user, _, err := r.client.UserV1().Provision(&opts, core.WithContext(ctx))
+	user, _, err := r.client.UserV1().Provision(ctx, &opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update user: %v", err))
 		return
@@ -248,7 +247,7 @@ func (r *lakekeeperUserResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	_, err := r.client.UserV1().Delete(id, core.WithContext(ctx))
+	_, err := r.client.UserV1().Delete(ctx, id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete user %s, %v", id, err))
 		return

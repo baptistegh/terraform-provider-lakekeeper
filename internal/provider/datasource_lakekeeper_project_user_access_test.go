@@ -22,6 +22,7 @@ func TestAccDataLakekeeperProjectUserAccess_basic(t *testing.T) {
 
 	// assignment
 	if _, err := testutil.TestLakekeeperClient.PermissionV1().ProjectPermission().Update(
+		t.Context(),
 		project.ID,
 		&permissionv1.UpdateProjectPermissionsOptions{
 			Writes: []*permissionv1.ProjectAssignment{

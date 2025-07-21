@@ -6,7 +6,6 @@ import (
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -117,9 +116,9 @@ func (r *lakekeeperServerRoleAssignmentResource) Create(ctx context.Context, req
 		})
 	}
 
-	_, err := r.client.PermissionV1().ServerPermission().Update(&permissionv1.UpdateServerPermissionsOptions{
+	_, err := r.client.PermissionV1().ServerPermission().Update(ctx, &permissionv1.UpdateServerPermissionsOptions{
 		Writes: opts,
-	}, core.WithContext(ctx))
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to write server assignment, %s", err.Error()))
 		return
@@ -146,7 +145,7 @@ func (r *lakekeeperServerRoleAssignmentResource) Read(ctx context.Context, req r
 	roleID := state.ID.ValueString()
 	state.RoleID = types.StringValue(roleID)
 
-	assignments, _, err := r.client.PermissionV1().ServerPermission().GetAssignments(nil, core.WithContext(ctx))
+	assignments, _, err := r.client.PermissionV1().ServerPermission().GetAssignments(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server assignments, %s", err.Error()))
 		return
@@ -218,10 +217,10 @@ func (r *lakekeeperServerRoleAssignmentResource) Update(ctx context.Context, req
 		})
 	}
 
-	if _, err := r.client.PermissionV1().ServerPermission().Update(&permissionv1.UpdateServerPermissionsOptions{
+	if _, err := r.client.PermissionV1().ServerPermission().Update(ctx, &permissionv1.UpdateServerPermissionsOptions{
 		Writes:  writes,
 		Deletes: deletes,
-	}, core.WithContext(ctx)); err != nil {
+	}); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update server assignment, %v", err.Error()))
 		return
 	}
@@ -260,9 +259,9 @@ func (r *lakekeeperServerRoleAssignmentResource) Delete(ctx context.Context, req
 		})
 	}
 
-	if _, err := r.client.PermissionV1().ServerPermission().Update(&permissionv1.UpdateServerPermissionsOptions{
+	if _, err := r.client.PermissionV1().ServerPermission().Update(ctx, &permissionv1.UpdateServerPermissionsOptions{
 		Deletes: deletes,
-	}, core.WithContext(ctx)); err != nil {
+	}); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete server assignment, %v", err.Error()))
 	}
 

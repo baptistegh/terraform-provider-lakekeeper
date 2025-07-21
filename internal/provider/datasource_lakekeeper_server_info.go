@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -119,7 +118,7 @@ func (d *lakekeeperServerInfoDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 	// Make API call to read applications
-	serverInfo, _, err := d.client.ServerV1().Info(core.WithContext(ctx))
+	serverInfo, _, err := d.client.ServerV1().Info(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server infos, %v", err.Error()))
 		return

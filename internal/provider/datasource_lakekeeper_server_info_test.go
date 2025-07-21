@@ -8,13 +8,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDataLakekeeperServerInfo_basic(t *testing.T) {
-	server, _, err := testutil.TestLakekeeperClient.ServerV1().Info(core.WithContext(t.Context()))
+	server, _, err := testutil.TestLakekeeperClient.ServerV1().Info(t.Context())
 	if err != nil {
 		t.Fatalf("could not get server info, %s", err.Error())
 	}

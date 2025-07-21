@@ -102,9 +102,9 @@ func (d *LakekeeperWarehouseRoleAccessDataSource) Read(ctx context.Context, req 
 
 	state.ID = types.StringValue(fmt.Sprintf("%s:%s", state.WarehouseID.ValueString(), state.RoleID.ValueString()))
 
-	access, _, err := d.client.PermissionV1().WarehousePermission().GetAccess(state.WarehouseID.ValueString(), &permissionv1.GetWarehouseAccessOptions{
+	access, _, err := d.client.PermissionV1().WarehousePermission().GetAccess(ctx, state.WarehouseID.ValueString(), &permissionv1.GetWarehouseAccessOptions{
 		PrincipalRole: core.Ptr(state.RoleID.ValueString()),
-	}, core.WithContext(ctx))
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read acess for role %s on warehouse %s, %v", state.RoleID.ValueString(), state.ID.ValueString(), err))
 		return
