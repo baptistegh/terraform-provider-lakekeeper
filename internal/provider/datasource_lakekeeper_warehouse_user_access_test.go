@@ -25,6 +25,7 @@ func TestAccDataLakekeeperWarehouseUserAccess_basic(t *testing.T) {
 
 	// assignment
 	if _, err := testutil.TestLakekeeperClient.PermissionV1().WarehousePermission().Update(
+		t.Context(),
 		warehouse.ID,
 		&permissionv1.UpdateWarehousePermissionsOptions{
 			Writes: []*permissionv1.WarehouseAssignment{

@@ -4,6 +4,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -116,7 +117,7 @@ func testAccCheckLakekeeperServerRoleAssignmentDestroy(s *terraform.State) error
 			continue
 		}
 
-		assignments, _, err := testutil.TestLakekeeperClient.PermissionV1().ServerPermission().GetAssignments(nil)
+		assignments, _, err := testutil.TestLakekeeperClient.PermissionV1().ServerPermission().GetAssignments(context.Background(), nil)
 		if err != nil {
 			return fmt.Errorf("could not list server assignments to check destroy, %w", err)
 		}

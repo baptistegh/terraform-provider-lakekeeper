@@ -99,9 +99,9 @@ func (d *LakekeeperProjectUserAccessDataSource) Read(ctx context.Context, req da
 
 	state.ID = types.StringValue(fmt.Sprintf("%s:%s", state.ProjectID.ValueString(), state.UserID.ValueString()))
 
-	access, _, err := d.client.PermissionV1().ProjectPermission().GetAccess(state.ProjectID.ValueString(), &permissionv1.GetProjectAccessOptions{
+	access, _, err := d.client.PermissionV1().ProjectPermission().GetAccess(ctx, state.ProjectID.ValueString(), &permissionv1.GetProjectAccessOptions{
 		PrincipalUser: core.Ptr(state.UserID.ValueString()),
-	}, core.WithContext(ctx))
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read acess for user %s on project %s, %v", state.UserID.ValueString(), state.ID.ValueString(), err))
 		return

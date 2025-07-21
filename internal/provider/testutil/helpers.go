@@ -43,7 +43,7 @@ func init() {
 
 	TestLakekeeperClient = client
 
-	user, _, err := TestLakekeeperClient.UserV1().Whoami()
+	user, _, err := TestLakekeeperClient.UserV1().Whoami(context.Background())
 	if err != nil {
 		panic("failed to get current user: " + err.Error())
 	}
@@ -59,18 +59,18 @@ func CreateProject(t *testing.T) *managementv1.Project {
 		Name: acctest.RandomWithPrefix("acctest"),
 	}
 
-	resp, _, err := TestLakekeeperClient.ProjectV1().Create(&opts)
+	resp, _, err := TestLakekeeperClient.ProjectV1().Create(t.Context(), &opts)
 	if err != nil {
 		t.Fatalf("could not create test project: %v", err)
 	}
 
 	t.Cleanup(func() {
-		if _, err := TestLakekeeperClient.ProjectV1().Delete(resp.ID); err != nil {
+		if _, err := TestLakekeeperClient.ProjectV1().Delete(context.Background(), resp.ID); err != nil {
 			t.Fatalf("could not cleanup test project: %v", err)
 		}
 	})
 
-	project, _, err := TestLakekeeperClient.ProjectV1().Get(resp.ID)
+	project, _, err := TestLakekeeperClient.ProjectV1().Get(t.Context(), resp.ID)
 	if err != nil {
 		t.Fatalf("could not get test project: %v", err)
 	}
@@ -97,7 +97,7 @@ func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *managementv1.Wa
 		DeleteProfile:     profile.NewTabularDeleteProfileHard().AsProfile(),
 	}
 
-	w, _, err := TestLakekeeperClient.WarehouseV1(projectID).Create(&opts)
+	w, _, err := TestLakekeeperClient.WarehouseV1(projectID).Create(t.Context(), &opts)
 	if err != nil {
 		t.Fatalf("could not create test warehouse: %v", err)
 	}
@@ -106,12 +106,12 @@ func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *managementv1.Wa
 		opts := managementv1.DeleteWarehouseOptions{
 			Force: core.Ptr(true),
 		}
-		if _, err := TestLakekeeperClient.WarehouseV1(projectID).Delete(w.ID, &opts); err != nil {
+		if _, err := TestLakekeeperClient.WarehouseV1(projectID).Delete(context.Background(), w.ID, &opts); err != nil {
 			t.Fatalf("could not cleanup test warehouse: %v", err)
 		}
 	})
 
-	warehouse, _, err := TestLakekeeperClient.WarehouseV1(projectID).Get(w.ID)
+	warehouse, _, err := TestLakekeeperClient.WarehouseV1(projectID).Get(t.Context(), w.ID)
 	if err != nil {
 		t.Fatalf("could not create test warehouse: %v", err)
 	}
@@ -130,13 +130,13 @@ func CreateRole(t *testing.T, projectID string) *managementv1.Role {
 		Description: &description,
 	}
 
-	role, _, err := TestLakekeeperClient.RoleV1(projectID).Create(&opts)
+	role, _, err := TestLakekeeperClient.RoleV1(projectID).Create(t.Context(), &opts)
 	if err != nil {
 		t.Fatalf("could not create test role: %v", err)
 	}
 
 	t.Cleanup(func() {
-		if _, err := TestLakekeeperClient.RoleV1(projectID).Delete(role.ID); err != nil {
+		if _, err := TestLakekeeperClient.RoleV1(projectID).Delete(context.Background(), role.ID); err != nil {
 			t.Fatalf("could not cleanup test role: %v", err)
 		}
 	})
@@ -159,13 +159,13 @@ func CreateUser(t *testing.T, id string) *managementv1.User {
 		UserType: &userType,
 	}
 
-	user, _, err := TestLakekeeperClient.UserV1().Provision(&opts)
+	user, _, err := TestLakekeeperClient.UserV1().Provision(t.Context(), &opts)
 	if err != nil {
 		t.Fatalf("could not create test user: %v", err)
 	}
 
 	t.Cleanup(func() {
-		if _, err := TestLakekeeperClient.UserV1().Delete(user.ID); err != nil {
+		if _, err := TestLakekeeperClient.UserV1().Delete(context.Background(), user.ID); err != nil {
 			t.Fatalf("could not cleanup test user: %v", err)
 		}
 	})

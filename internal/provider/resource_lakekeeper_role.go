@@ -6,7 +6,6 @@ import (
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -116,7 +115,7 @@ func (r *lakekeeperRoleResource) Create(ctx context.Context, req resource.Create
 		Description: state.Description.ValueStringPointer(),
 	}
 
-	role, _, err := r.client.RoleV1(state.ProjectID.ValueString()).Create(&opts, core.WithContext(ctx))
+	role, _, err := r.client.RoleV1(state.ProjectID.ValueString()).Create(ctx, &opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create role, %v", err))
 		return
@@ -152,7 +151,7 @@ func (r *lakekeeperRoleResource) Read(ctx context.Context, req resource.ReadRequ
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	role, _, err := r.client.RoleV1(projectID).Get(roleID, core.WithContext(ctx))
+	role, _, err := r.client.RoleV1(projectID).Get(ctx, roleID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role %s in project %s, %v", roleID, projectID, err))
 		return
@@ -199,7 +198,7 @@ func (r *lakekeeperRoleResource) Update(ctx context.Context, req resource.Update
 		Description: plan.Description.ValueStringPointer(),
 	}
 
-	role, _, err := r.client.RoleV1(projectID).Update(roleID, &opts, core.WithContext(ctx))
+	role, _, err := r.client.RoleV1(projectID).Update(ctx, roleID, &opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update role %s in project %s, %v", roleID, projectID, err))
 		return
@@ -235,7 +234,7 @@ func (r *lakekeeperRoleResource) Delete(ctx context.Context, req resource.Delete
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	_, err := r.client.RoleV1(projectID).Delete(roleID, core.WithContext(ctx))
+	_, err := r.client.RoleV1(projectID).Delete(ctx, roleID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete role %s in project %s, %v", roleID, projectID, err))
 		return

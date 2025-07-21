@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -88,7 +87,7 @@ func (d *LakekeeperWarehouseAssignmentsDataSource) Read(ctx context.Context, req
 	id := state.ID.ValueString()
 	state.ID = types.StringValue(id)
 
-	assignments, _, err := d.client.PermissionV1().WarehousePermission().GetAssignments(id, nil, core.WithContext(ctx))
+	assignments, _, err := d.client.PermissionV1().WarehousePermission().GetAssignments(ctx, id, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read assignments for warehouse %s, %v", state.ID.ValueString(), err))
 		return

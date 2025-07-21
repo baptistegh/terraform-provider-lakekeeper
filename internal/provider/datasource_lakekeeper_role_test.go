@@ -14,7 +14,7 @@ import (
 func TestAccDataLakekeeperRole_basic(t *testing.T) {
 
 	project := testutil.CreateProject(t)
-	defaultProject, _, err := testutil.TestLakekeeperClient.ProjectV1().GetDefault()
+	defaultProject, _, err := testutil.TestLakekeeperClient.ProjectV1().GetDefault(t.Context())
 	if err != nil {
 		t.Fatalf("could not get default project, %v", err)
 	}
