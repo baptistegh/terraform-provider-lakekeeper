@@ -15,7 +15,7 @@ import (
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/credential"
 	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
 )
 
@@ -28,10 +28,9 @@ var testLakekeeperConfig = api.Config{
 		Scopes:       []string{"lakekeeper"},
 	},
 	InitialBootstrap: true,
-	EarlyAuthFail:    true,
 }
 
-var TestLakekeeperClient *lakekeeper.Client
+var TestLakekeeperClient *client.Client
 
 var DefaultUserID string
 

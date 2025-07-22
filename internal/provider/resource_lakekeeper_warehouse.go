@@ -127,7 +127,7 @@ func (r *lakekeeperWarehouseResource) Configure(ctx context.Context, req resourc
 
 // Create creates a new upstream resources and adds it into the Terraform state.
 func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var state *lakekeeperWarehouseResourceModel
+	var state lakekeeperWarehouseResourceModel
 	var plan types.Object
 
 	// Read Terraform plan data into the model
@@ -137,8 +137,8 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 	}
 
 	resp.Diagnostics.Append(plan.As(ctx, &state, basetypes.ObjectAsOptions{
-		UnhandledNullAsEmpty:    true,
-		UnhandledUnknownAsEmpty: true,
+		UnhandledNullAsEmpty:    false,
+		UnhandledUnknownAsEmpty: false,
 	})...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -155,6 +155,26 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 		resp.Diagnostics.AddError("Lakekeeper API error occurred",
 			fmt.Sprintf("Unable to create warehouse, %v", err))
 		return
+	}
+
+	// set protection
+	if state.Protected.ValueBool() {
+		_, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).SetProtection(ctx, w.ID, state.Protected.ValueBool())
+		if err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred.",
+				fmt.Sprintf("Unable to set protection to %t for warehouse %s, %v", state.Protected.ValueBool(), w.ID, err),
+			)
+		}
+	}
+
+	// set inactive
+	if !state.Active.ValueBool() {
+		_, err := r.client.WarehouseV1(state.ProjectID.ValueString()).Deactivate(ctx, w.ID)
+		if err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred.",
+				fmt.Sprintf("Unable to deactivate warehouse %s, %v", w.ID, err),
+			)
+		}
 	}
 
 	warehouse, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).Get(ctx, w.ID)
@@ -198,7 +218,7 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 	projectID, warehouseID := splitInternalID(state.ID)
 	warehouse, _, err := r.client.WarehouseV1(projectID).Get(ctx, warehouseID)
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s in project %s, %s", warehouseID, projectID, err))
 		return
 	}
 
@@ -211,7 +231,7 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 	// get managed access property
 	m, _, err := r.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, warehouse.ID)
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err))
 	}
 	state.ManagedAccess = types.BoolValue(m.ManagedAccess)
 
@@ -232,10 +252,14 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 
 	projectID, warehouseID := splitInternalID(state.ID)
 
-	// Deactivate the warehouse if the active field is set to false
-	if !plan.Active.IsNull() && !plan.Active.ValueBool() {
+	if plan.Active.ValueBool() {
+		if _, err := r.client.WarehouseV1(projectID).Activate(ctx, warehouseID); err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to activate warehouse %s in project %s, %v", warehouseID, projectID, err))
+			return
+		}
+	} else {
 		if _, err := r.client.WarehouseV1(projectID).Deactivate(ctx, warehouseID); err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to deactivate warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to deactivate warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
 	}
@@ -245,7 +269,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 		if _, err := r.client.WarehouseV1(projectID).Rename(ctx, warehouseID, &managementv1.RenameWarehouseOptions{
 			NewName: plan.Name.ValueString(),
 		}); err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to rename warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to rename warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
 	}
@@ -253,7 +277,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 	// Set warehouse protection if the protected field is different
 	if plan.Protected.ValueBool() != state.Protected.ValueBool() {
 		if _, _, err := r.client.WarehouseV1(projectID).SetProtection(ctx, warehouseID, plan.Protected.ValueBool()); err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set protection for warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set protection for warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
 	}
@@ -269,7 +293,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 		if _, err := r.client.WarehouseV1(projectID).UpdateDeleteProfile(ctx, warehouseID, &managementv1.UpdateDeleteProfileOptions{
 			DeleteProfile: *opts.DeleteProfile,
 		}); err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update delete profile for warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update delete profile for warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
 	}
@@ -279,7 +303,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 		StorageProfile:    opts.StorageProfile,
 		StorageCredential: &opts.StorageCredential,
 	}); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update storage profile for warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update storage profile for warehouse %s in project %s, %v", warehouseID, projectID, err))
 		return
 	}
 
@@ -287,7 +311,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 	if _, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(ctx, warehouseID, &permissionv1.SetWarehouseManagedAccessOptions{
 		ManagedAccess: plan.ManagedAccess.ValueBool(),
 	}); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set authorization properties for warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set authorization properties for warehouse %s in project %s, %v", warehouseID, projectID, err))
 		return
 	}
 	state.ManagedAccess = plan.ManagedAccess
@@ -295,7 +319,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 	// Refresh the state with the updated warehouse settings
 	warehouse, _, err := r.client.WarehouseV1(projectID).Get(ctx, warehouseID)
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s in project %s, %v", warehouseID, projectID, err))
 		return
 	}
 
@@ -329,7 +353,7 @@ func (r *lakekeeperWarehouseResource) Delete(ctx context.Context, req resource.D
 	}
 
 	if _, err := r.client.WarehouseV1(projectID).Delete(ctx, warehouseID, &opts); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete warehouse %s in project %s, %s", warehouseID, projectID, err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete warehouse %s in project %s, %v", warehouseID, projectID, err))
 		return
 	}
 

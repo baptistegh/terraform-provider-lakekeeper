@@ -5,14 +5,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
@@ -23,8 +21,6 @@ type Config struct {
 	ClientTimeout    int
 	UserAgent        string
 	InitialBootstrap bool
-	Headers          map[string]any
-	EarlyAuthFail    bool
 
 	OIDCClientConfig
 }
@@ -73,20 +69,14 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		),
 	}
 
-	if c.Headers != nil {
-		stringMap := make(map[string]string, len(c.Headers))
-		for k, v := range c.Headers {
-			stringMap[k] = fmt.Sprintf("%v", v)
-		}
-		opts = append(opts, lakekeeper.WithRequestOptions(
-			core.WithHeaders(stringMap),
-		))
-	}
-
 	if c.InitialBootstrap {
 		opts = append(opts, lakekeeper.WithInitialBootstrapV1Enabled(
 			true, true, core.Ptr(managementv1.ApplicationUserType),
 		))
+	}
+
+	if c.UserAgent != "" {
+		opts = append(opts, lakekeeper.WithUserAgent(c.UserAgent))
 	}
 
 	oauthConfig := &clientcredentials.Config{
@@ -96,23 +86,12 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		Scopes:       c.Scopes,
 	}
 
-	initialToken, err := oauthConfig.Token(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	client, err := lakekeeper.NewAuthSourceClient(ctx, &core.OAuthTokenSource{
-		TokenSource: oauth2.ReuseTokenSource(initialToken, oauthConfig.TokenSource(ctx)),
+		TokenSource: oauthConfig.TokenSource(ctx),
 	}, c.BaseURL, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	// Test the credentials by checking we can get information about the authenticated user.
-	if c.EarlyAuthFail {
-		_, _, err = client.ServerV1().Info(ctx)
-	}
-
-	return client, err
-
+	return client, nil
 }

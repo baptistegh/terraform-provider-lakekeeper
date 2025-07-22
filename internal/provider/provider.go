@@ -113,7 +113,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		resp.Diagnostics.AddAttributeError(
 			path.Root("endpoint"),
 			"Unknown Lakekeeper Base URL",
-			"The provider cannot create the Lakekeeper API client as there is an unknow configuration value for the Lakekeeper Base URL. "+
+			"The provider cannot create the Lakekeeper API client as there is an unknown configuration value for the Lakekeeper Base URL. "+
 				"Either apply the source of the value first, set the token attribute value statically in the configuration, or use the LAKEKEEPER_ENDPOINT environment variable.",
 		)
 	}
@@ -122,7 +122,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		resp.Diagnostics.AddAttributeError(
 			path.Root("auth_url"),
 			"Unknown OIDC authenticate URL",
-			"The provider cannot create the Lakekeeper API client as there is an unknow configuration value for the OIDC authenticate endpoint. "+
+			"The provider cannot create the Lakekeeper API client as there is an unknown configuration value for the OIDC authenticate endpoint. "+
 				"Either apply the source of the value first, set the auth_url attribute value statically in the configuration, or use the LAKEKEEPER_AUTH_URL environment variable.",
 		)
 	}
@@ -131,7 +131,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		resp.Diagnostics.AddAttributeError(
 			path.Root("client_id"),
 			"Unknown OIDC authenticate endpoint",
-			"The provider cannot create the Lakekeeper API client as there is an unknow configuration value for the OIDC authenticate endpoint. "+
+			"The provider cannot create the Lakekeeper API client as there is an unknown configuration value for the OIDC authenticate endpoint. "+
 				"Either apply the source of the value first, set the client_id attribute value statically in the configuration, or use the LAKEKEEPER_CLIENT_ID environment variable.",
 		)
 	}
@@ -140,7 +140,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		resp.Diagnostics.AddAttributeError(
 			path.Root("client_secret"),
 			"Unknown OIDC authenticate endpoint",
-			"The provider cannot create the Lakekeeper API client as there is an unknow configuration value for the OIDC authenticate endpoint. "+
+			"The provider cannot create the Lakekeeper API client as there is an unknown configuration value for the OIDC authenticate endpoint. "+
 				"Either apply the source of the value first, set the client_secret attribute value statically in the configuration, or use the LAKEKEEPER_CLIENT_SECRET environment variable.",
 		)
 	}
@@ -149,7 +149,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 		resp.Diagnostics.AddAttributeError(
 			path.Root("scope"),
 			"Unknown OIDC authenticate endpoint",
-			"The provider cannot create the Lakekeeper API client as there is an unknow configuration value for the OIDC authenticate endpoint. "+
+			"The provider cannot create the Lakekeeper API client as there is an unknown configuration value for the OIDC authenticate endpoint. "+
 				"Either apply the source of the value first, set the scope attribute value statically in the configuration.",
 		)
 	}
@@ -168,46 +168,41 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 			ClientSecret: os.Getenv("LAKEKEEPER_CLIENT_SECRET"),
 			Scopes:       []string{"lakekeeper"},
 		},
-		CACertFile:       "",
-		Insecure:         false,
 		InitialBootstrap: true,
-		EarlyAuthFail:    true,
 	}
 
-	if !config.Endpoint.IsNull() {
+	if !config.Endpoint.IsNull() && !config.Endpoint.IsUnknown() {
 		evaluatedConfig.BaseURL = config.Endpoint.ValueString()
 	}
 
-	if !config.AuthURL.IsNull() {
+	if !config.AuthURL.IsNull() && !config.AuthURL.IsUnknown() {
 		evaluatedConfig.AuthURL = config.AuthURL.ValueString()
 	}
 
-	if !config.ClientID.IsNull() {
+	if !config.ClientID.IsNull() && !config.ClientID.IsUnknown() {
 		evaluatedConfig.ClientID = config.ClientID.ValueString()
 	}
 
-	if !config.ClientSecret.IsNull() {
+	if !config.ClientSecret.IsNull() && !config.ClientSecret.IsUnknown() {
 		evaluatedConfig.ClientSecret = config.ClientSecret.ValueString()
 	}
 
-	if !config.Scopes.IsNull() {
-		for _, elem := range config.Scopes.Elements() {
-			strVal, ok := elem.(types.String)
-			if ok && !strVal.IsNull() && !strVal.IsUnknown() {
-				evaluatedConfig.Scopes = append(evaluatedConfig.Scopes, strVal.ValueString())
-			}
+	if !config.Scopes.IsNull() && !config.Scopes.IsUnknown() {
+		resp.Diagnostics.Append(config.Scopes.ElementsAs(ctx, &config.Scopes, false)...)
+		if resp.Diagnostics.HasError() {
+			return
 		}
 	}
 
-	if !config.CACertFile.IsNull() {
+	if !config.CACertFile.IsNull() && !config.CACertFile.IsUnknown() {
 		evaluatedConfig.CACertFile = config.CACertFile.ValueString()
 	}
 
-	if !config.Insecure.IsNull() {
+	if !config.Insecure.IsNull() && !config.Insecure.IsUnknown() {
 		evaluatedConfig.Insecure = config.Insecure.ValueBool()
 	}
 
-	if !config.InitialBootstrap.IsNull() {
+	if !config.InitialBootstrap.IsNull() && !config.InitialBootstrap.IsUnknown() {
 		evaluatedConfig.InitialBootstrap = config.InitialBootstrap.ValueBool()
 	}
 

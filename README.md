@@ -1,30 +1,31 @@
-<div align="center">
-    <h1>Terraform Provider Lakekeeper</h1>
-    <p>
-Terraform provider for <a href="https://docs.lakekeeper.io/">Lakekeeper</a>.<p>
-    <a href="https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs"><img src="https://img.shields.io/static/v1?label=Docs&message=terraform-provider-lakekeeper&color=000000&style=for-the-badge" /></a>
-  <a href="https://github.com/baptistegh/terraform-provider-lakekeeper/releases"><img src="https://img.shields.io/badge/status-preview-orange?style=for-the-badge" /></a>
-</div>
+# Terraform Provider for Lakekeeper
+
+[![docs](https://img.shields.io/static/v1?label=Docs&message=terraform-provider-lakekeeper&color=5c4ee5)](https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs])
+[![docs](https://img.shields.io/badge/status-preview-orange)](https://github.com/baptistegh/terraform-provider-lakekeeper/releases)
+[![Nightly Acceptance Tests](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/nightly.yml/badge.svg)](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/nightly.yml)
+[![Tests](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/test.yml/badge.svg)](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/test.yml)
+
+Terraform provider for [Lakekeeper](https://docs.lakekeeper.io/).
 
 > [!IMPORTANT]  
 > **⚠️ Preview Status Notice**
-> 
+>
 > - ⚠️ **Breaking changes** may occur without notice  
 > - 🔄 APIs and behavior may change significantly between versions  
 > - 🧪 Use at your own risk for development and testing purposes only
-> 
+>
 > **🚧 This project is currently in _preview_ and under active development. It is _not production-ready_ and should not be used in production environments.**
-> 
+>
 > 💬 We welcome [feedback, bug reports, and contributions](https://github.com/baptistegh/terraform-provider-lakekeeper/issues) during this preview phase.
 > Please report issues or share your experience to help us improve the provider before its stable release.
 
 ## Docs
 
-All documentation for this provider can be found on the Terraform Registry: https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs.
+All documentation for this provider can be found on the Terraform Registry: <https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs>.
 
 ## Installation
 
-This provider can be installed automatically using Terraform >=0.13 by using the `terraform` configuration block:
+This provider can be installed automatically by using the `terraform` configuration block:
 
 ```terraform
 terraform {
@@ -48,7 +49,7 @@ The following Lakekeeper versions are used when running acceptance tests in CI:
 _The provider should be compatible with Lakekeeper >= v0.9.3 thanks to the introduction of skip storage validation._
 _See: [lakekeeper/lakekeeper#1239](https://github.com/lakekeeper/lakekeeper/pull/1239)_
 
-_Acceptance tests are executed using Terraform v1.12.2._
+_Acceptance tests are executed using Terraform v1.9.8._
 
 ## Releases
 
@@ -56,7 +57,7 @@ This provider uses [GoReleaser](https://goreleaser.com/]) to build and publish r
 
 Each release also contains a `terraform-provider-lakekeeper_${RELEASE_VERSION}_SHA256SUMS` file that can be used to check integrity.
 
-You can find the list of releases [here](https://github.com/baptistegh/terraform-provider-lakekeeper/releases). You can find the changelog for each version [here](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/CHANGELOG.md).
+You can find the [list of releases](https://github.com/baptistegh/terraform-provider-lakekeeper/releases) and the [changelog](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/CHANGELOG.md) for each version.
 
 ## Playground
 
@@ -66,19 +67,19 @@ A sample playground project is available in the `/playground` directory. It is b
 
 This playground will set up the following structure:
 
-* **Warehouse:**
-  * Configured using a `gcs` (Google Cloud Storage) storage profile.
-* **Roles:**
-  * with `select` and `describe` permissions on the warehouse. 
-* **Users:**
-  * **Anna:**
-    * username: `anna`
-    * password: `iceberg`
-    * `project_admin` assignment on the default project
-  * **Peter:**
-    * username: `peter`
-    * password: `iceberg`
-    * assignee to the role
+- **Warehouse:**
+  - Configured using a `gcs` (Google Cloud Storage) storage profile.
+- **Roles:**
+  - with `select` and `describe` permissions on the warehouse.
+- **Users:**
+  - **Anna:**
+    - username: `anna`
+    - password: `iceberg`
+    - `project_admin` assignment on the default project
+  - **Peter:**
+    - username: `peter`
+    - password: `iceberg`
+    - assignee to the role
 
 ### Setup Instructions
 
@@ -97,7 +98,7 @@ make playground-destroy
 
 ### Usage
 
-You can connect to the web interface at http://localhost:8181 using one of the user credentials listed above to explore the configured resources.
+You can connect to the web interface at <http://localhost:8181> using one of the user credentials listed above to explore the configured resources.
 
 Feel free to modify `playground/main.tf` to customize the structure according to your needs.
 

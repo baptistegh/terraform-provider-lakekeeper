@@ -36,6 +36,12 @@ resource "lakekeeper_project_user_assignment" "default_anna" {
   assignments = ["project_admin"]
 }
 
+// To add perter as a Super Admin, uncomment this section
+// resource "lakekeeper_server_user_assignment" "default_peter" {
+//   user_id     = lakekeeper_user.peter.id
+//   assignments = ["operator"]
+// }
+
 resource "lakekeeper_warehouse" "gcs" {
   name       = "test-warehouse"
   project_id = data.lakekeeper_default_project.default.id

@@ -33,7 +33,8 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 
 	var profile = StorageProfileModel{}
 
-	diags := val.As(ctx, &profile, basetypes.ObjectAsOptions{})
+	// this will throw an error if unknown or null types can't be handled by the target type (profile)
+	diags := val.As(ctx, &profile, basetypes.ObjectAsOptions{UnhandledNullAsEmpty: false, UnhandledUnknownAsEmpty: false})
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -41,7 +42,7 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 
 	switch profile.Type.ValueString() {
 	case "gcs":
-		if profile.Bucket.IsNull() || profile.Bucket.IsUnknown() || profile.Bucket.ValueString() == "" {
+		if profile.Bucket.IsNull() || profile.Bucket.ValueString() == "" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("bucket"),
 				"'bucket' required for type 'gcs'",
@@ -49,14 +50,14 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 			)
 		}
 	case "adls":
-		if profile.AccountName.IsNull() || profile.AccountName.IsUnknown() || profile.AccountName.ValueString() == "" {
+		if profile.AccountName.IsNull() || profile.AccountName.ValueString() == "" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("account_name"),
 				"'account_name' required for type 'adls'",
 				"When 'type' is 'adls', you must set the 'account_name' attribute.",
 			)
 		}
-		if profile.Filesystem.IsNull() || profile.Filesystem.IsUnknown() || profile.Filesystem.ValueString() == "" {
+		if profile.Filesystem.IsNull() || profile.Filesystem.ValueString() == "" {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("filesystem"),
 				"'filesystem' required for type 'adls'",
@@ -64,21 +65,21 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 			)
 		}
 	case "s3":
-		if profile.Bucket.IsNull() || profile.Bucket.IsUnknown() || profile.Bucket.ValueString() == "" {
+		if profile.Bucket.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("bucket"),
 				"'bucket' required for type 's3'",
 				"When 'type' is 's3', you must set the 'bucket' attribute.",
 			)
 		}
-		if profile.Region.IsNull() || profile.Region.IsUnknown() || profile.Region.ValueString() == "" {
+		if profile.Region.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("region"),
 				"'region' required for type 's3'",
 				"When 'type' is 's3', you must set the 'region' attribute.",
 			)
 		}
-		if profile.STSEnabled.IsNull() || profile.STSEnabled.IsUnknown() {
+		if profile.STSEnabled.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("sts_enabled"),
 				"'sts_enabled' required for type 's3'",
@@ -86,8 +87,7 @@ func (v storageProfileValidator) ValidateObject(ctx context.Context, req validat
 			)
 		}
 		if profile.STSEnabled.ValueBool() {
-			if (profile.STSRoleARN.IsNull() || profile.STSRoleARN.IsUnknown() || profile.STSRoleARN.ValueString() == "") &&
-				(profile.AssumeRoleARN.IsNull() || profile.AssumeRoleARN.IsUnknown() || profile.AssumeRoleARN.ValueString() == "") {
+			if profile.STSRoleARN.IsNull() && profile.AssumeRoleARN.IsNull() {
 				resp.Diagnostics.AddAttributeError(
 					path.Root("sts_role_arn"),
 					"'assume_role_arn' or 'sts_role_arn' is required for type 's3' with STS enabled",
