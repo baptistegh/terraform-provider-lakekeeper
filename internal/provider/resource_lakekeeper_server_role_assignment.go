@@ -57,7 +57,7 @@ func (r *lakekeeperServerRoleAssignmentResource) Schema(ctx context.Context, req
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_server_assignments)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID of this resource. In the form: <role_id>",
+				MarkdownDescription: "The internal ID of this resource. Same as `{{role_id}}`",
 				Computed:            true,
 			},
 			"role_id": schema.StringAttribute{
@@ -142,9 +142,6 @@ func (r *lakekeeperServerRoleAssignmentResource) Read(ctx context.Context, req r
 		return
 	}
 
-	roleID := state.ID.ValueString()
-	state.RoleID = types.StringValue(roleID)
-
 	assignments, _, err := r.client.PermissionV1().ServerPermission().GetAssignments(ctx, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server assignments, %s", err.Error()))
@@ -153,7 +150,7 @@ func (r *lakekeeperServerRoleAssignmentResource) Read(ctx context.Context, req r
 
 	var elems []attr.Value
 	for _, v := range assignments.Assignments {
-		if v.Assignee.Value == roleID && v.Assignee.Type == permissionv1.RoleType {
+		if v.Assignee.Value == state.RoleID.ValueString() && v.Assignee.Type == permissionv1.RoleType {
 			elems = append(elems, types.StringValue(string(v.Assignment)))
 		}
 	}
@@ -164,6 +161,7 @@ func (r *lakekeeperServerRoleAssignmentResource) Read(ctx context.Context, req r
 		return
 	}
 
+	state.ID = state.RoleID
 	state.Assignments = newAssignments
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -270,5 +268,5 @@ func (r *lakekeeperServerRoleAssignmentResource) Delete(ctx context.Context, req
 
 // ImportState imports the resource into the Terraform state.
 func (r *lakekeeperServerRoleAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("role_id"), req, resp)
 }

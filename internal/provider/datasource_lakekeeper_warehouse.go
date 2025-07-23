@@ -58,7 +58,7 @@ func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.S
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID the warehouse. In the form: {{project_id}}:{{warehouse_id}}",
+				MarkdownDescription: "The internal ID the warehouse. In the form: {{project_id}}/{{warehouse_id}}",
 				Computed:            true,
 			},
 			"warehouse_id": schema.StringAttribute{

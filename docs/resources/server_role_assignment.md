@@ -32,7 +32,7 @@ resource "lakekeeper_server_role_assignment" "data_analysts" {
 
 ### Read-Only
 
-- `id` (String) The internal ID of this resource. In the form: <role_id>
+- `id` (String) The internal ID of this resource. Same as `{{role_id}}`
 
 ## Import
 

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
@@ -57,7 +58,7 @@ func (r *lakekeeperRoleResource) Schema(ctx context.Context, req resource.Schema
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the role. in the form `{{project_id}}:{{role_id}}`",
+				MarkdownDescription: "The ID of the role. in the form `{{project_id}}/{{role_id}}`",
 				Computed:            true,
 			},
 			"role_id": schema.StringAttribute{
@@ -124,7 +125,7 @@ func (r *lakekeeperRoleResource) Create(ctx context.Context, req resource.Create
 	state.RoleID = types.StringValue(role.ID)
 	state.ProjectID = types.StringValue(role.ProjectID)
 
-	state.ID = types.StringValue(fmt.Sprintf("%s:%s", role.ProjectID, role.ID))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
 
 	state.CreatedAt = types.StringValue(role.CreatedAt)
 	state.UpdatedAt = types.StringPointerValue(role.UpdatedAt)
@@ -160,7 +161,7 @@ func (r *lakekeeperRoleResource) Read(ctx context.Context, req resource.ReadRequ
 	state.RoleID = types.StringValue(role.ID)
 	state.ProjectID = types.StringValue(role.ProjectID)
 
-	state.ID = types.StringValue(fmt.Sprintf("%s:%s", role.ProjectID, role.ID))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
 
 	state.Name = types.StringValue(role.Name)
 	state.CreatedAt = types.StringValue(role.CreatedAt)
@@ -207,7 +208,7 @@ func (r *lakekeeperRoleResource) Update(ctx context.Context, req resource.Update
 	state.RoleID = types.StringValue(role.ID)
 	state.ProjectID = types.StringValue(role.ProjectID)
 
-	state.ID = types.StringValue(fmt.Sprintf("%s:%s", role.ProjectID, role.ID))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
 
 	state.CreatedAt = types.StringValue(role.CreatedAt)
 	state.UpdatedAt = types.StringPointerValue(role.UpdatedAt)
@@ -245,5 +246,18 @@ func (r *lakekeeperRoleResource) Delete(ctx context.Context, req resource.Delete
 
 // ImportState imports the resource into the Terraform state.
 func (r *lakekeeperRoleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Expected format: "project_id/role_id"
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID format",
+			"Expected format: project_id/role_id",
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("prokect_id"), parts[0])
+	resp.State.SetAttribute(ctx, path.Root("role_id"), parts[1])
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

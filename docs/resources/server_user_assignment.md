@@ -32,7 +32,7 @@ resource "lakekeeper_server_user_assignment" "john_doe" {
 
 ### Read-Only
 
-- `id` (String) The internal ID of this resource. In the form: <user_id>
+- `id` (String) The internal ID of this resource. Same as `{{user_id}}`
 
 ## Import
 

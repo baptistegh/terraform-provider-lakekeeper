@@ -38,7 +38,7 @@ func TestAccDataLakekeeperRole_basic(t *testing.T) {
 				}`, roleDefaultProject.ID, roleNewProject.ID, project.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// role in default project
-					resource.TestCheckResourceAttr("data.lakekeeper_role.default", "id", "00000000-0000-0000-0000-000000000000:"+roleDefaultProject.ID),
+					resource.TestCheckResourceAttr("data.lakekeeper_role.default", "id", "00000000-0000-0000-0000-000000000000/"+roleDefaultProject.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_role.default", "role_id", roleDefaultProject.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_role.default", "project_id", "00000000-0000-0000-0000-000000000000"),
 					resource.TestCheckResourceAttr("data.lakekeeper_role.default", "name", roleDefaultProject.Name),
@@ -46,7 +46,7 @@ func TestAccDataLakekeeperRole_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.lakekeeper_role.default", "created_at", roleDefaultProject.CreatedAt),
 
 					// role in created project
-					resource.TestCheckResourceAttr("data.lakekeeper_role.new", "id", fmt.Sprintf("%s:%s", project.ID, roleNewProject.ID)),
+					resource.TestCheckResourceAttr("data.lakekeeper_role.new", "id", fmt.Sprintf("%s/%s", project.ID, roleNewProject.ID)),
 					resource.TestCheckResourceAttr("data.lakekeeper_role.new", "role_id", roleNewProject.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_role.new", "project_id", project.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_role.new", "name", roleNewProject.Name),

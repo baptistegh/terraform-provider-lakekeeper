@@ -39,7 +39,7 @@ func TestAccLakekeeperWarehouseRoleAssignment_basic(t *testing.T) {
 					}
 				`, warehouse.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "assignments.#", "1"),
@@ -62,7 +62,7 @@ func TestAccLakekeeperWarehouseRoleAssignment_basic(t *testing.T) {
 					}
 				`, warehouse.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "assignments.#", "1"),
@@ -85,7 +85,7 @@ func TestAccLakekeeperWarehouseRoleAssignment_basic(t *testing.T) {
 					}
 				`, warehouse.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "assignments.#", "3"),
@@ -110,7 +110,7 @@ func TestAccLakekeeperWarehouseRoleAssignment_basic(t *testing.T) {
 					}
 				`, warehouse.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "id", warehouse.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse_role_assignment.test", "assignments.#", "0"),

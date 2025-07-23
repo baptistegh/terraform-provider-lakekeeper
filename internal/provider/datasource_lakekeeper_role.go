@@ -56,7 +56,7 @@ func (d *LakekeeperRoleDataSource) Schema(_ context.Context, _ datasource.Schema
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the role. in the form `{{project_id}}:{{role_id}}`",
+				MarkdownDescription: "The ID of the role. in the form `{{project_id}}/{{role_id}}`",
 				Computed:            true,
 			},
 			"role_id": schema.StringAttribute{
@@ -117,7 +117,7 @@ func (d *LakekeeperRoleDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	state.ID = types.StringValue(fmt.Sprintf("%s:%s", role.ProjectID, role.ID))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
 	state.RoleID = types.StringValue(role.ID)
 	state.ProjectID = types.StringValue(role.ProjectID)
 	state.Name = types.StringValue(role.Name)

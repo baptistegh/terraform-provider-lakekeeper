@@ -24,7 +24,7 @@ func registerResource(fn func() resource.Resource) {
 }
 
 func splitInternalID(s types.String) (string, string) {
-	splitted := strings.Split(s.ValueString(), ":")
+	splitted := strings.Split(s.ValueString(), "/")
 	return splitted[0], splitted[1]
 }
 

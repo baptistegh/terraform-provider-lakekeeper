@@ -54,7 +54,7 @@ func (d *LakekeeperProjectRoleAccessDataSource) Schema(_ context.Context, _ data
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID of this data source, in the form `{{project_id}}:{{role_id}}`.",
+				MarkdownDescription: "The internal ID of this data source, in the form `{{project_id}}/{{role_id}}`.",
 				Computed:            true,
 			},
 			"project_id": schema.StringAttribute{
@@ -97,7 +97,7 @@ func (d *LakekeeperProjectRoleAccessDataSource) Read(ctx context.Context, req da
 		return
 	}
 
-	state.ID = types.StringValue(fmt.Sprintf("%s:%s", state.ProjectID.ValueString(), state.RoleID.ValueString()))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", state.ProjectID.ValueString(), state.RoleID.ValueString()))
 
 	access, _, err := d.client.PermissionV1().ProjectPermission().GetAccess(ctx, state.ProjectID.ValueString(), &permissionv1.GetProjectAccessOptions{
 		PrincipalRole: core.Ptr(state.RoleID.ValueString()),

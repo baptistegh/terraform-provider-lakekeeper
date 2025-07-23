@@ -30,7 +30,7 @@ func TestAccDataLakekeeperWarehouse_basic(t *testing.T) {
 				}`, warehouse.ID, project.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// warehouse in default project
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "id", project.ID+":"+warehouse.ID),
+					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "id", project.ID+"/"+warehouse.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "project_id", project.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse.default", "name", warehouse.Name),

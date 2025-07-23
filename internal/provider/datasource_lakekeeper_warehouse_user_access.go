@@ -100,7 +100,7 @@ func (d *LakekeeperWarehouseUserAccessDataSource) Read(ctx context.Context, req 
 		return
 	}
 
-	state.ID = types.StringValue(fmt.Sprintf("%s:%s", state.WarehouseID.ValueString(), state.UserID.ValueString()))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", state.WarehouseID.ValueString(), state.UserID.ValueString()))
 
 	access, _, err := d.client.PermissionV1().WarehousePermission().GetAccess(ctx, state.WarehouseID.ValueString(), &permissionv1.GetWarehouseAccessOptions{
 		PrincipalUser: core.Ptr(state.UserID.ValueString()),

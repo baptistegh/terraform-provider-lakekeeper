@@ -52,7 +52,7 @@ func TestAccDataLakekeeperWarehouseUserAccess_basic(t *testing.T) {
 					user_id = "%s"
 				}`, warehouse.ID, user.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "id", fmt.Sprintf("%s:%s", warehouse.ID, user.ID)),
+					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "id", fmt.Sprintf("%s/%s", warehouse.ID, user.ID)),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "user_id", user.ID),
 

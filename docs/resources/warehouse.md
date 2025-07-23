@@ -61,7 +61,7 @@ resource "lakekeeper_warehouse" "aws" {
 
 ### Read-Only
 
-- `id` (String) The internale ID the warehouse. In the form: {{project_id}}:{{warehouse_id}}
+- `id` (String) The internale ID the warehouse. In the form: {{project_id}}/{{warehouse_id}}
 - `warehouse_id` (String) The ID the warehouse.
 
 <a id="nestedatt--storage_profile"></a>

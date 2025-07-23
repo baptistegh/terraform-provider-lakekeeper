@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
@@ -58,7 +59,7 @@ func (r *lakekeeperProjectUserAssignmentResource) Schema(ctx context.Context, re
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_project_assignments)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID of this resource. In the form: `{{project_id}}:{{user_id}}`",
+				MarkdownDescription: "The internal ID of this resource. In the form: `{{project_id}}/{{user_id}}`",
 				Computed:            true,
 			},
 			"project_id": schema.StringAttribute{
@@ -116,7 +117,7 @@ func (r *lakekeeperProjectUserAssignmentResource) Create(ctx context.Context, re
 	projectID := plan.ProjectID.ValueString()
 	userID := plan.UserID.ValueString()
 
-	id := fmt.Sprintf("%s:%s", projectID, userID)
+	id := fmt.Sprintf("%s/%s", projectID, userID)
 
 	var opts []*permissionv1.ProjectAssignment
 
@@ -293,5 +294,18 @@ func (r *lakekeeperProjectUserAssignmentResource) Delete(ctx context.Context, re
 
 // ImportState imports the resource into the Terraform state.
 func (r *lakekeeperProjectUserAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Expected format: "project_id/user_id"
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID format",
+			"Expected format: project_id/user_id",
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("project_id"), parts[0])
+	resp.State.SetAttribute(ctx, path.Root("user_id"), parts[1])
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

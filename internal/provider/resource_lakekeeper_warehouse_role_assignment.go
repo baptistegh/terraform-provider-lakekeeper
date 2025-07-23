@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
@@ -138,7 +139,7 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Create(ctx context.Context, 
 		return
 	}
 
-	state.ID = types.StringValue(fmt.Sprintf("%s:%s", plan.WarehouseID.ValueString(), plan.RoleID.ValueString()))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", plan.WarehouseID.ValueString(), plan.RoleID.ValueString()))
 
 	state.WarehouseID = plan.WarehouseID
 	state.RoleID = plan.RoleID
@@ -291,5 +292,18 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Delete(ctx context.Context, 
 
 // ImportState imports the resource into the Terraform state.
 func (r *lakekeeperWarehouseRoleAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Expected format: "warehouse_id/role_id"
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID format",
+			"Expected format: warehouse_id/role_id",
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("warehouse_id"), parts[0])
+	resp.State.SetAttribute(ctx, path.Root("role_id"), parts[1])
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
