@@ -26,8 +26,8 @@ data "lakekeeper_project" "snapshot" {
 
 ### Required
 
-- `id` (String) The ID of the project
+- `id` (String) The ID of the project.
 
 ### Read-Only
 
-- `name` (String) The project name, it is used to identify the project.
+- `name` (String) The name of the project.

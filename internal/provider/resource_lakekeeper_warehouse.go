@@ -70,11 +70,11 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internale ID the warehouse. In the form: {{project_id}}/{{warehouse_id}}",
+				MarkdownDescription: "The internal ID of this resource. In the form: `{{project_id}}/{{warehouse_id}}`",
 				Computed:            true,
 			},
 			"warehouse_id": schema.StringAttribute{
-				MarkdownDescription: "The ID the warehouse.",
+				MarkdownDescription: "The ID of the warehouse.",
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
@@ -84,13 +84,13 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"project_id": schema.StringAttribute{
-				MarkdownDescription: "The project ID to which the warehouse belongs. If not provided, the default project will be used.",
+				MarkdownDescription: "The project ID to which the warehouse belongs.",
 				Required:            true,
 				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"protected": schema.BoolAttribute{
-				MarkdownDescription: "Whether the warehouse is protected from being deleted.",
+				MarkdownDescription: "Whether the warehouse is protected from being deleted. Default is `false`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),

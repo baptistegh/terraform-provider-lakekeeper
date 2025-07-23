@@ -59,7 +59,7 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Schema(ctx context.Context, 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_warehouse_assignments)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID of this resource. In the form: <warehouse_id>:<role_id>",
+				MarkdownDescription: "The internal ID of this resource. In the form: `{{warehouse_id}}/{{role_id}}`",
 				Computed:            true,
 			},
 			"warehouse_id": schema.StringAttribute{
@@ -68,13 +68,13 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Schema(ctx context.Context, 
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"role_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the role to assign to the role.",
+				MarkdownDescription: "The ID of the role to assign to the warehouse.",
 				Required:            true,
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"assignments": schema.SetAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "List of role assignments for this warehouse. values can be `ownership`, `pass_grants_admin`, `manage_grants_admin`, `describe_warehouse`, `select_warehouse`, `create_warehouse`, `modify_warehouse`",
+				MarkdownDescription: "List of assignments the role have on this warehouse. values can be `ownership`, `pass_grants_admin`, `manage_grants_admin`, `describe_warehouse`, `select_warehouse`, `create_warehouse`, `modify_warehouse`",
 				Required:            true,
 				Validators: []validator.Set{setvalidator.ValueStringsAre(
 					stringvalidator.OneOf(

@@ -26,4 +26,4 @@ The `lakekeeper_warehouse_user_assignment` resource allows to manage the lifecyc
 
 ### Read-Only
 
-- `id` (String) The internal ID of this resource. In the form: <warehouse_id>:<user_id>
+- `id` (String) The internal ID of this resource. In the form: `{{warehouse_id}}/{{user_id}}`

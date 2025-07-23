@@ -59,7 +59,7 @@ func (r *lakekeeperWarehouseUserAssignmentResource) Schema(ctx context.Context, 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_warehouse_assignments)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID of this resource. In the form: <warehouse_id>:<user_id>",
+				MarkdownDescription: "The internal ID of this resource. In the form: `{{warehouse_id}}/{{user_id}}`",
 				Computed:            true,
 			},
 			"warehouse_id": schema.StringAttribute{

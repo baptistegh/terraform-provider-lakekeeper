@@ -50,11 +50,11 @@ func (d *LakekeeperDefaultProjectDataSource) Schema(_ context.Context, _ datasou
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the project, it can be computed if the project name if used to find",
+				MarkdownDescription: "The ID of the project.",
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The project name, if the Name and the ID is given, the project will be found by ID",
+				MarkdownDescription: "The name of the project.",
 				Computed:            true,
 			},
 		},

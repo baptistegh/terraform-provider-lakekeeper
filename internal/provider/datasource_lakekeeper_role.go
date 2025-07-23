@@ -73,7 +73,7 @@ func (d *LakekeeperRoleDataSource) Schema(_ context.Context, _ datasource.Schema
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the role.",
-				Optional:            true,
+				Computed:            true,
 			},
 			"created_at": schema.StringAttribute{
 				MarkdownDescription: "When the role has been created.",

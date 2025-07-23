@@ -28,13 +28,13 @@ resource "lakekeeper_warehouse_role_assignment" "s3" {
 
 ### Required
 
-- `assignments` (Set of String) List of role assignments for this warehouse. values can be `ownership`, `pass_grants_admin`, `manage_grants_admin`, `describe_warehouse`, `select_warehouse`, `create_warehouse`, `modify_warehouse`
-- `role_id` (String) The ID of the role to assign to the role.
+- `assignments` (Set of String) List of assignments the role have on this warehouse. values can be `ownership`, `pass_grants_admin`, `manage_grants_admin`, `describe_warehouse`, `select_warehouse`, `create_warehouse`, `modify_warehouse`
+- `role_id` (String) The ID of the role to assign to the warehouse.
 - `warehouse_id` (String) The ID of the warehouse.
 
 ### Read-Only
 
-- `id` (String) The internal ID of this resource. In the form: <warehouse_id>:<role_id>
+- `id` (String) The internal ID of this resource. In the form: `{{warehouse_id}}/{{role_id}}`
 
 ## Import
 

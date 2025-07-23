@@ -29,5 +29,5 @@ resource "lakekeeper_role" "admin" {
 
 ### Read-Only
 
-- `id` (String) The ID of the project, it can be computed if the project name if used to find
-- `name` (String) The project name, if the Name and the ID is given, the project will be found by ID
+- `id` (String) The ID of the project.
+- `name` (String) The name of the project.
