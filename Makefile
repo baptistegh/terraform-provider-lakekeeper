@@ -11,7 +11,7 @@ build: ## Build the provider binary.
 	GOBIN=$(GOBIN) go install
 
 generate: ## Generate documentation.
-	PATH="$(GOBIN):$(PATH)" go generate --tags generate ./...
+	PATH="$(GOBIN):$(PATH)" go generate --tags tfplugindocs ./...
 
 ifdef RUN
 TESTARGS += -test.run $(RUN)
