@@ -70,7 +70,7 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internale ID the warehouse. In the form: <project_id>:<warehouse_id>",
+				MarkdownDescription: "The internale ID the warehouse. In the form: {{project_id}}:{{warehouse_id}}",
 				Computed:            true,
 			},
 			"warehouse_id": schema.StringAttribute{
@@ -78,7 +78,7 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 				Computed:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the warehouse.",
+				MarkdownDescription: `Name of the warehouse to create. Must be unique within a project and may not contain "/"`,
 				Required:            true,
 				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},

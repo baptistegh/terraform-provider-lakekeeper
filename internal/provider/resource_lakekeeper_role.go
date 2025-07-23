@@ -57,7 +57,7 @@ func (r *lakekeeperRoleResource) Schema(ctx context.Context, req resource.Schema
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: `The ID of the role. In the form <project_id>:<role_id>`,
+				MarkdownDescription: "The ID of the role. in the form `{{project_id}}:{{role_id}}`",
 				Computed:            true,
 			},
 			"role_id": schema.StringAttribute{

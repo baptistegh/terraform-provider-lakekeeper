@@ -44,21 +44,6 @@ func TestAccLakekeeperProject_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLakekeeperProjectDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "lakekeeper_project" {
-			continue
-		}
-
-		_, _, err := testutil.TestLakekeeperClient.ProjectV1().Get(context.Background(), rs.Primary.ID)
-		if err == nil {
-			return fmt.Errorf("Project with id %s still exists", rs.Primary.ID)
-		}
-		return nil
-	}
-	return nil
-}
-
 func TestAccLakekeeperProject_rename(t *testing.T) {
 	rName := acctest.RandString(8)
 	rNameRenamed := rName + "-renamed"
@@ -90,4 +75,19 @@ func TestAccLakekeeperProject_rename(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccCheckLakekeeperProjectDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "lakekeeper_project" {
+			continue
+		}
+
+		_, _, err := testutil.TestLakekeeperClient.ProjectV1().Get(context.Background(), rs.Primary.ID)
+		if err == nil {
+			return fmt.Errorf("Project with id %s still exists", rs.Primary.ID)
+		}
+		return nil
+	}
+	return nil
 }

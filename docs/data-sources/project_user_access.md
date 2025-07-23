@@ -33,4 +33,4 @@ data "lakekeeper_project_user_access" "foo" {
 ### Read-Only
 
 - `allowed_actions` (Set of String) List of the user's allowed actions on the project. The possible values are `assume` `can_grant_assignee` `can_change_ownership` `delete` `update` `read` `create_namespace`
-- `id` (String) The internal ID of this data source, in the form <project_id>:<user_id>.
+- `id` (String) The internal ID of this data source, in the form `{{project_id}}:{{user_id}}`.

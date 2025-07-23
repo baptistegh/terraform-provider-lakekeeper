@@ -34,7 +34,7 @@ data "lakekeeper_warehouse" "foo" {
 
 - `active` (Boolean) Whether the warehouse is active.
 - `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. (see [below for nested schema](#nestedatt--delete_profile))
-- `id` (String) The internal ID the warehouse. In the form: <project_id>:<warehouse_id>
+- `id` (String) The internal ID the warehouse. In the form: {{project_id}}:{{warehouse_id}}
 - `managed_access` (Boolean) Whether managed access is active for this warehouse.
 - `name` (String) Name of the warehouse.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
@@ -45,8 +45,8 @@ data "lakekeeper_warehouse" "foo" {
 
 Read-Only:
 
-- `expiration_seconds` (Number)
-- `type` (String)
+- `expiration_seconds` (Number) When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`
+- `type` (String) Type of the delete profile. Can be `hard` or `soft`
 
 
 <a id="nestedatt--storage_profile"></a>

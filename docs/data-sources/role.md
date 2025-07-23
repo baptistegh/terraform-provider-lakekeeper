@@ -37,6 +37,6 @@ data "lakekeeper_role" "admins" {
 ### Read-Only
 
 - `created_at` (String) When the role has been created.
-- `id` (String) The ID of the role. In the form <project_id>:<role_id>
+- `id` (String) The ID of the role. in the form `{{project_id}}:{{role_id}}`
 - `name` (String) The name of the role.
 - `updated_at` (String) When the role has last been modified.

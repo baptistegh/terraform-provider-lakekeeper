@@ -54,7 +54,7 @@ func (d *LakekeeperProjectUserAccessDataSource) Schema(_ context.Context, _ data
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID of this data source, in the form <project_id>:<user_id>.",
+				MarkdownDescription: "The internal ID of this data source, in the form `{{project_id}}:{{user_id}}`.",
 				Computed:            true,
 			},
 			"project_id": schema.StringAttribute{
