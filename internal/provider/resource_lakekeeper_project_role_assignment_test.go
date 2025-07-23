@@ -34,7 +34,7 @@ func TestAccLakekeeperProjectRoleAssignment_basic(t *testing.T) {
 					}
 				`, project.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "project_id", project.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "assignments.#", "1"),
@@ -57,7 +57,7 @@ func TestAccLakekeeperProjectRoleAssignment_basic(t *testing.T) {
 					}
 				`, project.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "project_id", project.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "assignments.#", "1"),
@@ -80,7 +80,7 @@ func TestAccLakekeeperProjectRoleAssignment_basic(t *testing.T) {
 					}
 				`, project.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "project_id", project.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "assignments.#", "2"),
@@ -104,7 +104,7 @@ func TestAccLakekeeperProjectRoleAssignment_basic(t *testing.T) {
 					}
 				`, project.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+":"+role.ID),
+					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "id", project.ID+"/"+role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "project_id", project.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "role_id", role.ID),
 					resource.TestCheckResourceAttr("lakekeeper_project_role_assignment.test", "assignments.#", "0"),

@@ -58,7 +58,7 @@ func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*manageme
 // because these functions are almost identical
 
 func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.Warehouse) diag.Diagnostics {
-	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
+	m.ID = types.StringValue(w.ProjectID + "/" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)
 	m.Protected = types.BoolValue(w.Protected)
@@ -137,7 +137,7 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.W
 }
 
 func (m *lakekeeperWarehouseDataSourceModel) RefreshFromSettings(w *managementv1.Warehouse) diag.Diagnostics {
-	m.ID = types.StringValue(w.ProjectID + ":" + w.ID)
+	m.ID = types.StringValue(w.ProjectID + "/" + w.ID)
 	m.WarehouseID = types.StringValue(w.ID)
 	m.ProjectID = types.StringValue(w.ProjectID)
 	m.Protected = types.BoolValue(w.Protected)
@@ -238,11 +238,11 @@ func (m *lakekeeperWarehouseResourceModel) StorageSettings() (profile.StorageSet
 	case "s3":
 		opts := []profile.S3StorageSettingsOptions{}
 
-		if !m.StorageProfile.STSEnabled.IsNull() && !m.StorageProfile.STSEnabled.IsUnknown() && m.StorageProfile.STSEnabled.ValueBool() {
+		if m.StorageProfile.STSEnabled.ValueBool() {
 			opts = append(opts, profile.WithSTSEnabled())
 		}
 
-		if !m.StorageProfile.AllowAlternativeProtocols.IsNull() && !m.StorageProfile.AllowAlternativeProtocols.IsUnknown() && m.StorageProfile.AllowAlternativeProtocols.ValueBool() {
+		if m.StorageProfile.AllowAlternativeProtocols.ValueBool() {
 			opts = append(opts, profile.WithS3AlternativeProtocols())
 		}
 
@@ -267,7 +267,7 @@ func (m *lakekeeperWarehouseResourceModel) StorageSettings() (profile.StorageSet
 			opts = append(opts, profile.WithS3KeyPrefix(m.StorageProfile.KeyPrefix.ValueString()))
 		}
 
-		if !m.StorageProfile.PathStyleAccess.IsNull() && !m.StorageProfile.PathStyleAccess.IsUnknown() && m.StorageProfile.PathStyleAccess.ValueBool() {
+		if m.StorageProfile.PathStyleAccess.ValueBool() {
 			opts = append(opts, profile.WithPathStyleAccess())
 		}
 
@@ -298,7 +298,7 @@ func (m *lakekeeperWarehouseResourceModel) StorageSettings() (profile.StorageSet
 	case "adls":
 		opts := []profile.ADLSStorageSettingsOptions{}
 
-		if !m.StorageProfile.AllowAlternativeProtocols.IsNull() && !m.StorageProfile.AllowAlternativeProtocols.IsUnknown() && m.StorageProfile.AllowAlternativeProtocols.ValueBool() {
+		if m.StorageProfile.AllowAlternativeProtocols.ValueBool() {
 			opts = append(opts, profile.WithADLSAlternativeProtocols())
 		}
 

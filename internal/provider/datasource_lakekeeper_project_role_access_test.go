@@ -48,7 +48,7 @@ func TestAccDataLakekeeperProjectRoleAccess_basic(t *testing.T) {
 					role_id = "%s"
 				}`, project.ID, role.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "id", fmt.Sprintf("%s:%s", project.ID, role.ID)),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "id", fmt.Sprintf("%s/%s", project.ID, role.ID)),
 					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "project_id", project.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "role_id", role.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.#", "16"),
