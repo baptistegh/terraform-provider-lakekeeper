@@ -42,7 +42,7 @@ resource "lakekeeper_role" "editors" {
 ### Read-Only
 
 - `created_at` (String) When the role has been created.
-- `id` (String) The ID of the role. In the form <project_id>:<role_id>
+- `id` (String) The ID of the role. in the form `{{project_id}}:{{role_id}}`
 - `role_id` (String) The internal ID of the role.
 - `updated_at` (String) When the role has last been modified.
 
@@ -53,6 +53,6 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# id is "<project_id>:<role_id>"
+# id is "{{project_id}}:{{role_id}}"
 terraform import lakekeeper_role.admin "261bd4e4-5c57-4707-96ad-44128f9038c0:37cf8760-5092-4d5d-8b29-a6b46a45f067"
 ```

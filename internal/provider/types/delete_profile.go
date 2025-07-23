@@ -66,9 +66,11 @@ func DeleteProfileDatasourceSchema() dschema.SingleNestedAttribute {
 				Validators: []validator.String{
 					stringvalidator.OneOf("soft", "hard"),
 				},
+				MarkdownDescription: "Type of the delete profile. Can be `hard` or `soft`",
 			},
 			"expiration_seconds": dschema.Int32Attribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`",
 			},
 		},
 		Validators: []validator.Object{deleteProfileValidator{}},

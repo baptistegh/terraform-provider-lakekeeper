@@ -47,7 +47,7 @@ resource "lakekeeper_warehouse" "aws" {
 
 ### Required
 
-- `name` (String) Name of the warehouse.
+- `name` (String) Name of the warehouse to create. Must be unique within a project and may not contain "/"
 - `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
 - `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
 
@@ -61,7 +61,7 @@ resource "lakekeeper_warehouse" "aws" {
 
 ### Read-Only
 
-- `id` (String) The internale ID the warehouse. In the form: <project_id>:<warehouse_id>
+- `id` (String) The internale ID the warehouse. In the form: {{project_id}}:{{warehouse_id}}
 - `warehouse_id` (String) The ID the warehouse.
 
 <a id="nestedatt--storage_profile"></a>
@@ -108,20 +108,20 @@ Optional:
 
 Required:
 
-- `type` (String)
+- `type` (String) This is the type of credential to use. Available values are `s3_access_key` `s3_aws_system_identity` `s3_cloudflare_r2` `az_client_credentials` `az_shared_access_key` `az_azure_system_identity` `gcs_service_account_key` `gcs_gcp_system_identity`.
 
 Optional:
 
-- `access_key_id` (String, Sensitive)
-- `account_id` (String)
-- `az_key` (String, Sensitive)
-- `client_id` (String)
-- `client_secret` (String)
+- `access_key_id` (String, Sensitive) Required if type is `s3_access_key` or `s3_cloudflare_r2`
+- `account_id` (String) Required if type is `s3_cloudflare_r2`
+- `az_key` (String, Sensitive) Required if type is `az_shared_access_key`
+- `client_id` (String) Required if type is `az_client_credentials`
+- `client_secret` (String) Required if type is `az_client_credentials`
 - `external_id` (String)
-- `key` (Attributes) (see [below for nested schema](#nestedatt--storage_credential--key))
-- `secret_access_key` (String, Sensitive)
-- `tenant_id` (String)
-- `token` (String, Sensitive)
+- `key` (Attributes) Required if type is `gcs_service_account_key` (see [below for nested schema](#nestedatt--storage_credential--key))
+- `secret_access_key` (String, Sensitive) Required if type is `s3_access_key` or `s3_cloudflare_r2`
+- `tenant_id` (String) Required if type is `az_client_credentials`
+- `token` (String, Sensitive) Required if type is `s3_cloudflare_r2`
 
 <a id="nestedatt--storage_credential--key"></a>
 ### Nested Schema for `storage_credential.key`

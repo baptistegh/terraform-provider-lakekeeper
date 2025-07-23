@@ -58,7 +58,7 @@ func (r *lakekeeperProjectRoleAssignmentResource) Schema(ctx context.Context, re
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/permissions/operation/update_project_assignments)`),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The internal ID of this resource. In the form: <project_id>:<role_id>",
+				MarkdownDescription: "The internal ID of this resource. In the form: {{project_id}}:{{role_id}}",
 				Computed:            true,
 			},
 			"project_id": schema.StringAttribute{

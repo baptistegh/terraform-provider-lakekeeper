@@ -34,7 +34,7 @@ resource "lakekeeper_project_user_assignment" "john_doe" {
 
 ### Read-Only
 
-- `id` (String) The internal ID of this resource. In the form: <project_id>:<user_id>
+- `id` (String) The internal ID of this resource. In the form: `{{project_id}}:{{user_id}}`
 
 ## Import
 
@@ -43,6 +43,6 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# you can import assignments for a user by its id in the form <project_id>:<user_id>
+# you can import assignments for a user by its id in the form `{{project_id}}:{{user_id}}`
 terraform import lakekeeper_project_user_assignment.john_doe "5653bd71-1f1c-4a2c-913b-fbd92d6c1157:oidc~91d18c8-1da4-471e-89f1-6e43eb4dcb38"
 ```
