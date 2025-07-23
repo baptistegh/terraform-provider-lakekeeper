@@ -48,7 +48,7 @@ resource "lakekeeper_warehouse" "aws" {
 ### Required
 
 - `name` (String) Name of the warehouse to create. Must be unique within a project and may not contain "/"
-- `project_id` (String) The project ID to which the warehouse belongs. If not provided, the default project will be used.
+- `project_id` (String) The project ID to which the warehouse belongs.
 - `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
 
 ### Optional
@@ -56,13 +56,13 @@ resource "lakekeeper_warehouse" "aws" {
 - `active` (Boolean) Whether the warehouse is active.
 - `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. Default: `hard` (see [below for nested schema](#nestedatt--delete_profile))
 - `managed_access` (Boolean) Whether the managed access is configured on this warehouse. Default is `false`.
-- `protected` (Boolean) Whether the warehouse is protected from being deleted.
+- `protected` (Boolean) Whether the warehouse is protected from being deleted. Default is `false`.
 - `storage_credential` (Attributes) The credentials used to access the storage. This is required for the warehouse to be able to access the storage profile. (see [below for nested schema](#nestedatt--storage_credential))
 
 ### Read-Only
 
-- `id` (String) The internale ID the warehouse. In the form: {{project_id}}/{{warehouse_id}}
-- `warehouse_id` (String) The ID the warehouse.
+- `id` (String) The internal ID of this resource. In the form: `{{project_id}}/{{warehouse_id}}`
+- `warehouse_id` (String) The ID of the warehouse.
 
 <a id="nestedatt--storage_profile"></a>
 ### Nested Schema for `storage_profile`
@@ -99,8 +99,8 @@ Optional:
 
 Optional:
 
-- `expiration_seconds` (Number)
-- `type` (String)
+- `expiration_seconds` (Number) When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`
+- `type` (String) Type of the delete profile. Can be `hard` or `soft`
 
 
 <a id="nestedatt--storage_credential"></a>

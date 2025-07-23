@@ -46,10 +46,12 @@ func DeleteProfileResourceSchema() rschema.SingleNestedAttribute {
 				Validators: []validator.String{
 					stringvalidator.OneOf("soft", "hard"),
 				},
-				Default: stringdefault.StaticString("hard"),
+				Default:             stringdefault.StaticString("hard"),
+				MarkdownDescription: "Type of the delete profile. Can be `hard` or `soft`",
 			},
 			"expiration_seconds": rschema.Int32Attribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`",
 			},
 		},
 		Validators: []validator.Object{deleteProfileValidator{}},

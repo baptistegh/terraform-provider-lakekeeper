@@ -30,13 +30,10 @@ data "lakekeeper_role" "admins" {
 - `project_id` (String) The ID of the project the role belongs to.
 - `role_id` (String) The internal ID of the role.
 
-### Optional
-
-- `description` (String) The description of the role.
-
 ### Read-Only
 
 - `created_at` (String) When the role has been created.
+- `description` (String) The description of the role.
 - `id` (String) The ID of the role. in the form `{{project_id}}/{{role_id}}`
 - `name` (String) The name of the role.
 - `updated_at` (String) When the role has last been modified.
