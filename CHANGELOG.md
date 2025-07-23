@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [0.3.0](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.5...v0.3.0) (2025-07-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace : by / in composite ids ([#138](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/138))
+
+### Features
+
+* allow setting warehouse parameters as unknown variables ([#153](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/153)) ([79536a0](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/79536a0dd621c7b1796bd1112b3b436b36b12917))
+* **docs:** add missing parameters documentation ([#137](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/137)) ([f77cf13](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f77cf13d967cb34ddc68d12f654ce893871d20bc))
+* replace : by / in composite ids ([#138](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/138)) ([ff53e7d](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/ff53e7d2156706a82c32854d2a910c60ccaabbd6))
+
 ## [0.2.5](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.4...v0.2.5) (2025-07-21)
 
 
