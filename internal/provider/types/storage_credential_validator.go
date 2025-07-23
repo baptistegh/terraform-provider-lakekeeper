@@ -36,14 +36,14 @@ func (v storageCredentialValidator) ValidateObject(ctx context.Context, req vali
 
 	switch profile.Type.ValueString() {
 	case "s3_access_key":
-		if profile.AccessKeyID.IsNull() || profile.AccessKeyID.IsUnknown() || profile.AccessKeyID.ValueString() == "" {
+		if profile.AccessKeyID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("access_key_id"),
 				"'access_key_id' required for type 's3_access_key'",
 				"When 'type' is 's3_access_key', you must set the 'access_key_id' attribute.",
 			)
 		}
-		if profile.SecretAccessKey.IsNull() || profile.SecretAccessKey.IsUnknown() || profile.SecretAccessKey.ValueString() == "" {
+		if profile.SecretAccessKey.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("secret_access_key"),
 				"'secret_access_key' required for type 's3_access_key'",
@@ -53,28 +53,28 @@ func (v storageCredentialValidator) ValidateObject(ctx context.Context, req vali
 	case "s3_aws_system_identity":
 		break
 	case "s3_cloudflare_r2":
-		if profile.AccessKeyID.IsNull() || profile.AccessKeyID.IsUnknown() || profile.AccessKeyID.ValueString() == "" {
+		if profile.AccessKeyID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("access_key_id"),
 				"'access_key_id' required for type 's3_cloudflare_r2'",
 				"When 'type' is 's3_cloudflare_r2', you must set the 'access_key_id' attribute.",
 			)
 		}
-		if profile.SecretAccessKey.IsNull() || profile.SecretAccessKey.IsUnknown() || profile.SecretAccessKey.ValueString() == "" {
+		if profile.SecretAccessKey.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("secret_access_key"),
 				"'secret_access_key' required for type 's3_cloudflare_r2'",
 				"When 'type' is 's3_cloudflare_r2', you must set the 'secret_access_key' attribute.",
 			)
 		}
-		if profile.AccountID.IsNull() || profile.AccountID.IsUnknown() || profile.AccountID.ValueString() == "" {
+		if profile.AccountID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("account_id"),
 				"'account_id' required for type 's3_cloudflare_r2'",
 				"When 'type' is 's3_cloudflare_r2', you must set the 'account_id' attribute.",
 			)
 		}
-		if profile.Token.IsNull() || profile.Token.IsUnknown() || profile.Token.ValueString() == "" {
+		if profile.Token.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("token"),
 				"'token' required for type 's3_cloudflare_r2'",
@@ -82,21 +82,21 @@ func (v storageCredentialValidator) ValidateObject(ctx context.Context, req vali
 			)
 		}
 	case "az_client_credentials":
-		if profile.ClientID.IsNull() || profile.ClientID.IsUnknown() || profile.ClientID.ValueString() == "" {
+		if profile.ClientID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("client_id"),
 				"'client_id' required for type 'az_client_credentials'",
 				"When 'type' is 'az_client_credentials', you must set the 'client_id' attribute.",
 			)
 		}
-		if profile.ClientSecret.IsNull() || profile.ClientSecret.IsUnknown() || profile.ClientSecret.ValueString() == "" {
+		if profile.ClientSecret.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("client_secret"),
 				"'client_secret' required for type 'az_client_credentials'",
 				"When 'type' is 'az_client_credentials', you must set the 'client_secret' attribute.",
 			)
 		}
-		if profile.TenantID.IsNull() || profile.TenantID.IsUnknown() || profile.TenantID.ValueString() == "" {
+		if profile.TenantID.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("tenant_id"),
 				"'tenant_id' required for type 'az_client_credentials'",
@@ -104,7 +104,7 @@ func (v storageCredentialValidator) ValidateObject(ctx context.Context, req vali
 			)
 		}
 	case "az_shared_access_key":
-		if profile.AZKey.IsNull() || profile.AZKey.IsUnknown() || profile.AZKey.ValueString() == "" {
+		if profile.AZKey.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("az_key"),
 				"'az_key' required for type 'az_shared_access_key'",

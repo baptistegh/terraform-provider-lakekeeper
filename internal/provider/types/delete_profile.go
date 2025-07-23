@@ -102,7 +102,7 @@ func (v deleteProfileValidator) ValidateObject(ctx context.Context, req validato
 
 	switch deleteProfile.Type.ValueString() {
 	case "soft":
-		if deleteProfile.ExpirationSeconds.IsNull() || deleteProfile.ExpirationSeconds.IsUnknown() {
+		if deleteProfile.ExpirationSeconds.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("expiration_seconds"),
 				"'expiration_seconds' required for type 'soft'",
@@ -110,7 +110,7 @@ func (v deleteProfileValidator) ValidateObject(ctx context.Context, req validato
 			)
 		}
 	case deleteProfile.Type.ValueString():
-		if !deleteProfile.ExpirationSeconds.IsNull() && !deleteProfile.ExpirationSeconds.IsUnknown() {
+		if !deleteProfile.ExpirationSeconds.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root("expiration_seconds"),
 				"'expiration_seconds' can't be set for type 'hard'",

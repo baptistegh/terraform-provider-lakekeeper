@@ -14,9 +14,6 @@ import (
 )
 
 func (m *lakekeeperWarehouseResourceModel) ToWarehouseCreateRequest() (*managementv1.CreateWarehouseOptions, error) {
-	if !m.Active.ValueBool() {
-		return nil, fmt.Errorf("could not create a warehouse with inactive status")
-	}
 	req := managementv1.CreateWarehouseOptions{
 		Name: m.Name.ValueString(),
 	}
