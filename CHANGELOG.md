@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.3.1](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.3.0...v0.3.1) (2025-07-24)
+
+
+### Bug Fixes
+
+* **build:** conflicts on go tags with uniseg@v0.4.7 ([#139](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/139)) ([2ed43bb](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/2ed43bb23de6d8a0a02616eae32763bd605661ef))
+* **user:** regex matching if ID is unknown ([#143](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/143)) ([d63e70d](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/d63e70d769c742444a8f2b87e4cc042f92b5fa76))
+
 ## [0.3.0](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.2.5...v0.3.0) (2025-07-23)
 
 
