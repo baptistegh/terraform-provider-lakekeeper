@@ -188,7 +188,7 @@ func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.Configu
 	}
 
 	if !config.Scopes.IsNull() && !config.Scopes.IsUnknown() {
-		resp.Diagnostics.Append(config.Scopes.ElementsAs(ctx, &config.Scopes, false)...)
+		resp.Diagnostics.Append(config.Scopes.ElementsAs(ctx, &evaluatedConfig.Scopes, false)...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
