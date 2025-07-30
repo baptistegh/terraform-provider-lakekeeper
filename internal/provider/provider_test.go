@@ -29,19 +29,19 @@ func TestProvider_OIDCAuth(t *testing.T) {
 	bootstrapCall := false
 	serverInfoCall := false
 	mockLakekeeperServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/management/v1/bootstrap" {
+		if r.URL.Path == "/management/v1/bootstrap" && r.Method == "POST" {
 			bootstrapCall = true
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotModified)
 		}
-		if r.URL.Path == "/management/v1/info" {
+		if r.URL.Path == "/management/v1/info" && r.Method == "GET" {
 			serverInfoCall = true
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			// nolint - don't need to err check writing the response in the test
 			w.Write([]byte(`{
 				"version":"0.9.1",
-				"bootstrapped":true,
+				"bootstrapped":false,
 				"server-id":"00000000-0000-0000-0000-000000000000",
 				"default-project-id":"00000000-0000-0000-0000-000000000000",
 				"authz-backend":"allow-all",
@@ -51,13 +51,26 @@ func TestProvider_OIDCAuth(t *testing.T) {
 				"queues":["tabular_expiration","tabular_purge"]
 			}`)) // nolint - don't need to err check writing the response in the test
 		}
-	}))
-	defer mockLakekeeperServer.Close()
-
-	mockOIDCServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Early auth calls are made to /management/v1/whoami
-		if r.URL.Path == "/token" {
+		if r.URL.Path == "/token" && r.Method == "POST" {
 			loginCall = true
+
+			if r.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
+				t.Fatalf("header content-type error, expected application/x-www-form-urlencoded, got %s", r.Header.Get("Content-Type"))
+			}
+
+			if r.FormValue("grant_type") != "client_credentials" {
+				t.Fatalf("grant_type error, expected client_credentials, got %s", r.FormValue("grant_type"))
+			}
+
+			if r.FormValue("scope") != "lakekeeper test-scope" {
+				t.Fatalf("scope error, expected lakekeeper test-scope, got %s", r.FormValue("scope"))
+			}
+
+			// base64 client_id:client_secret
+			if r.Header.Get("Authorization") != "Basic dGVzdC1pZDp0ZXN0LXNlY3JldA==" {
+				t.Fatalf("authorization error, expected Basic dGVzdC1pZDp0ZXN0LXNlY3JldA==, got %s", r.Header.Get("Authorization"))
+			}
+
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			// nolint - don't need to err check writing the response in the test
@@ -68,7 +81,7 @@ func TestProvider_OIDCAuth(t *testing.T) {
 			}`)) // nolint - don't need to err check writing the response in the test
 		}
 	}))
-	defer mockOIDCServer.Close()
+	defer mockLakekeeperServer.Close()
 
 	//lintignore:AT001 // Providers don't need check destroy in their tests
 	resource.ParallelTest(t, resource.TestCase{
@@ -80,18 +93,20 @@ func TestProvider_OIDCAuth(t *testing.T) {
 					provider "lakekeeper" {
 						endpoint = "%s"
 						auth_url = "%s/token"
-						client_id = "test-id" // doesn't matter, we're intercepting the call
-						client_secret = "test-secret" // doesn't matter, we're intercepting the call
+						client_id = "test-id"
+						client_secret = "test-secret"
+						scopes = ["lakekeeper", "test-scope"]
+						initial_bootstrap = true
 					}
 
 					data "lakekeeper_server_info" "test" {}
-					`, mockLakekeeperServer.URL, mockOIDCServer.URL),
+					`, mockLakekeeperServer.URL, mockLakekeeperServer.URL),
 				Check: func(*terraform.State) error {
 					if !loginCall {
 						return fmt.Errorf("expected a fetch token request")
 					}
-					if bootstrapCall {
-						return fmt.Errorf("did not expect a bootstrap request")
+					if !bootstrapCall {
+						return fmt.Errorf("expected a bootstrap request")
 					}
 					if !serverInfoCall {
 						return fmt.Errorf("expected a server info request")
