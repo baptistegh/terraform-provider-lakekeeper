@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.3.2](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.3.1...v0.3.2) (2025-07-30)
+
+
+### Bug Fixes
+
+* oauth2 scope was not correctly sent ([#144](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/144)) ([b5f70c6](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/b5f70c6db3cff9827eef300c4bddc417fb5b14b0))
+
 ## [0.3.1](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.3.0...v0.3.1) (2025-07-24)
 
 
