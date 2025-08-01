@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/baptistegh/go-lakekeeper v0.0.11
+	github.com/baptistegh/go-lakekeeper v0.0.14
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 )
 
@@ -188,7 +188,7 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
+	github.com/spf13/cast v1.7.1 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
