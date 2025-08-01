@@ -7,6 +7,12 @@
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
       "prerelease": false,
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "pkg/version/version.go"
+        }
+      ],
       "changelog-sections": [
         {
           "type": "feat",
@@ -17,6 +23,11 @@
           "type": "fix",
           "hidden": false,
           "section": "Bug Fixes"
+        },
+        {
+          "type": "docs",
+          "hidden": false,
+          "section": "Documentation"
         },
         {
           "type": "chore",
