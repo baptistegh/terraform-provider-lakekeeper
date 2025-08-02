@@ -2,23 +2,56 @@ resource "lakekeeper_project" "bi" {
   name = "bi"
 }
 
+# create a warehouse: S3 storage with Access Key
 resource "lakekeeper_warehouse" "aws" {
   project_id     = lakekeeper_project.bi.id
   name           = "aws"
   protected      = false
   active         = true
   managed_access = true
-  storage_profile = {
-    type   = "s3"
+  s3 = {
     region = "us-east-1"
+    bucket = "mybucket"
+    access_key = {
+      access_key_id     = "AKIAEXAMPLE1234567890"
+      secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    }
   }
   delete_profile = {
     type               = "soft"
     expiration_seconds = 3600
   }
-  storage_credential = {
-    type              = "s3_access_key"
-    access_key_id     = "AKIAEXAMPLE1234567890"
-    secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+}
+
+# Create a warehouse: GCS with Service Account Key
+resource "lakekeeper_warehouse" "gcs" {
+  project_id     = lakekeeper_project.bi.id
+  name           = "gcs"
+  protected      = false
+  active         = true
+  managed_access = false
+  gcs = {
+    bucket = "mybucket"
+    service_account_key = {
+      key = file("key.json")
+    }
+  }
+  delete_profile = {
+    type               = "soft"
+    expiration_seconds = 3600
+  }
+}
+
+# Create a warehouse: ADLS with Azure System Identity
+resource "lakekeeper_warehouse" "adls" {
+  project_id     = lakekeeper_project.bi.id
+  name           = "adls"
+  protected      = false
+  active         = true
+  managed_access = false
+  adls = {
+    account_name          = "myaccount"
+    filesystem            = "fs"
+    azure_system_identity = {}
   }
 }

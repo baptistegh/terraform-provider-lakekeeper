@@ -1,5 +1,6 @@
-package types
+package sdk
 
+/*
 import (
 	"context"
 	"fmt"
@@ -131,3 +132,4 @@ func (v storageCredentialValidator) ValidateObject(ctx context.Context, req vali
 		)
 	}
 }
+*/

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
+	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,8 +33,8 @@ type LakekeeperProjectAssignmentsDataSource struct {
 
 // LakekeeperProjectAssignmentsDataSourceModel describes the data source data model.
 type lakekeeperProjectAssignmentsDataSourceModel struct {
-	ID          types.String         `tfsdk:"id"`
-	Assignments []tftypes.Assignment `tfsdk:"assignments"`
+	ID          types.String     `tfsdk:"id"`
+	Assignments []sdk.Assignment `tfsdk:"assignments"`
 }
 
 // Metadata returns the data source type name.
@@ -57,7 +57,7 @@ func (d *LakekeeperProjectAssignmentsDataSource) Schema(_ context.Context, _ dat
 			"assignments": schema.ListNestedAttribute{
 				MarkdownDescription: "List of assignments.",
 				Computed:            true,
-				NestedObject:        tftypes.AssignmentDataSourceType(),
+				NestedObject:        sdk.AssignmentDataSourceType(),
 			},
 		},
 	}
@@ -93,9 +93,9 @@ func (d *LakekeeperProjectAssignmentsDataSource) Read(ctx context.Context, req d
 		return
 	}
 
-	state.Assignments = make([]tftypes.Assignment, len(assignments.Assignments))
+	state.Assignments = make([]sdk.Assignment, len(assignments.Assignments))
 	for i, a := range assignments.Assignments {
-		state.Assignments[i] = tftypes.Assignment{
+		state.Assignments[i] = sdk.Assignment{
 			AssigneeID:   types.StringValue(a.Assignee.Value),
 			AssigneeType: types.StringValue(string(a.Assignee.Type)),
 			Assignment:   types.StringValue(string(a.Assignment)),
