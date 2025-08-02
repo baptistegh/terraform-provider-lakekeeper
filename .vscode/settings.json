@@ -9,12 +9,12 @@
   "go.testFlags": [
     "-count=1",
     "-v",
-    "-tags=acceptance,tools",
+    "-tags=acceptance",
     "-parallel=2",
     "-timeout",
     "180s"
   ],
   "go.buildFlags": [
-    "--tags=acceptance,tools"
+    "--tags=acceptance"
   ],
 }
