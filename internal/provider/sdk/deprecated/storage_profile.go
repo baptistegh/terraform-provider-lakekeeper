@@ -1,4 +1,4 @@
-package types
+package deprecated
 
 import (
 	"regexp"
@@ -46,8 +46,9 @@ type StorageProfileModel struct {
 
 func StorageProfileResourceSchema() rschema.SingleNestedAttribute {
 	return rschema.SingleNestedAttribute{
-		MarkdownDescription: "Whether the warehouse is active.",
-		Required:            true,
+		MarkdownDescription: "Whether the warehouse is active. This attribute is deprecated, it will be remove in a future version. Please use nested blocks `s3`, `adls` or `gcs`",
+		Optional:            true,
+		DeprecationMessage:  "The `storage_profile` attribute is deprecated, it will be remove in a future version. Please use nested blocks `s3`, `adls` or `gcs`",
 		Attributes: map[string]rschema.Attribute{
 			"type": rschema.StringAttribute{
 				Required: true,
@@ -80,7 +81,7 @@ func StorageProfileResourceSchema() rschema.SingleNestedAttribute {
 				Validators: []validator.Int64{
 					int64validator.AtLeast(0),
 				},
-				MarkdownDescription: "The validity of the sts tokens in seconds. Default is `3600`.",
+				MarkdownDescription: "The validity of the sas tokens in seconds. Default is `3600`.",
 			},
 			"assume_role_arn": rschema.StringAttribute{
 				Optional:            true,

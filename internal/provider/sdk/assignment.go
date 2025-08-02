@@ -1,4 +1,4 @@
-package types
+package sdk
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"

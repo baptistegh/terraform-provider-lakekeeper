@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	tftypes "github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/types"
+	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/sdk"
+	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/sdk/deprecated"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,17 +33,17 @@ type LakekeeperWarehouseDataSource struct {
 	client *lakekeeper.Client
 }
 
-// LakekeeperWarehouseDataSourceModel describes the data source data model.
+// lakekeeperWarehouseDataSourceModel describes the data source data model.
 type lakekeeperWarehouseDataSourceModel struct {
-	ID             types.String                 `tfsdk:"id"` // form: project_id:warehouse_id (internal ID)
-	WarehouseID    types.String                 `tfsdk:"warehouse_id"`
-	Name           types.String                 `tfsdk:"name"`
-	ProjectID      types.String                 `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
-	Protected      types.Bool                   `tfsdk:"protected"`
-	Active         types.Bool                   `tfsdk:"active"`
-	ManagedAccess  types.Bool                   `tfsdk:"managed_access"`
-	StorageProfile *tftypes.StorageProfileModel `tfsdk:"storage_profile"`
-	DeleteProfile  *tftypes.DeleteProfileModel  `tfsdk:"delete_profile"`
+	ID             types.String                    `tfsdk:"id"` // form: project_id:warehouse_id (internal ID)
+	WarehouseID    types.String                    `tfsdk:"warehouse_id"`
+	Name           types.String                    `tfsdk:"name"`
+	ProjectID      types.String                    `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
+	Protected      types.Bool                      `tfsdk:"protected"`
+	Active         types.Bool                      `tfsdk:"active"`
+	ManagedAccess  types.Bool                      `tfsdk:"managed_access"`
+	StorageProfile *deprecated.StorageProfileModel `tfsdk:"storage_profile"`
+	DeleteProfile  *sdk.DeleteProfileModel         `tfsdk:"delete_profile"`
 }
 
 // Metadata returns the data source type name.
@@ -85,8 +87,8 @@ func (d *LakekeeperWarehouseDataSource) Schema(_ context.Context, _ datasource.S
 				MarkdownDescription: "Whether managed access is active for this warehouse.",
 				Computed:            true,
 			},
-			"storage_profile": tftypes.StorageProfileDatasourceSchema(),
-			"delete_profile":  tftypes.DeleteProfileDatasourceSchema(),
+			"storage_profile": deprecated.StorageProfileDatasourceSchema(),
+			"delete_profile":  sdk.DeleteProfileDatasourceSchema(),
 		},
 	}
 }

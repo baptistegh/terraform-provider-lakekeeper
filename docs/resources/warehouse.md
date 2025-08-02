@@ -20,24 +20,57 @@ resource "lakekeeper_project" "bi" {
   name = "bi"
 }
 
+# create a warehouse: S3 storage with Access Key
 resource "lakekeeper_warehouse" "aws" {
   project_id     = lakekeeper_project.bi.id
   name           = "aws"
   protected      = false
   active         = true
   managed_access = true
-  storage_profile = {
-    type   = "s3"
+  s3 = {
     region = "us-east-1"
+    bucket = "mybucket"
+    access_key = {
+      access_key_id     = "AKIAEXAMPLE1234567890"
+      secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    }
   }
   delete_profile = {
     type               = "soft"
     expiration_seconds = 3600
   }
-  storage_credential = {
-    type              = "s3_access_key"
-    access_key_id     = "AKIAEXAMPLE1234567890"
-    secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+}
+
+# Create a warehouse: GCS with Service Account Key
+resource "lakekeeper_warehouse" "gcs" {
+  project_id     = lakekeeper_project.bi.id
+  name           = "gcs"
+  protected      = false
+  active         = true
+  managed_access = false
+  gcs = {
+    bucket = "mybucket"
+    service_account_key = {
+      key = file("key.json")
+    }
+  }
+  delete_profile = {
+    type               = "soft"
+    expiration_seconds = 3600
+  }
+}
+
+# Create a warehouse: ADLS with Azure System Identity
+resource "lakekeeper_warehouse" "adls" {
+  project_id     = lakekeeper_project.bi.id
+  name           = "adls"
+  protected      = false
+  active         = true
+  managed_access = false
+  adls = {
+    account_name          = "myaccount"
+    filesystem            = "fs"
+    azure_system_identity = {}
   }
 }
 ```
@@ -49,49 +82,62 @@ resource "lakekeeper_warehouse" "aws" {
 
 - `name` (String) Name of the warehouse to create. Must be unique within a project and may not contain "/"
 - `project_id` (String) The project ID to which the warehouse belongs.
-- `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
 
 ### Optional
 
-- `active` (Boolean) Whether the warehouse is active.
+- `active` (Boolean) Whether the warehouse is active. Default is `true`.
+- `adls` (Attributes) (see [below for nested schema](#nestedatt--adls))
 - `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. Default: `hard` (see [below for nested schema](#nestedatt--delete_profile))
+- `gcs` (Attributes) (see [below for nested schema](#nestedatt--gcs))
 - `managed_access` (Boolean) Whether the managed access is configured on this warehouse. Default is `false`.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted. Default is `false`.
-- `storage_credential` (Attributes) The credentials used to access the storage. This is required for the warehouse to be able to access the storage profile. (see [below for nested schema](#nestedatt--storage_credential))
+- `s3` (Attributes) (see [below for nested schema](#nestedatt--s3))
 
 ### Read-Only
 
 - `id` (String) The internal ID of this resource. In the form: `{{project_id}}/{{warehouse_id}}`
 - `warehouse_id` (String) The ID of the warehouse.
 
-<a id="nestedatt--storage_profile"></a>
-### Nested Schema for `storage_profile`
+<a id="nestedatt--adls"></a>
+### Nested Schema for `adls`
 
 Required:
 
-- `type` (String) The type of the storage profile. Supported values are `gcs`, `adls`, and `s3`.
+- `account_name` (String) Name of the azure storage account.
+- `filesystem` (String) Name of the adls filesystem, in blobstorage also known as container.
 
 Optional:
 
-- `account_name` (String) The account name for ADLS storage profile. Required if type is `adls`.
-- `allow_alternative_protocols` (Boolean) Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.
-- `assume_role_arn` (String) Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile
-- `authority_host` (String) The authority host for ADLS storage profile. Defaults to `https://login.microsoftonline.com`.
-- `aws_kms_key_arn` (String) ARN of the KMS key used to encrypt the S3 bucket, if any.
-- `bucket` (String) The bucket name for the storage profile. Required if type is `gcs` or `s3`.
-- `endpoint` (String) Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`
-- `filesystem` (String) Name of the adls filesystem, in blobstorage also known as container. Required if type is `adls`.
-- `flavor` (String) S3 flavor to use. Defaults to `aws`.
-- `host` (String) The host for ADLS storage profile. Defaults to `dfs.core.windows.net`.
+- `allow_alternative_protocols` (Boolean) Allow alternative protocols such as wasbs:// in locations. This is disabled by default. We do not recommend to use this setting except for migration.
+- `authority_host` (String) The authority host to use for authentication. Defaults to `https://login.microsoftonline.com`.
+- `azure_system_identity` (Attributes) Authenticate to ADLS with Azure System Identity (see [below for nested schema](#nestedatt--adls--azure_system_identity))
+- `client_credentials` (Attributes) Authenticate to ADLS with Client Credentials (see [below for nested schema](#nestedatt--adls--client_credentials))
+- `host` (String) The host to use for the storage account. Defaults to `dfs.core.windows.net`.
 - `key_prefix` (String) Subpath in the filesystem to use.
-- `path_style_access` (Boolean) Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.
-- `push_s3_delete_disabled` (Boolean) Controls whether the `s3.delete-enabled=false` flag is sent to clients.
-- `region` (String) Region to use for S3 requests. Required if type is `s3`.
-- `remote_signing_url_style` (String) S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.
-- `sas_token_validity_seconds` (Number) The validity of the sts tokens in seconds. Default is `3600`.
-- `sts_enabled` (Boolean) Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.
-- `sts_role_arn` (String)
-- `sts_token_validity_seconds` (Number) The validity of the STS tokens in seconds. Default is `3600`.
+- `sas_token_validity_seconds` (Number) The validity of the sas token in seconds. Default is `3600`.
+- `shared_access_key` (Attributes) Authenticate to ADLS with Shared Access Key (see [below for nested schema](#nestedatt--adls--shared_access_key))
+
+<a id="nestedatt--adls--azure_system_identity"></a>
+### Nested Schema for `adls.azure_system_identity`
+
+
+<a id="nestedatt--adls--client_credentials"></a>
+### Nested Schema for `adls.client_credentials`
+
+Required:
+
+- `client_id` (String, Sensitive) Required if type is `az_client_credentials`
+- `client_secret` (String, Sensitive) Required if type is `az_client_credentials`
+- `tenant_id` (String, Sensitive) Required if type is `az_client_credentials`
+
+
+<a id="nestedatt--adls--shared_access_key"></a>
+### Nested Schema for `adls.shared_access_key`
+
+Required:
+
+- `key` (String, Sensitive) The shared access key. Required for `azure-shared-access-key` credentials.
+
 
 
 <a id="nestedatt--delete_profile"></a>
@@ -103,39 +149,85 @@ Optional:
 - `type` (String) Type of the delete profile. Can be `hard` or `soft`
 
 
-<a id="nestedatt--storage_credential"></a>
-### Nested Schema for `storage_credential`
+<a id="nestedatt--gcs"></a>
+### Nested Schema for `gcs`
 
 Required:
 
-- `type` (String) This is the type of credential to use. Available values are `s3_access_key` `s3_aws_system_identity` `s3_cloudflare_r2` `az_client_credentials` `az_shared_access_key` `az_azure_system_identity` `gcs_service_account_key` `gcs_gcp_system_identity`.
+- `bucket` (String) The bucket name. This attribute is required for `gcs` storage profile
 
 Optional:
 
-- `access_key_id` (String, Sensitive) Required if type is `s3_access_key` or `s3_cloudflare_r2`
-- `account_id` (String) Required if type is `s3_cloudflare_r2`
-- `az_key` (String, Sensitive) Required if type is `az_shared_access_key`
-- `client_id` (String) Required if type is `az_client_credentials`
-- `client_secret` (String) Required if type is `az_client_credentials`
-- `external_id` (String)
-- `key` (Attributes) Required if type is `gcs_service_account_key` (see [below for nested schema](#nestedatt--storage_credential--key))
-- `secret_access_key` (String, Sensitive) Required if type is `s3_access_key` or `s3_cloudflare_r2`
-- `tenant_id` (String) Required if type is `az_client_credentials`
-- `token` (String, Sensitive) Required if type is `s3_cloudflare_r2`
+- `gcp_system_identity` (Attributes) Authenticate to the GCS bucket with GCP System Identity (see [below for nested schema](#nestedatt--gcs--gcp_system_identity))
+- `key_prefix` (String) Subpath in the filesystem to use.
+- `service_account_key` (Attributes) Authenticate to the GCS bucket with a Service Account Key (see [below for nested schema](#nestedatt--gcs--service_account_key))
 
-<a id="nestedatt--storage_credential--key"></a>
-### Nested Schema for `storage_credential.key`
+<a id="nestedatt--gcs--gcp_system_identity"></a>
+### Nested Schema for `gcs.gcp_system_identity`
+
+
+<a id="nestedatt--gcs--service_account_key"></a>
+### Nested Schema for `gcs.service_account_key`
 
 Required:
 
-- `auth_provider_x509_cert_url` (String)
-- `auth_uri` (String)
-- `client_email` (String)
-- `client_id` (String)
-- `client_x509_cert_url` (String)
-- `private_key` (String, Sensitive)
-- `private_key_id` (String)
-- `project_id` (String)
-- `token_uri` (String)
-- `type` (String)
-- `universe_domain` (String)
+- `key` (String, Sensitive) Required for `service-account-key` credentials.
+
+
+
+<a id="nestedatt--s3"></a>
+### Nested Schema for `s3`
+
+Required:
+
+- `bucket` (String) The bucket name for the storage profile. This attribute is required for `s3` storage profile
+- `region` (String) Region to use for S3 requests. Required if type is `s3`. This attribute is required for `s3` storage profile.
+- `sts_enabled` (Boolean) Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.
+
+Optional:
+
+- `access_key` (Attributes) Authenticate to the S3 bucket with an Access Key (see [below for nested schema](#nestedatt--s3--access_key))
+- `allow_alternative_protocols` (Boolean) Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.
+- `assume_role_arn` (String) Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile
+- `aws_kms_key_arn` (String) ARN of the KMS key used to encrypt the S3 bucket, if any.
+- `aws_system_identity` (Attributes) Authenticate to the S3 bucket with AWS System Identity (see [below for nested schema](#nestedatt--s3--aws_system_identity))
+- `cloudflare_r2` (Attributes) Authenticate to the S3 bucket with Cloudflare R2 (see [below for nested schema](#nestedatt--s3--cloudflare_r2))
+- `endpoint` (String) Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`
+- `flavor` (String) S3 flavor to use. Defaults to `aws`.
+- `key_prefix` (String) Subpath in the filesystem to use.
+- `path_style_access` (Boolean) Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.
+- `push_s3_delete_disabled` (Boolean) Controls whether the `s3.delete-enabled=false` flag is sent to clients.
+- `remote_signing_url_style` (String) S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.
+- `sts_role_arn` (String)
+- `sts_token_validity_seconds` (Number) The validity of the STS tokens in seconds. Default is `3600`.
+
+<a id="nestedatt--s3--access_key"></a>
+### Nested Schema for `s3.access_key`
+
+Required:
+
+- `access_key_id` (String, Sensitive) The access key ID. Required for `aws-access-key` credentials.
+- `secret_access_key` (String, Sensitive) The secret access key. Required for `aws-access-key` credentials.
+
+Optional:
+
+- `external_id` (String, Sensitive) The external ID.
+
+
+<a id="nestedatt--s3--aws_system_identity"></a>
+### Nested Schema for `s3.aws_system_identity`
+
+Required:
+
+- `external_id` (String, Sensitive) Required for `aws-system-identity` credentials
+
+
+<a id="nestedatt--s3--cloudflare_r2"></a>
+### Nested Schema for `s3.cloudflare_r2`
+
+Required:
+
+- `access_key_id` (String, Sensitive) Access key ID used for IO operations of Lakekeeper
+- `account_id` (String, Sensitive) Cloudflare account ID, used to determine the temporary credentials
+- `secret_access_key` (String, Sensitive) Secret key associated with the access key ID
+- `token` (String, Sensitive) Token associated with the access key ID
