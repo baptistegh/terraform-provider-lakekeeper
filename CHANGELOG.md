@@ -1,6 +1,27 @@
 # Changelog
 
 
+## [0.4.0](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.3.2...v0.4.0) (2025-08-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* **warehouse:** redesign storage profile and credential ([#152](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/152))
+
+### Features
+
+* **warehouse:** redesign storage profile and credential ([#152](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/152)) ([9f33757](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/9f337572312720ee4498bbf536b16a7199eda371))
+
+
+### Miscellaneous Chores
+
+* **ci:** rename archive.formats in goreleaser config ([#150](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/150)) ([eabcefa](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/eabcefa54da411efdc2815f05b3cc386d4396e0c))
+* **ci:** set up changelog sections for release please ([#148](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/148)) ([2c5b72f](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/2c5b72f0e5037358e5353295f7a663b000cf1100))
+* **deps:** bump github.com/baptistegh/go-lakekeeper ([953273f](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/953273fd76599de700398953b81ca31ff8cfee96))
+* **deps:** bump github.com/baptistegh/go-lakekeeper from 0.0.11 to 0.0.14 ([#147](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/147)) ([953273f](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/953273fd76599de700398953b81ca31ff8cfee96))
+* **deps:** bump github.com/hashicorp/terraform-plugin-framework from 1.15.0 to 1.15.1 in the terraform-plugin group ([#146](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/146)) ([9431d6b](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/9431d6be8ca57f05bb97079932c94257c27062d3))
+* rename datasource and resource files ([#151](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/151)) ([1c908f7](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/1c908f7ed062a0f269a8acef875c7d85d712979b))
+
 ## [0.3.2](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.3.1...v0.3.2) (2025-07-30)
 
 
