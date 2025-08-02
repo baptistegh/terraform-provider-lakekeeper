@@ -1,4 +1,4 @@
-//go:build tfplugindocs
+//go:build tools
 
 package tools
 
