@@ -1,0 +1,96 @@
+name: Lint Pull Request
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - labeled
+      - unlabeled
+      
+permissions:
+    contents: read
+    pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: thehanimo/pr-title-checker@7fbfe05602bdd86f926d3fb3bccb6f3aed43bc70 # v1.4.3
+        id: check
+        continue-on-error: true
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          configuration_path: ".github/pr-title-checker-config.json"
+          pass_on_octokit_error: false
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ steps.check.outputs.success == 'false'}}
+        with:
+          header: 'pr-title-checker'
+          recreate: true
+          message: |
+              ### 🚨 PR Title Needs Formatting
+              The title of this PR needs to be formatted correctly. 
+              Please update the title to match the [conventional commits](https://www.conventionalcommits.org) format. Examples:
+              
+              * `feat: feature description`
+              * `fix: what was fixed`
+              * `docs: documentation`
+              * `chore(deps): update dependencies`
+
+              We only use types: `feat`, `fix`, `docs`, `chore`, `test` and `ci`.
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ steps.check.outputs.success == 'true'}}
+        with:
+          header: 'pr-title-checker'
+          recreate: true
+          message: |
+              ### ✅ PR Title Formatted Correctly
+              The title of this PR match the correct format. Thank you!
+      
+      - if: ${{ steps.check.outputs.success == 'false'}}
+        name: Fail on invalid title
+        run: exit 1
+
+  labeler:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/labeler@v5
+        with:
+         sync-labels: 'true'
+      - name: Set breaking change
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: ./.github/pull-request-triage.sh
+      - uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ steps.check.outputs.breaking_change == 'true'}}
+        with:
+          header: 'breaking-change'
+          recreate: true
+          message: |
+              ### ⚠️ **You are introducing a breaking change**
+        
+              This pull request includes one or more **breaking changes**.
+
+              Please ensure the following brefore merging:
+
+              - [ ] Update the relevant documentation and examples (`examples/`, `playground/`)
+              - [ ] Details on this change should be added to the PR body
+              - [ ] Add migration instructions if necessary
+      - uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ steps.check.outputs.breaking_change == 'false'}}
+        with:
+          header: 'breaking-change'
+          delete: true

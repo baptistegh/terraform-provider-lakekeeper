@@ -27,6 +27,16 @@
           "type": "chore",
           "hidden": false,
           "section": "Miscellaneous Chores"
+        },
+        {
+          "type": "ci",
+          "hidden": false,
+          "section": "Miscellaneous Chores"
+        },
+        {
+          "type": "test",
+          "hidden": false,
+          "section": "Miscellaneous Chores"
         }
       ]
     }
