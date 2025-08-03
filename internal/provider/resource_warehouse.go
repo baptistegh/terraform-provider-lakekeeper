@@ -277,6 +277,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 							"filesystem": schema.StringAttribute{
 								Required:            true,
 								MarkdownDescription: "Name of the adls filesystem, in blobstorage also known as container.",
+								Validators: []validator.String{
+									stringvalidator.LengthBetween(3, 64),
+								},
 							},
 							"allow_alternative_protocols": schema.BoolAttribute{
 								Optional:            true,

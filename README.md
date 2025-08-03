@@ -19,7 +19,22 @@ Terraform provider for [Lakekeeper](https://docs.lakekeeper.io/).
 > 💬 We welcome [feedback, bug reports, and contributions](https://github.com/baptistegh/terraform-provider-lakekeeper/issues) during this preview phase.
 > Please report issues or share your experience to help us improve the provider before its stable release.
 
-## Docs
+## Table of Contents
+
+- [Terraform Provider for Lakekeeper](#terraform-provider-for-lakekeeper)
+  - [Table of Contents](#table-of-contents)
+  - [Documentation](#documentation)
+  - [Installation](#installation)
+  - [Supported Versions](#supported-versions)
+  - [Playground](#playground)
+    - [Overview](#overview)
+    - [Setup Instructions](#setup-instructions)
+  - [Development](#development)
+    - [Local Environment](#local-environment)
+    - [Tests](#tests)
+    - [Releases](#releases)
+
+## Documentation
 
 All documentation for this provider can be found on the Terraform Registry: <https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs>.
 
@@ -51,26 +66,21 @@ _See: [lakekeeper/lakekeeper#1239](https://github.com/lakekeeper/lakekeeper/pull
 
 _Acceptance tests are executed using Terraform v1.9.8._
 
-## Releases
-
-This provider uses [GoReleaser](https://goreleaser.com/]) to build and publish releases. Each release published to GitHub contains binary files for Linux, macOS (darwin), and Windows, as configured within the [`.goreleaser.yml`](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/.goreleaser.yml) file.
-
-Each release also contains a `terraform-provider-lakekeeper_${RELEASE_VERSION}_SHA256SUMS` file that can be used to check integrity.
-
-You can find the [list of releases](https://github.com/baptistegh/terraform-provider-lakekeeper/releases) and the [changelog](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/CHANGELOG.md) for each version.
-
 ## Playground
 
-A sample playground project is available in the `/playground` directory. It is based on the [Official Lakekeeper Examples](https://github.com/lakekeeper/lakekeeper/tree/main/examples/access-control-simple).
+A sample playground project is available in the `playground/` directory. It is based on the [Official Lakekeeper Examples](https://github.com/lakekeeper/lakekeeper/tree/main/examples/access-control-simple).
 
 ### Overview
 
 This playground will set up the following structure:
 
-- **Warehouse:**
-  - Configured using a `gcs` (Google Cloud Storage) storage profile.
+- **Warehouses:**
+  - `test-warehouse-gcs`: Configured using a `gcs` (Google Cloud Storage) storage profile.
+  - `test-warehouse-s3`: Configured using a `s3` (AWS S3) storage profile.
+  - `test-warehouse-adls`: Configured using a `adls` (Azure Data Lake Storage) storage profile.
 - **Roles:**
-  - with `select` and `describe` permissions on the warehouse.
+  - `read-role`: with `select` and `describe` permissions on all the warehouses.
+  - `write-role`: with `create` and `modify` permissions on the `test-warehouse-s3` warehouse.
 - **Users:**
   - **Anna:**
     - username: `anna`
@@ -79,14 +89,16 @@ This playground will set up the following structure:
   - **Peter:**
     - username: `peter`
     - password: `iceberg`
-    - assignee to the role
+    - assignee to the `read-role` and `write-role`
+
+_Anna is a `project_admin` and Peter has read access on all the warehouses and can write on the `test-warehouse-s3` warehouse._ 
 
 ### Setup Instructions
 
 To create and launch the playground:
 
 ```sh
-make testacc-up   # Sets up required services via Docker Compose
+make testacc-up   # Sets up required services via Docker Compose (Lakekeeper, Keycloak, OpenFGA, PostgreSQL)
 make playground   # Creates the playground structure
 ```
 
@@ -95,8 +107,6 @@ To tear down and clean up the playground:
 ```sh
 make playground-destroy
 ```
-
-### Usage
 
 You can connect to the web interface at <http://localhost:8181> using one of the user credentials listed above to explore the configured resources.
 
@@ -119,3 +129,11 @@ To stop the environment you can use the `make clean`.
 Every resource supported by this provider will have a reasonable amount of acceptance test coverage.
 
 You can run acceptance tests against a Lakekeeper instance by running `make testacc`.
+
+### Releases
+
+This provider uses [GoReleaser](https://goreleaser.com/]) to build and publish releases. Each release published to GitHub contains binary files for Linux, macOS (darwin), and Windows, as configured within the [`.goreleaser.yml`](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/.goreleaser.yml) file.
+
+Each release also contains a `terraform-provider-lakekeeper_${RELEASE_VERSION}_SHA256SUMS` file that can be used to check integrity.
+
+You can find the [list of releases](https://github.com/baptistegh/terraform-provider-lakekeeper/releases) and the [changelog](https://github.com/baptistegh/terraform-provider-lakekeeper/blob/main/CHANGELOG.md) for each version.

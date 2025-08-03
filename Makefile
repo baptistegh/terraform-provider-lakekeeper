@@ -84,9 +84,9 @@ define install-tool
 	GOBIN=$(GOBIN) go install $(1)
 endef
 
-playground: tool-terraform
+playground: tool-terraform build
 	@cd playground; \
-		TF_CLI_CONFIG_FILE=./.terraformrc $(GOBIN)/terraform init; \
+		TF_CLI_CONFIG_FILE=./.terraformrc; \
 		$(GOBIN)/terraform apply -auto-approve
 
 playground-destroy:

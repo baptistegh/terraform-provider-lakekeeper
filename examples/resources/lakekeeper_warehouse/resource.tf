@@ -60,7 +60,7 @@ resource "lakekeeper_warehouse" "adls" {
   storage_profile = {
     adls = {
       account_name = "myaccount"
-      filesystem   = "fs"
+      filesystem   = "myfilesystem"
       credential = {
         azure_system_identity = {}
       }
