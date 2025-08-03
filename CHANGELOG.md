@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.4.1](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.0...v0.4.1) (2025-08-03)
+
+
+### Documentation
+
+* fix broken navigation ([#159](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/159)) ([3289050](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/3289050c91450a859e29e841b115ef4800855c34))
+
 ## [0.4.0](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.3.2...v0.4.0) (2025-08-03)
 
 
