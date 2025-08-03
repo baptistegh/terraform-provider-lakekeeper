@@ -3,13 +3,13 @@
 page_title: "lakekeeper_warehouse Data Source - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
-  The lakekeeper_warehouse data source retrieves information about a lakekeeper warehouse.
+  The lakekeeper_warehouse data source retrieves information about a warehouse.
   Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse
 ---
 
 # lakekeeper_warehouse (Data Source)
 
-The `lakekeeper_warehouse` data source retrieves information about a lakekeeper warehouse.
+The `lakekeeper_warehouse` data source retrieves information about a warehouse.
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/get_warehouse)
 
@@ -38,7 +38,7 @@ data "lakekeeper_warehouse" "foo" {
 - `managed_access` (Boolean) Whether managed access is active for this warehouse.
 - `name` (String) Name of the warehouse.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted.
-- `storage_profile` (Attributes) Whether the warehouse is active. (see [below for nested schema](#nestedatt--storage_profile))
+- `storage_profile` (Attributes) The storage profile of the warehouse. One of `s3`, `adls` or `gcs`. (see [below for nested schema](#nestedatt--storage_profile))
 
 <a id="nestedatt--delete_profile"></a>
 ### Nested Schema for `delete_profile`
@@ -54,23 +54,49 @@ Read-Only:
 
 Read-Only:
 
-- `account_name` (String) The account name for ADLS storage profile. Required if type is `adls`.
+- `adls` (Attributes) ADLS storage profile. Suitable for Azure Data Lake Storage Gen2. (see [below for nested schema](#nestedatt--storage_profile--adls))
+- `gcs` (Attributes) GCS storage profile. Designed for use with Google Cloud Storage (see [below for nested schema](#nestedatt--storage_profile--gcs))
+- `s3` (Attributes) S3 storage profile. Suitable for AWS or any service compatible with the S3 API. (see [below for nested schema](#nestedatt--storage_profile--s3))
+
+<a id="nestedatt--storage_profile--adls"></a>
+### Nested Schema for `storage_profile.adls`
+
+Read-Only:
+
+- `account_name` (String) Name of the azure storage account.
+- `allow_alternative_protocols` (Boolean) Allow alternative protocols such as wasbs:// in locations. This is disabled by default. We do not recommend to use this setting except for migration.
+- `authority_host` (String) The authority host to use for authentication. Defaults to `https://login.microsoftonline.com`.
+- `filesystem` (String) Name of the adls filesystem, in blobstorage also known as container.
+- `host` (String) The host to use for the storage account. Defaults to `dfs.core.windows.net`.
+- `key_prefix` (String) Subpath in the filesystem to use.
+- `sas_token_validity_seconds` (Number) The validity of the sas token in seconds. Default is `3600`.
+
+
+<a id="nestedatt--storage_profile--gcs"></a>
+### Nested Schema for `storage_profile.gcs`
+
+Read-Only:
+
+- `bucket` (String) The bucket name.
+- `key_prefix` (String) Subpath in the filesystem to use.
+
+
+<a id="nestedatt--storage_profile--s3"></a>
+### Nested Schema for `storage_profile.s3`
+
+Read-Only:
+
 - `allow_alternative_protocols` (Boolean) Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.
 - `assume_role_arn` (String) Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile
-- `authority_host` (String) The authority host for ADLS storage profile. Defaults to `https://login.microsoftonline.com`.
 - `aws_kms_key_arn` (String) ARN of the KMS key used to encrypt the S3 bucket, if any.
-- `bucket` (String) The bucket name for the storage profile. Required if type is `gcs` or `s3`.
+- `bucket` (String) The bucket name for the storage profile.
 - `endpoint` (String) Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`
-- `filesystem` (String) Name of the adls filesystem, in blobstorage also known as container. Required if type is `adls`.
 - `flavor` (String) S3 flavor to use. Defaults to `aws`.
-- `host` (String) The host for ADLS storage profile. Defaults to `dfs.core.windows.net`.
 - `key_prefix` (String) Subpath in the filesystem to use.
 - `path_style_access` (Boolean) Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.
 - `push_s3_delete_disabled` (Boolean) Controls whether the `s3.delete-enabled=false` flag is sent to clients.
-- `region` (String) Region to use for S3 requests. Required if type is `s3`.
+- `region` (String) Region to use for S3 requests.
 - `remote_signing_url_style` (String) S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.
-- `sas_token_validity_seconds` (Number) The validity of the sts tokens in seconds. Default is `3600`.
 - `sts_enabled` (Boolean) Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.
 - `sts_role_arn` (String)
 - `sts_token_validity_seconds` (Number) The validity of the STS tokens in seconds. Default is `3600`.
-- `type` (String) The type of the storage profile. Supported values are `gcs`, `adls`, and `s3`.
