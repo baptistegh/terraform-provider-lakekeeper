@@ -12,12 +12,15 @@ import (
 
 type (
 	StorageProfileModel interface {
-		StorageFamily() profile.StorageFamily
-		AsSDK() (profile.StorageSettings, error)
 		CredentialAsSDK() (credential.CredentialSettings, error)
 		AddCreds(StorageCredsModel) error
-		IsEmpty() bool
 		GetCredentials() (StorageCredsModel, error)
+		AsSDK() (profile.StorageSettings, error)
+		IsEmpty() bool
+	}
+
+	StorageProfileDataSourceModel interface {
+		FromResourceModel(StorageProfileModel) error
 	}
 
 	S3StorageProfileModel struct {
@@ -71,12 +74,48 @@ type (
 		ClientCredentials *AZClientCredentialsCredsModel `tfsdk:"client_credentials"`
 		SystemIdentity    *AzureSystemIdentityCredsModel `tfsdk:"azure_system_identity"`
 	}
+
+	S3StorageProfileDataSourceModel struct {
+		Bucket                    types.String `tfsdk:"bucket"`
+		Region                    types.String `tfsdk:"region"`
+		KeyPrefix                 types.String `tfsdk:"key_prefix"`
+		AllowAlternativeProtocols types.Bool   `tfsdk:"allow_alternative_protocols"`
+		AssumeRoleARN             types.String `tfsdk:"assume_role_arn"`
+		AWSKMSKeyARN              types.String `tfsdk:"aws_kms_key_arn"`
+		Endpoint                  types.String `tfsdk:"endpoint"`
+		Flavor                    types.String `tfsdk:"flavor"`
+		PathStyleAccess           types.Bool   `tfsdk:"path_style_access"`
+		PushS3DeleteDisabled      types.Bool   `tfsdk:"push_s3_delete_disabled"`
+		RemoteSigningURLStyle     types.String `tfsdk:"remote_signing_url_style"`
+		STSEnabled                types.Bool   `tfsdk:"sts_enabled"`
+		STSRoleARN                types.String `tfsdk:"sts_role_arn"`
+		STSTokenValiditySeconds   types.Int64  `tfsdk:"sts_token_validity_seconds"`
+	}
+
+	ADLSStorageProfileDataSourceModel struct {
+		AccountName               types.String `tfsdk:"account_name"`
+		Filesystem                types.String `tfsdk:"filesystem"`
+		Host                      types.String `tfsdk:"host"`
+		AuthorityHost             types.String `tfsdk:"authority_host"`
+		KeyPrefix                 types.String `tfsdk:"key_prefix"`
+		SASTokenValiditySeconds   types.Int64  `tfsdk:"sas_token_validity_seconds"`
+		AllowAlternativeProtocols types.Bool   `tfsdk:"allow_alternative_protocols"`
+	}
+
+	GCSStorageProfileDataSourceModel struct {
+		Bucket    types.String `tfsdk:"bucket"`
+		KeyPrefix types.String `tfsdk:"key_prefix"`
+	}
 )
 
 var (
 	_ StorageProfileModel = (*S3StorageProfileModel)(nil)
 	_ StorageProfileModel = (*ADLSStorageProfileModel)(nil)
 	_ StorageProfileModel = (*GCSStorageProfileModel)(nil)
+
+	_ StorageProfileDataSourceModel = (*S3StorageProfileDataSourceModel)(nil)
+	_ StorageProfileDataSourceModel = (*ADLSStorageProfileDataSourceModel)(nil)
+	_ StorageProfileDataSourceModel = (*GCSStorageProfileDataSourceModel)(nil)
 )
 
 func (m *S3StorageProfileModel) AsSDK() (profile.StorageSettings, error) {
@@ -160,10 +199,6 @@ func (m *S3StorageProfileModel) CredentialAsSDK() (credential.CredentialSettings
 	return storage.AsSDK()
 }
 
-func (m *S3StorageProfileModel) StorageFamily() profile.StorageFamily {
-	return profile.StorageFamilyS3
-}
-
 func (m *S3StorageProfileModel) IsEmpty() bool {
 	return m == nil
 }
@@ -245,10 +280,6 @@ func (m *ADLSStorageProfileModel) CredentialAsSDK() (credential.CredentialSettin
 	return storage.AsSDK()
 }
 
-func (m *GCSStorageProfileModel) StorageFamily() profile.StorageFamily {
-	return profile.StorageFamilyGCS
-}
-
 func (m *GCSStorageProfileModel) IsEmpty() bool {
 	return m == nil
 }
@@ -307,10 +338,6 @@ func (m *GCSStorageProfileModel) CredentialAsSDK() (credential.CredentialSetting
 	return creds.AsSDK()
 }
 
-func (m *ADLSStorageProfileModel) StorageFamily() profile.StorageFamily {
-	return profile.StorageFamilyADLS
-}
-
 func (m *ADLSStorageProfileModel) IsEmpty() bool {
 	return m == nil
 }
@@ -338,6 +365,59 @@ func (m *ADLSStorageProfileModel) GetCredentials() (StorageCredsModel, error) {
 	}
 
 	return OnlyOneStorageCredential(m.Credential.ClientCredentials, m.Credential.SharedAccessKey, m.Credential.SystemIdentity)
+}
+
+func (m *S3StorageProfileDataSourceModel) FromResourceModel(s StorageProfileModel) error {
+	switch v := s.(type) {
+	case *S3StorageProfileModel:
+		m.Bucket = v.Bucket
+		m.Region = v.Region
+		m.KeyPrefix = v.KeyPrefix
+		m.AllowAlternativeProtocols = v.AllowAlternativeProtocols
+		m.AssumeRoleARN = v.AssumeRoleARN
+		m.AWSKMSKeyARN = v.AWSKMSKeyARN
+		m.Endpoint = v.Endpoint
+		m.Flavor = v.Flavor
+		m.PathStyleAccess = v.PathStyleAccess
+		m.PushS3DeleteDisabled = v.PushS3DeleteDisabled
+		m.RemoteSigningURLStyle = v.RemoteSigningURLStyle
+		m.STSEnabled = v.STSEnabled
+		m.STSRoleARN = v.STSRoleARN
+		m.STSTokenValiditySeconds = v.STSTokenValiditySeconds
+	default:
+		return fmt.Errorf("incorrect storage profile type %T", v)
+	}
+
+	return nil
+}
+
+func (m *ADLSStorageProfileDataSourceModel) FromResourceModel(s StorageProfileModel) error {
+	switch v := s.(type) {
+	case *ADLSStorageProfileModel:
+		m.AccountName = v.AccountName
+		m.Filesystem = v.Filesystem
+		m.Host = v.Host
+		m.AuthorityHost = v.AuthorityHost
+		m.KeyPrefix = v.KeyPrefix
+		m.SASTokenValiditySeconds = v.SASTokenValiditySeconds
+		m.AllowAlternativeProtocols = v.AllowAlternativeProtocols
+	default:
+		return fmt.Errorf("incorrect storage profile type %T", v)
+	}
+
+	return nil
+}
+
+func (m *GCSStorageProfileDataSourceModel) FromResourceModel(s StorageProfileModel) error {
+	switch v := s.(type) {
+	case *GCSStorageProfileModel:
+		m.Bucket = v.Bucket
+		m.KeyPrefix = v.KeyPrefix
+	default:
+		return fmt.Errorf("incorrect storage profile type %T", v)
+	}
+
+	return nil
 }
 
 func StorageProfileModelFromSDK(sp profile.StorageProfile) (StorageProfileModel, error) {
