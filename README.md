@@ -1,6 +1,6 @@
 # Terraform Provider for Lakekeeper
 
-[![docs](https://img.shields.io/static/v1?label=Docs&message=terraform-provider-lakekeeper&color=5c4ee5)](https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs])
+[![docs](https://img.shields.io/static/v1?label=Docs&message=terraform-provider-lakekeeper&color=5c4ee5)](https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs)
 [![docs](https://img.shields.io/badge/status-preview-orange)](https://github.com/baptistegh/terraform-provider-lakekeeper/releases)
 [![Nightly Acceptance Tests](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/nightly.yml/badge.svg)](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/nightly.yml)
 [![Tests](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/test.yml/badge.svg)](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/test.yml)
