@@ -21,43 +21,55 @@ type (
 	}
 
 	S3StorageProfileModel struct {
-		Bucket                    types.String                 `tfsdk:"bucket"`
-		Region                    types.String                 `tfsdk:"region"`
-		KeyPrefix                 types.String                 `tfsdk:"key_prefix"`
-		AllowAlternativeProtocols types.Bool                   `tfsdk:"allow_alternative_protocols"`
-		AssumeRoleARN             types.String                 `tfsdk:"assume_role_arn"`
-		AWSKMSKeyARN              types.String                 `tfsdk:"aws_kms_key_arn"`
-		Endpoint                  types.String                 `tfsdk:"endpoint"`
-		Flavor                    types.String                 `tfsdk:"flavor"`
-		PathStyleAccess           types.Bool                   `tfsdk:"path_style_access"`
-		PushS3DeleteDisabled      types.Bool                   `tfsdk:"push_s3_delete_disabled"`
-		RemoteSigningURLStyle     types.String                 `tfsdk:"remote_signing_url_style"`
-		STSEnabled                types.Bool                   `tfsdk:"sts_enabled"`
-		STSRoleARN                types.String                 `tfsdk:"sts_role_arn"`
-		STSTokenValiditySeconds   types.Int64                  `tfsdk:"sts_token_validity_seconds"`
-		AccessKey                 *S3AccessKeyCredsModel       `tfsdk:"access_key"`
-		CloudflareR2              *CloudflareR2CredsModel      `tfsdk:"cloudflare_r2"`
-		AWSSystemIdentity         *AWSSystemIdentityCredsModel `tfsdk:"aws_system_identity"`
+		Bucket                    types.String         `tfsdk:"bucket"`
+		Region                    types.String         `tfsdk:"region"`
+		KeyPrefix                 types.String         `tfsdk:"key_prefix"`
+		AllowAlternativeProtocols types.Bool           `tfsdk:"allow_alternative_protocols"`
+		AssumeRoleARN             types.String         `tfsdk:"assume_role_arn"`
+		AWSKMSKeyARN              types.String         `tfsdk:"aws_kms_key_arn"`
+		Endpoint                  types.String         `tfsdk:"endpoint"`
+		Flavor                    types.String         `tfsdk:"flavor"`
+		PathStyleAccess           types.Bool           `tfsdk:"path_style_access"`
+		PushS3DeleteDisabled      types.Bool           `tfsdk:"push_s3_delete_disabled"`
+		RemoteSigningURLStyle     types.String         `tfsdk:"remote_signing_url_style"`
+		STSEnabled                types.Bool           `tfsdk:"sts_enabled"`
+		STSRoleARN                types.String         `tfsdk:"sts_role_arn"`
+		STSTokenValiditySeconds   types.Int64          `tfsdk:"sts_token_validity_seconds"`
+		Credential                *S3CredentialWrapper `tfsdk:"credential"`
 	}
 
 	ADLSStorageProfileModel struct {
-		AccountName               types.String                   `tfsdk:"account_name"`
-		Filesystem                types.String                   `tfsdk:"filesystem"`
-		Host                      types.String                   `tfsdk:"host"`
-		AuthorityHost             types.String                   `tfsdk:"authority_host"`
-		KeyPrefix                 types.String                   `tfsdk:"key_prefix"`
-		SASTokenValiditySeconds   types.Int64                    `tfsdk:"sas_token_validity_seconds"`
-		AllowAlternativeProtocols types.Bool                     `tfsdk:"allow_alternative_protocols"`
-		SharedAccessKey           *AZSharedAccessKeyCredsModel   `tfsdk:"shared_access_key"`
-		ClientCredentials         *AZClientCredentialsCredsModel `tfsdk:"client_credentials"`
-		SystemIdentity            *AzureSystemIdentityCredsModel `tfsdk:"azure_system_identity"`
+		AccountName               types.String           `tfsdk:"account_name"`
+		Filesystem                types.String           `tfsdk:"filesystem"`
+		Host                      types.String           `tfsdk:"host"`
+		AuthorityHost             types.String           `tfsdk:"authority_host"`
+		KeyPrefix                 types.String           `tfsdk:"key_prefix"`
+		SASTokenValiditySeconds   types.Int64            `tfsdk:"sas_token_validity_seconds"`
+		AllowAlternativeProtocols types.Bool             `tfsdk:"allow_alternative_protocols"`
+		Credential                *ADLSCredentialWrapper `tfsdk:"credential"`
 	}
 
 	GCSStorageProfileModel struct {
-		Bucket            types.String                    `tfsdk:"bucket"`
-		KeyPrefix         types.String                    `tfsdk:"key_prefix"`
+		Bucket     types.String          `tfsdk:"bucket"`
+		KeyPrefix  types.String          `tfsdk:"key_prefix"`
+		Credential *GCSCredentialWrapper `tfsdk:"credential"`
+	}
+
+	S3CredentialWrapper struct {
+		AccessKey         *S3AccessKeyCredsModel       `tfsdk:"access_key"`
+		CloudflareR2      *CloudflareR2CredsModel      `tfsdk:"cloudflare_r2"`
+		AWSSystemIdentity *AWSSystemIdentityCredsModel `tfsdk:"aws_system_identity"`
+	}
+
+	GCSCredentialWrapper struct {
 		ServiceAccountKey *GCSServiceAccountKeyCredsModel `tfsdk:"service_account_key"`
 		SystemIdentity    *GCPSystemIdentityCredsModel    `tfsdk:"gcp_system_identity"`
+	}
+
+	ADLSCredentialWrapper struct {
+		SharedAccessKey   *AZSharedAccessKeyCredsModel   `tfsdk:"shared_access_key"`
+		ClientCredentials *AZClientCredentialsCredsModel `tfsdk:"client_credentials"`
+		SystemIdentity    *AzureSystemIdentityCredsModel `tfsdk:"azure_system_identity"`
 	}
 )
 
@@ -136,7 +148,11 @@ func (m *S3StorageProfileModel) AsSDK() (profile.StorageSettings, error) {
 }
 
 func (m *S3StorageProfileModel) CredentialAsSDK() (credential.CredentialSettings, error) {
-	storage, err := OnlyOneStorageCredential(m.AccessKey, m.CloudflareR2, m.AWSSystemIdentity)
+	if m.Credential == nil {
+		return nil, errors.New("credential is required")
+	}
+
+	storage, err := OnlyOneStorageCredential(m.Credential.AccessKey, m.Credential.CloudflareR2, m.Credential.AWSSystemIdentity)
 	if err != nil {
 		return nil, err
 	}
@@ -153,19 +169,15 @@ func (m *S3StorageProfileModel) IsEmpty() bool {
 }
 
 func (m *S3StorageProfileModel) AddCreds(c StorageCredsModel) error {
+	m.Credential = &S3CredentialWrapper{}
+
 	switch v := c.(type) {
 	case *S3AccessKeyCredsModel:
-		m.AccessKey = v
-		m.AWSSystemIdentity = nil
-		m.CloudflareR2 = nil
+		m.Credential.AccessKey = v
 	case *AWSSystemIdentityCredsModel:
-		m.AccessKey = nil
-		m.AWSSystemIdentity = v
-		m.CloudflareR2 = nil
+		m.Credential.AWSSystemIdentity = v
 	case *CloudflareR2CredsModel:
-		m.AccessKey = nil
-		m.AWSSystemIdentity = nil
-		m.CloudflareR2 = v
+		m.Credential.CloudflareR2 = v
 	default:
 		return fmt.Errorf("incorrect storage credential type %T", v)
 	}
@@ -173,7 +185,11 @@ func (m *S3StorageProfileModel) AddCreds(c StorageCredsModel) error {
 }
 
 func (m *S3StorageProfileModel) GetCredentials() (StorageCredsModel, error) {
-	return OnlyOneStorageCredential(m.AccessKey, m.AWSSystemIdentity, m.CloudflareR2)
+	if m.Credential == nil {
+		return nil, errors.New("credential is required")
+	}
+
+	return OnlyOneStorageCredential(m.Credential.AccessKey, m.Credential.AWSSystemIdentity, m.Credential.CloudflareR2)
 }
 
 func (m *ADLSStorageProfileModel) AsSDK() (profile.StorageSettings, error) {
@@ -217,7 +233,11 @@ func (m *ADLSStorageProfileModel) AsSDK() (profile.StorageSettings, error) {
 }
 
 func (m *ADLSStorageProfileModel) CredentialAsSDK() (credential.CredentialSettings, error) {
-	storage, err := OnlyOneStorageCredential(m.SharedAccessKey, m.ClientCredentials, m.SystemIdentity)
+	if m.Credential == nil {
+		return nil, errors.New("credential is required")
+	}
+
+	storage, err := OnlyOneStorageCredential(m.Credential.SharedAccessKey, m.Credential.ClientCredentials, m.Credential.SystemIdentity)
 	if err != nil {
 		return nil, err
 	}
@@ -234,13 +254,13 @@ func (m *GCSStorageProfileModel) IsEmpty() bool {
 }
 
 func (m *GCSStorageProfileModel) AddCreds(c StorageCredsModel) error {
+	m.Credential = &GCSCredentialWrapper{}
+
 	switch v := c.(type) {
 	case *GCSServiceAccountKeyCredsModel:
-		m.ServiceAccountKey = v
-		m.SystemIdentity = nil
+		m.Credential.ServiceAccountKey = v
 	case *GCPSystemIdentityCredsModel:
-		m.ServiceAccountKey = nil
-		m.SystemIdentity = v
+		m.Credential.SystemIdentity = v
 	default:
 		return fmt.Errorf("incorrect storage credential type %T", v)
 	}
@@ -248,7 +268,11 @@ func (m *GCSStorageProfileModel) AddCreds(c StorageCredsModel) error {
 }
 
 func (m *GCSStorageProfileModel) GetCredentials() (StorageCredsModel, error) {
-	return OnlyOneStorageCredential(m.ServiceAccountKey, m.SystemIdentity)
+	if m.Credential == nil {
+		return nil, errors.New("credential is required")
+	}
+
+	return OnlyOneStorageCredential(m.Credential.ServiceAccountKey, m.Credential.SystemIdentity)
 }
 
 func (m *GCSStorageProfileModel) AsSDK() (profile.StorageSettings, error) {
@@ -271,7 +295,11 @@ func (m *GCSStorageProfileModel) AsSDK() (profile.StorageSettings, error) {
 }
 
 func (m *GCSStorageProfileModel) CredentialAsSDK() (credential.CredentialSettings, error) {
-	creds, err := OnlyOneStorageCredential(m.ServiceAccountKey, m.SystemIdentity)
+	if m.Credential == nil {
+		return nil, errors.New("credential is required")
+	}
+
+	creds, err := OnlyOneStorageCredential(m.Credential.ServiceAccountKey, m.Credential.SystemIdentity)
 	if err != nil {
 		return nil, err
 	}
@@ -288,27 +316,28 @@ func (m *ADLSStorageProfileModel) IsEmpty() bool {
 }
 
 func (m *ADLSStorageProfileModel) AddCreds(c StorageCredsModel) error {
+	m.Credential = &ADLSCredentialWrapper{}
+
 	switch v := c.(type) {
 	case *AZClientCredentialsCredsModel:
-		m.ClientCredentials = v
-		m.SharedAccessKey = nil
-		m.SystemIdentity = nil
+		m.Credential.ClientCredentials = v
 	case *AZSharedAccessKeyCredsModel:
-		m.ClientCredentials = nil
-		m.SharedAccessKey = v
-		m.SystemIdentity = nil
+		m.Credential.SharedAccessKey = v
 	case *AzureSystemIdentityCredsModel:
-		m.ClientCredentials = nil
-		m.SharedAccessKey = nil
-		m.SystemIdentity = v
+		m.Credential.SystemIdentity = v
 	default:
 		return fmt.Errorf("incorrect storage credential type %T", v)
 	}
+
 	return nil
 }
 
 func (m *ADLSStorageProfileModel) GetCredentials() (StorageCredsModel, error) {
-	return OnlyOneStorageCredential(m.ClientCredentials, m.SharedAccessKey, m.SystemIdentity)
+	if m.Credential == nil {
+		return nil, errors.New("credential is required")
+	}
+
+	return OnlyOneStorageCredential(m.Credential.ClientCredentials, m.Credential.SharedAccessKey, m.Credential.SystemIdentity)
 }
 
 func StorageProfileModelFromSDK(sp profile.StorageProfile) (StorageProfileModel, error) {

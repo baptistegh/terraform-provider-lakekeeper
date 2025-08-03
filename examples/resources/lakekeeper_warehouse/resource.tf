@@ -9,12 +9,16 @@ resource "lakekeeper_warehouse" "aws" {
   protected      = false
   active         = true
   managed_access = true
-  s3 = {
-    region = "us-east-1"
-    bucket = "mybucket"
-    access_key = {
-      access_key_id     = "AKIAEXAMPLE1234567890"
-      secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  storage_profile = {
+    s3 = {
+      region = "us-east-1"
+      bucket = "mybucket"
+      credential = {
+        access_key = {
+          access_key_id     = "AKIAEXAMPLE1234567890"
+          secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        }
+      }
     }
   }
   delete_profile = {
@@ -30,10 +34,14 @@ resource "lakekeeper_warehouse" "gcs" {
   protected      = false
   active         = true
   managed_access = false
-  gcs = {
-    bucket = "mybucket"
-    service_account_key = {
-      key = file("key.json")
+  storage_profile = {
+    gcs = {
+      bucket = "mybucket"
+      credential = {
+        service_account_key = {
+          key = file("key.json")
+        }
+      }
     }
   }
   delete_profile = {
@@ -49,9 +57,13 @@ resource "lakekeeper_warehouse" "adls" {
   protected      = false
   active         = true
   managed_access = false
-  adls = {
-    account_name          = "myaccount"
-    filesystem            = "fs"
-    azure_system_identity = {}
+  storage_profile = {
+    adls = {
+      account_name = "myaccount"
+      filesystem   = "myfilesystem"
+      credential = {
+        azure_system_identity = {}
+      }
+    }
   }
 }

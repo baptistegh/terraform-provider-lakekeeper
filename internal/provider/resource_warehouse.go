@@ -52,19 +52,23 @@ type lakekeeperWarehouseResource struct {
 	client *lakekeeper.Client
 }
 
-// lakekeeperWarehouseResourceModel describes the resource data model.
-type lakekeeperWarehouseResourceModel struct {
-	ID                 types.String                 `tfsdk:"id"` // form: project_id:warehouse_id (internal ID)
-	WarehouseID        types.String                 `tfsdk:"warehouse_id"`
-	Name               types.String                 `tfsdk:"name"`
-	ProjectID          types.String                 `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
-	Protected          types.Bool                   `tfsdk:"protected"`
-	Active             types.Bool                   `tfsdk:"active"`
-	ManagedAccess      types.Bool                   `tfsdk:"managed_access"`
-	DeleteProfile      *sdk.DeleteProfileModel      `tfsdk:"delete_profile"`
+type storageProfileWrapper struct {
 	S3StorageProfile   *sdk.S3StorageProfileModel   `tfsdk:"s3"`
 	ADLSStorageProfile *sdk.ADLSStorageProfileModel `tfsdk:"adls"`
 	GCSStorageProfile  *sdk.GCSStorageProfileModel  `tfsdk:"gcs"`
+}
+
+// lakekeeperWarehouseResourceModel describes the resource data model.
+type lakekeeperWarehouseResourceModel struct {
+	ID             types.String            `tfsdk:"id"` // form: project_id:warehouse_id (internal ID)
+	WarehouseID    types.String            `tfsdk:"warehouse_id"`
+	Name           types.String            `tfsdk:"name"`
+	ProjectID      types.String            `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
+	Protected      types.Bool              `tfsdk:"protected"`
+	Active         types.Bool              `tfsdk:"active"`
+	ManagedAccess  types.Bool              `tfsdk:"managed_access"`
+	DeleteProfile  *sdk.DeleteProfileModel `tfsdk:"delete_profile"`
+	StorageProfile *storageProfileWrapper  `tfsdk:"storage_profile"`
 }
 
 func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -112,249 +116,290 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 				Default:             booldefault.StaticBool(false),
 			},
 			"delete_profile": sdk.DeleteProfileResourceSchema(),
-			"s3": schema.SingleNestedAttribute{
-				Optional: true,
+			"storage_profile": schema.SingleNestedAttribute{
+				Required:            true,
+				MarkdownDescription: "Configure the storage profile. Only one Of `s3`, `adls` or `gcs` must be provided.",
 				Attributes: map[string]schema.Attribute{
-					"region": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "Region to use for S3 requests. Required if type is `s3`. This attribute is required for `s3` storage profile.",
-					},
-					"bucket": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "The bucket name for the storage profile. This attribute is required for `s3` storage profile",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(3, 64),
-						},
-					},
-					"sts_enabled": schema.BoolAttribute{
-						Required:            true,
-						MarkdownDescription: "Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.",
-					},
-					"key_prefix": schema.StringAttribute{
+					"s3": schema.SingleNestedAttribute{
 						Optional:            true,
-						MarkdownDescription: "Subpath in the filesystem to use.",
-					},
-					"allow_alternative_protocols": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.",
-					},
-					"assume_role_arn": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile",
-					},
-					"aws_kms_key_arn": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "ARN of the KMS key used to encrypt the S3 bucket, if any.",
-					},
-					"endpoint": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`",
-						Validators: []validator.String{
-							stringvalidator.RegexMatches(regexp.MustCompile("/$"), "Endpoint must ends with '/' character"),
-						},
-					},
-					"flavor": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
-						Validators: []validator.String{
-							stringvalidator.OneOf("aws", "s3-compat"),
-						},
-						MarkdownDescription: "S3 flavor to use. Defaults to `aws`.",
-					},
-					"path_style_access": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.",
-					},
-					"push_s3_delete_disabled": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Controls whether the `s3.delete-enabled=false` flag is sent to clients.",
-					},
-					"remote_signing_url_style": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
-						Validators: []validator.String{
-							stringvalidator.OneOf("path-style", "virtual-host", "auto"),
-						},
-						MarkdownDescription: "S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.",
-					}, "sts_role_arn": schema.StringAttribute{
-						Optional: true,
-					},
-					"sts_token_validity_seconds": schema.Int64Attribute{
-						Optional: true,
-						Computed: true,
-						Validators: []validator.Int64{
-							int64validator.AtLeast(0),
-						},
-						MarkdownDescription: "The validity of the STS tokens in seconds. Default is `3600`.",
-					},
-					"access_key": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Authenticate to the S3 bucket with an Access Key",
+						MarkdownDescription: `S3 storage profile. Suitable for AWS or any service compatible with the S3 API.`,
 						Attributes: map[string]schema.Attribute{
-							"access_key_id": schema.StringAttribute{
+							"region": schema.StringAttribute{
 								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "The access key ID. Required for `aws-access-key` credentials.",
+								MarkdownDescription: "Region to use for S3 requests.",
 							},
-							"secret_access_key": schema.StringAttribute{
+							"bucket": schema.StringAttribute{
 								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "The secret access key. Required for `aws-access-key` credentials.",
+								MarkdownDescription: "The bucket name for the storage profile.",
+								Validators: []validator.String{
+									stringvalidator.LengthBetween(3, 64),
+								},
 							},
-							"external_id": schema.StringAttribute{
+							"sts_enabled": schema.BoolAttribute{
+								Required:            true,
+								MarkdownDescription: "Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.",
+							},
+							"key_prefix": schema.StringAttribute{
 								Optional:            true,
-								Sensitive:           true,
-								MarkdownDescription: "The external ID.",
+								MarkdownDescription: "Subpath in the filesystem to use.",
+							},
+							"allow_alternative_protocols": schema.BoolAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.",
+							},
+							"assume_role_arn": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile",
+							},
+							"aws_kms_key_arn": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "ARN of the KMS key used to encrypt the S3 bucket, if any.",
+							},
+							"endpoint": schema.StringAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`",
+								Validators: []validator.String{
+									stringvalidator.RegexMatches(regexp.MustCompile("/$"), "Endpoint must ends with '/' character"),
+								},
+							},
+							"flavor": schema.StringAttribute{
+								Optional: true,
+								Computed: true,
+								Validators: []validator.String{
+									stringvalidator.OneOf("aws", "s3-compat"),
+								},
+								MarkdownDescription: "S3 flavor to use. Defaults to `aws`.",
+							},
+							"path_style_access": schema.BoolAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.",
+							},
+							"push_s3_delete_disabled": schema.BoolAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "Controls whether the `s3.delete-enabled=false` flag is sent to clients.",
+							},
+							"remote_signing_url_style": schema.StringAttribute{
+								Optional: true,
+								Computed: true,
+								Validators: []validator.String{
+									stringvalidator.OneOf("path-style", "virtual-host", "auto"),
+								},
+								MarkdownDescription: "S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.",
+							}, "sts_role_arn": schema.StringAttribute{
+								Optional: true,
+							},
+							"sts_token_validity_seconds": schema.Int64Attribute{
+								Optional: true,
+								Computed: true,
+								Validators: []validator.Int64{
+									int64validator.AtLeast(0),
+								},
+								MarkdownDescription: "The validity of the STS tokens in seconds. Default is `3600`.",
+							},
+							"credential": schema.SingleNestedAttribute{
+								Required:            true,
+								MarkdownDescription: "Configure the credentials to access the S3 storage. Only one of `access_key`, `cloudflare_r2` or `aws_system_identity` must be provided.",
+								Attributes: map[string]schema.Attribute{
+									"access_key": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to the S3 bucket with an Access Key",
+										Attributes: map[string]schema.Attribute{
+											"access_key_id": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "The access key ID. Required for `aws-access-key` credentials.",
+											},
+											"secret_access_key": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "The secret access key. Required for `aws-access-key` credentials.",
+											},
+											"external_id": schema.StringAttribute{
+												Optional:            true,
+												Sensitive:           true,
+												MarkdownDescription: "The external ID.",
+											},
+										},
+									},
+									"cloudflare_r2": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to a Cloudflare R2 Bucket",
+										Attributes: map[string]schema.Attribute{
+											"access_key_id": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "Access key ID used for IO operations of Lakekeeper",
+											},
+											"secret_access_key": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "Secret key associated with the access key ID",
+											},
+											"account_id": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "Cloudflare account ID, used to determine the temporary credentials",
+											},
+											"token": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "Token associated with the access key ID",
+											},
+										},
+									},
+									"aws_system_identity": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to the S3 bucket with AWS System Identity",
+										Attributes: map[string]schema.Attribute{
+											"external_id": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "Required for `aws-system-identity` credentials",
+											},
+										},
+									},
+								},
 							},
 						},
 					},
-					"cloudflare_r2": schema.SingleNestedAttribute{
+					"adls": schema.SingleNestedAttribute{
 						Optional:            true,
-						MarkdownDescription: "Authenticate to the S3 bucket with Cloudflare R2",
+						MarkdownDescription: "ADLS storage profile. Suitable for Azure Data Lake Storage Gen2.",
 						Attributes: map[string]schema.Attribute{
-							"access_key_id": schema.StringAttribute{
+							"account_name": schema.StringAttribute{
 								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Access key ID used for IO operations of Lakekeeper",
+								MarkdownDescription: "Name of the azure storage account.",
 							},
-							"secret_access_key": schema.StringAttribute{
+							"filesystem": schema.StringAttribute{
 								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Secret key associated with the access key ID",
+								MarkdownDescription: "Name of the adls filesystem, in blobstorage also known as container.",
+								Validators: []validator.String{
+									stringvalidator.LengthBetween(3, 64),
+								},
 							},
-							"account_id": schema.StringAttribute{
-								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Cloudflare account ID, used to determine the temporary credentials",
+							"allow_alternative_protocols": schema.BoolAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "Allow alternative protocols such as wasbs:// in locations. This is disabled by default. We do not recommend to use this setting except for migration.",
 							},
-							"token": schema.StringAttribute{
+							"authority_host": schema.StringAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "The authority host to use for authentication. Defaults to `https://login.microsoftonline.com`.",
+							},
+							"host": schema.StringAttribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "The host to use for the storage account. Defaults to `dfs.core.windows.net`.",
+							},
+							"key_prefix": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Subpath in the filesystem to use.",
+							},
+							"sas_token_validity_seconds": schema.Int64Attribute{
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "The validity of the sas token in seconds. Default is `3600`.",
+								Validators: []validator.Int64{
+									int64validator.AtLeast(0),
+								},
+							},
+							"credential": schema.SingleNestedAttribute{
 								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Token associated with the access key ID",
+								MarkdownDescription: "Configure the credentials to access the ADLS storage. One of `shared_access_key`, `client_credentials` or `azure_system_identity` must be provided.",
+								Attributes: map[string]schema.Attribute{
+									"shared_access_key": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to ADLS with Shared Access Key",
+										Attributes: map[string]schema.Attribute{
+											"key": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "The shared access key. Required for `azure-shared-access-key` credentials.",
+											},
+										},
+									},
+									"client_credentials": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to ADLS with Client Credentials",
+										Attributes: map[string]schema.Attribute{
+											"client_id": schema.StringAttribute{
+												Required:  true,
+												Sensitive: true,
+											},
+											"client_secret": schema.StringAttribute{
+												Required:  true,
+												Sensitive: true,
+											},
+											"tenant_id": schema.StringAttribute{
+												Required:  true,
+												Sensitive: true,
+											},
+										},
+									},
+									"azure_system_identity": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to ADLS with Azure System Identity",
+										Attributes: map[string]schema.Attribute{
+											"enabled": schema.BoolAttribute{
+												Computed:            true,
+												MarkdownDescription: "This is just an helper to check if the Azure System Identity is activated for this storage profile.",
+												Default:             booldefault.StaticBool(true),
+											},
+										},
+									},
+								},
 							},
 						},
 					},
-					"aws_system_identity": schema.SingleNestedAttribute{
+					"gcs": schema.SingleNestedAttribute{
 						Optional:            true,
-						MarkdownDescription: "Authenticate to the S3 bucket with AWS System Identity",
+						MarkdownDescription: "GCS storage profile. Designed for use with Google Cloud Storage",
 						Attributes: map[string]schema.Attribute{
-							"external_id": schema.StringAttribute{
+							"bucket": schema.StringAttribute{
 								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Required for `aws-system-identity` credentials",
+								MarkdownDescription: "The bucket name.",
+								Validators: []validator.String{
+									stringvalidator.LengthBetween(3, 64),
+								},
+							},
+							"key_prefix": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Subpath in the filesystem to use.",
+							},
+							"credential": schema.SingleNestedAttribute{
+								Required:            true,
+								MarkdownDescription: "Configure the credentials to access the GCS storage. One of `service_account_key` or `gcp_system_identity` must be provided.",
+								Attributes: map[string]schema.Attribute{
+									"service_account_key": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to the GCS bucket with a Service Account Key",
+										Attributes: map[string]schema.Attribute{
+											"key": schema.StringAttribute{
+												Required:            true,
+												Sensitive:           true,
+												MarkdownDescription: "Required for `service-account-key` credentials.",
+											},
+										},
+									},
+									"gcp_system_identity": schema.SingleNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "Authenticate to the GCS bucket with GCP System Identity",
+										Attributes: map[string]schema.Attribute{
+											"enabled": schema.BoolAttribute{
+												Computed:            true,
+												MarkdownDescription: "This is just an helper to check if the GCP System Identity is activated for this storage profile.",
+												Default:             booldefault.StaticBool(true),
+											},
+										},
+									},
+								},
 							},
 						},
-					},
-				},
-			},
-			"adls": schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					"account_name": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "Name of the azure storage account.",
-					},
-					"filesystem": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "Name of the adls filesystem, in blobstorage also known as container.",
-					},
-					"allow_alternative_protocols": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "Allow alternative protocols such as wasbs:// in locations. This is disabled by default. We do not recommend to use this setting except for migration.",
-					},
-					"authority_host": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The authority host to use for authentication. Defaults to `https://login.microsoftonline.com`.",
-					},
-					"host": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The host to use for the storage account. Defaults to `dfs.core.windows.net`.",
-					},
-					"key_prefix": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Subpath in the filesystem to use.",
-					},
-					"sas_token_validity_seconds": schema.Int64Attribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The validity of the sas token in seconds. Default is `3600`.",
-						Validators: []validator.Int64{
-							int64validator.AtLeast(0),
-						},
-					},
-					"shared_access_key": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Authenticate to ADLS with Shared Access Key",
-						Attributes: map[string]schema.Attribute{
-							"key": schema.StringAttribute{
-								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "The shared access key. Required for `azure-shared-access-key` credentials.",
-							},
-						},
-					},
-					"client_credentials": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Authenticate to ADLS with Client Credentials",
-						Attributes: map[string]schema.Attribute{
-							"client_id": schema.StringAttribute{
-								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Required if type is `az_client_credentials`",
-							},
-							"client_secret": schema.StringAttribute{
-								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Required if type is `az_client_credentials`",
-							},
-							"tenant_id": schema.StringAttribute{
-								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Required if type is `az_client_credentials`",
-							},
-						},
-					},
-					"azure_system_identity": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Authenticate to ADLS with Azure System Identity",
-					},
-				},
-			},
-			"gcs": schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					"bucket": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "The bucket name. This attribute is required for `gcs` storage profile",
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(3, 64),
-						},
-					},
-					"key_prefix": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Subpath in the filesystem to use.",
-					},
-					"service_account_key": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Authenticate to the GCS bucket with a Service Account Key",
-						Attributes: map[string]schema.Attribute{
-							"key": schema.StringAttribute{
-								Required:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Required for `service-account-key` credentials.",
-							},
-						},
-					},
-					"gcp_system_identity": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Authenticate to the GCS bucket with GCP System Identity",
 					},
 				},
 			},

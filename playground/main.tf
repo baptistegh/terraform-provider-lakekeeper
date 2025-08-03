@@ -42,32 +42,98 @@ resource "lakekeeper_project_user_assignment" "default_anna" {
 //   assignments = ["operator"]
 // }
 
-resource "lakekeeper_warehouse" "gcs" {
-  name       = "test-warehouse"
+resource "lakekeeper_warehouse" "s3" {
+  name       = "test-warehouse-s3"
   project_id = data.lakekeeper_default_project.default.id
   storage_profile = {
-    type   = "gcs"
-    bucket = "testbucket"
-  }
-  storage_credential = {
-    type = "gcs_gcp_system_identity"
+    s3 = {
+      bucket          = "testbucket"
+      region          = "us-west-1"
+      sts_enabled     = true
+      assume_role_arn = "arn:aws:iam::123456789012:role/MyDeploymentRole"
+      credential = {
+        access_key = {
+          access_key_id     = "AKIAEXAMPLE1234567890"
+          secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        }
+      }
+    }
   }
 }
 
-resource "lakekeeper_role" "select" {
+resource "lakekeeper_warehouse" "gcs" {
+  name       = "test-warehouse-gcs"
+  project_id = data.lakekeeper_default_project.default.id
+  storage_profile = {
+    gcs = {
+      bucket = "testmybucket"
+      credential = {
+        service_account_key = {
+          key = file("key.json")
+        }
+      }
+    }
+  }
+  delete_profile = {
+    type               = "soft"
+    expiration_seconds = 3600
+  }
+}
+
+
+resource "lakekeeper_warehouse" "adls" {
+  name       = "test-warehouse-adls"
+  project_id = data.lakekeeper_default_project.default.id
+  storage_profile = {
+    adls = {
+      account_name = "myaccount"
+      filesystem   = "myfilesystem"
+      credential = {
+        azure_system_identity = {}
+      }
+    }
+  }
+}
+
+resource "lakekeeper_role" "read" {
   project_id  = data.lakekeeper_default_project.default.id
-  name        = "test-role"
-  description = "this role gives select permissions on test-warehouse"
+  name        = "read-role"
+  description = "this role gives select permissions on all the warehouses"
 }
 
-resource "lakekeeper_warehouse_role_assignment" "wh_select" {
-  warehouse_id = lakekeeper_warehouse.gcs.warehouse_id
-  role_id      = lakekeeper_role.select.role_id
+resource "lakekeeper_role_user_assignment" "read_peter" {
+  role_id     = lakekeeper_role.read.role_id
+  user_id     = lakekeeper_user.peter.id
+  assignments = ["assignee"]
+}
+
+resource "lakekeeper_role" "write" {
+  project_id  = data.lakekeeper_default_project.default.id
+  name        = "write-role"
+  description = "this role gives create and modify permissions on test-warehouse-s3"
+}
+
+resource "lakekeeper_role_user_assignment" "write_peter" {
+  role_id     = lakekeeper_role.write.role_id
+  user_id     = lakekeeper_user.peter.id
+  assignments = ["assignee"]
+}
+
+# Adding select and describe permissions for the role to all the warehouses
+resource "lakekeeper_warehouse_role_assignment" "all_read" {
+  for_each = tomap({
+    s3   = lakekeeper_warehouse.s3.warehouse_id,
+    gcs  = lakekeeper_warehouse.gcs.warehouse_id,
+    adls = lakekeeper_warehouse.adls.warehouse_id
+  })
+
+  warehouse_id = each.value
+  role_id      = lakekeeper_role.read.role_id
   assignments  = ["select", "describe"]
 }
 
-resource "lakekeeper_role_user_assignment" "select_peter" {
-  role_id     = lakekeeper_role.select.role_id
-  user_id     = lakekeeper_user.peter.id
-  assignments = ["assignee"]
+resource "lakekeeper_warehouse_role_assignment" "s3_write" {
+  warehouse_id = lakekeeper_warehouse.s3.warehouse_id
+  role_id      = lakekeeper_role.write.role_id
+  assignments  = ["create", "modify"]
 }
