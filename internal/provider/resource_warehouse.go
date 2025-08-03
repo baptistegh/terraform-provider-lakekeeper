@@ -63,7 +63,7 @@ type lakekeeperWarehouseResourceModel struct {
 	ID             types.String            `tfsdk:"id"` // form: project_id:warehouse_id (internal ID)
 	WarehouseID    types.String            `tfsdk:"warehouse_id"`
 	Name           types.String            `tfsdk:"name"`
-	ProjectID      types.String            `tfsdk:"project_id"` // Optional, if not provided, the default project will be used.
+	ProjectID      types.String            `tfsdk:"project_id"`
 	Protected      types.Bool              `tfsdk:"protected"`
 	Active         types.Bool              `tfsdk:"active"`
 	ManagedAccess  types.Bool              `tfsdk:"managed_access"`

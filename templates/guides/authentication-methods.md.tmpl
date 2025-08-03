@@ -21,7 +21,7 @@ Authentication is performed via an OpenID Connect (OIDC)-compatible identity pro
 
 ## Example Provider Configuration
 
-```hcl
+```terraform
 provider "lakekeeper" {
   endpoint      = "<lakekeeper_base_url>"
   auth_url      = "<token_endpoint>"

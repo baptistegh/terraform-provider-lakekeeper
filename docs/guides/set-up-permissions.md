@@ -82,7 +82,7 @@ resource "lakekeeper_warehouse_role_assignment" "wh_select" {
 ```
 
 > A `test-role` is created.
-> it grants read-only access to test-warehouse.
+> it grants read-only access to `test-warehouse` warehouse.
 
 _You can assign roles to other objects with the appropriate resources._
 
