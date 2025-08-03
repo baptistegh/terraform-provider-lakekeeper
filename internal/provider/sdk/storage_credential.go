@@ -46,8 +46,12 @@ type (
 		Key types.String `tfsdk:"key"`
 	}
 
-	AzureSystemIdentityCredsModel struct{}
-	GCPSystemIdentityCredsModel   struct{}
+	AzureSystemIdentityCredsModel struct {
+		Enabled types.Bool `tfsdk:"enabled"`
+	}
+	GCPSystemIdentityCredsModel struct {
+		Enabled types.Bool `tfsdk:"enabled"`
+	}
 )
 
 var (

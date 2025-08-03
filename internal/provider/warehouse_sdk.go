@@ -19,7 +19,11 @@ func (m *lakekeeperWarehouseResourceModel) toWarehouseCreateRequest() (*manageme
 		Name: m.Name.ValueString(),
 	}
 
-	s, err := sdk.OnlyOneStorageProfile(m.S3StorageProfile, m.ADLSStorageProfile, m.GCSStorageProfile)
+	if m.StorageProfile == nil {
+		return nil, errors.New("storage profile is required")
+	}
+
+	s, err := sdk.OnlyOneStorageProfile(m.StorageProfile.S3StorageProfile, m.StorageProfile.ADLSStorageProfile, m.StorageProfile.GCSStorageProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -71,15 +75,15 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.W
 	}
 
 	var oldProfile sdk.StorageProfileModel
-	if plan != nil {
-		s, err := sdk.OnlyOneStorageProfile(plan.S3StorageProfile, plan.GCSStorageProfile, plan.ADLSStorageProfile)
+	if plan != nil && plan.StorageProfile != nil {
+		s, err := sdk.OnlyOneStorageProfile(plan.StorageProfile.S3StorageProfile, plan.StorageProfile.GCSStorageProfile, plan.StorageProfile.ADLSStorageProfile)
 		if err != nil {
 			diags.AddError(errorMessage, err.Error())
 			return diags
 		}
 		oldProfile = s
 	} else {
-		s, err := sdk.OnlyOneStorageProfile(m.S3StorageProfile, m.GCSStorageProfile, m.ADLSStorageProfile)
+		s, err := sdk.OnlyOneStorageProfile(m.StorageProfile.S3StorageProfile, m.StorageProfile.GCSStorageProfile, m.StorageProfile.ADLSStorageProfile)
 		if err != nil {
 			diags.AddError(errorMessage, err.Error())
 			return diags
@@ -104,19 +108,15 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.W
 		return diags
 	}
 
+	m.StorageProfile = &storageProfileWrapper{}
+
 	switch sp := storageProfile.(type) {
 	case *sdk.S3StorageProfileModel:
-		m.S3StorageProfile = sp
-		m.ADLSStorageProfile = nil
-		m.GCSStorageProfile = nil
+		m.StorageProfile.S3StorageProfile = sp
 	case *sdk.ADLSStorageProfileModel:
-		m.ADLSStorageProfile = sp
-		m.S3StorageProfile = nil
-		m.GCSStorageProfile = nil
+		m.StorageProfile.ADLSStorageProfile = sp
 	case *sdk.GCSStorageProfileModel:
-		m.GCSStorageProfile = sp
-		m.ADLSStorageProfile = nil
-		m.S3StorageProfile = nil
+		m.StorageProfile.GCSStorageProfile = sp
 	default:
 		diags.AddError(errorMessage, "Incorrect storage profile type")
 	}

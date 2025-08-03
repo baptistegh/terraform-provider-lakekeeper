@@ -27,12 +27,16 @@ resource "lakekeeper_warehouse" "aws" {
   protected      = false
   active         = true
   managed_access = true
-  s3 = {
-    region = "us-east-1"
-    bucket = "mybucket"
-    access_key = {
-      access_key_id     = "AKIAEXAMPLE1234567890"
-      secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  storage_profile = {
+    s3 = {
+      region = "us-east-1"
+      bucket = "mybucket"
+      credential = {
+        access_key = {
+          access_key_id     = "AKIAEXAMPLE1234567890"
+          secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        }
+      }
     }
   }
   delete_profile = {
@@ -48,10 +52,14 @@ resource "lakekeeper_warehouse" "gcs" {
   protected      = false
   active         = true
   managed_access = false
-  gcs = {
-    bucket = "mybucket"
-    service_account_key = {
-      key = file("key.json")
+  storage_profile = {
+    gcs = {
+      bucket = "mybucket"
+      credential = {
+        service_account_key = {
+          key = file("key.json")
+        }
+      }
     }
   }
   delete_profile = {
@@ -67,10 +75,14 @@ resource "lakekeeper_warehouse" "adls" {
   protected      = false
   active         = true
   managed_access = false
-  adls = {
-    account_name          = "myaccount"
-    filesystem            = "fs"
-    azure_system_identity = {}
+  storage_profile = {
+    adls = {
+      account_name = "myaccount"
+      filesystem   = "fs"
+      credential = {
+        azure_system_identity = {}
+      }
+    }
   }
 }
 ```
@@ -82,57 +94,75 @@ resource "lakekeeper_warehouse" "adls" {
 
 - `name` (String) Name of the warehouse to create. Must be unique within a project and may not contain "/"
 - `project_id` (String) The project ID to which the warehouse belongs.
+- `storage_profile` (Attributes) Configure the storage profile. Only one Of `s3`, `adls` or `gcs` must be provided. (see [below for nested schema](#nestedatt--storage_profile))
 
 ### Optional
 
 - `active` (Boolean) Whether the warehouse is active. Default is `true`.
-- `adls` (Attributes) (see [below for nested schema](#nestedatt--adls))
 - `delete_profile` (Attributes) The delete profile for the warehouse. It can be either a soft or hard delete profile. Default: `hard` (see [below for nested schema](#nestedatt--delete_profile))
-- `gcs` (Attributes) (see [below for nested schema](#nestedatt--gcs))
 - `managed_access` (Boolean) Whether the managed access is configured on this warehouse. Default is `false`.
 - `protected` (Boolean) Whether the warehouse is protected from being deleted. Default is `false`.
-- `s3` (Attributes) (see [below for nested schema](#nestedatt--s3))
 
 ### Read-Only
 
 - `id` (String) The internal ID of this resource. In the form: `{{project_id}}/{{warehouse_id}}`
 - `warehouse_id` (String) The ID of the warehouse.
 
-<a id="nestedatt--adls"></a>
-### Nested Schema for `adls`
+<a id="nestedatt--storage_profile"></a>
+### Nested Schema for `storage_profile`
+
+Optional:
+
+- `adls` (Attributes) ADLS storage profile. Suitable for Azure Data Lake Storage Gen2. (see [below for nested schema](#nestedatt--storage_profile--adls))
+- `gcs` (Attributes) GCS storage profile. Designed for use with Google Cloud Storage (see [below for nested schema](#nestedatt--storage_profile--gcs))
+- `s3` (Attributes) S3 storage profile. Suitable for AWS or any service compatible with the S3 API. (see [below for nested schema](#nestedatt--storage_profile--s3))
+
+<a id="nestedatt--storage_profile--adls"></a>
+### Nested Schema for `storage_profile.adls`
 
 Required:
 
 - `account_name` (String) Name of the azure storage account.
+- `credential` (Attributes) Configure the credentials to access the ADLS storage. One of `shared_access_key`, `client_credentials` or `azure_system_identity` must be provided. (see [below for nested schema](#nestedatt--storage_profile--adls--credential))
 - `filesystem` (String) Name of the adls filesystem, in blobstorage also known as container.
 
 Optional:
 
 - `allow_alternative_protocols` (Boolean) Allow alternative protocols such as wasbs:// in locations. This is disabled by default. We do not recommend to use this setting except for migration.
 - `authority_host` (String) The authority host to use for authentication. Defaults to `https://login.microsoftonline.com`.
-- `azure_system_identity` (Attributes) Authenticate to ADLS with Azure System Identity (see [below for nested schema](#nestedatt--adls--azure_system_identity))
-- `client_credentials` (Attributes) Authenticate to ADLS with Client Credentials (see [below for nested schema](#nestedatt--adls--client_credentials))
 - `host` (String) The host to use for the storage account. Defaults to `dfs.core.windows.net`.
 - `key_prefix` (String) Subpath in the filesystem to use.
 - `sas_token_validity_seconds` (Number) The validity of the sas token in seconds. Default is `3600`.
-- `shared_access_key` (Attributes) Authenticate to ADLS with Shared Access Key (see [below for nested schema](#nestedatt--adls--shared_access_key))
 
-<a id="nestedatt--adls--azure_system_identity"></a>
-### Nested Schema for `adls.azure_system_identity`
+<a id="nestedatt--storage_profile--adls--credential"></a>
+### Nested Schema for `storage_profile.adls.credential`
+
+Optional:
+
+- `azure_system_identity` (Attributes) Authenticate to ADLS with Azure System Identity (see [below for nested schema](#nestedatt--storage_profile--adls--credential--azure_system_identity))
+- `client_credentials` (Attributes) Authenticate to ADLS with Client Credentials (see [below for nested schema](#nestedatt--storage_profile--adls--credential--client_credentials))
+- `shared_access_key` (Attributes) Authenticate to ADLS with Shared Access Key (see [below for nested schema](#nestedatt--storage_profile--adls--credential--shared_access_key))
+
+<a id="nestedatt--storage_profile--adls--credential--azure_system_identity"></a>
+### Nested Schema for `storage_profile.adls.credential.azure_system_identity`
+
+Read-Only:
+
+- `enabled` (Boolean) This is just an helper to check if the Azure System Identity is activated for this storage profile.
 
 
-<a id="nestedatt--adls--client_credentials"></a>
-### Nested Schema for `adls.client_credentials`
+<a id="nestedatt--storage_profile--adls--credential--client_credentials"></a>
+### Nested Schema for `storage_profile.adls.credential.client_credentials`
 
 Required:
 
-- `client_id` (String, Sensitive) Required if type is `az_client_credentials`
-- `client_secret` (String, Sensitive) Required if type is `az_client_credentials`
-- `tenant_id` (String, Sensitive) Required if type is `az_client_credentials`
+- `client_id` (String, Sensitive)
+- `client_secret` (String, Sensitive)
+- `tenant_id` (String, Sensitive)
 
 
-<a id="nestedatt--adls--shared_access_key"></a>
-### Nested Schema for `adls.shared_access_key`
+<a id="nestedatt--storage_profile--adls--credential--shared_access_key"></a>
+### Nested Schema for `storage_profile.adls.credential.shared_access_key`
 
 Required:
 
@@ -140,34 +170,37 @@ Required:
 
 
 
-<a id="nestedatt--delete_profile"></a>
-### Nested Schema for `delete_profile`
 
-Optional:
-
-- `expiration_seconds` (Number) When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`
-- `type` (String) Type of the delete profile. Can be `hard` or `soft`
-
-
-<a id="nestedatt--gcs"></a>
-### Nested Schema for `gcs`
+<a id="nestedatt--storage_profile--gcs"></a>
+### Nested Schema for `storage_profile.gcs`
 
 Required:
 
-- `bucket` (String) The bucket name. This attribute is required for `gcs` storage profile
+- `bucket` (String) The bucket name.
+- `credential` (Attributes) Configure the credentials to access the GCS storage. One of `service_account_key` or `gcp_system_identity` must be provided. (see [below for nested schema](#nestedatt--storage_profile--gcs--credential))
 
 Optional:
 
-- `gcp_system_identity` (Attributes) Authenticate to the GCS bucket with GCP System Identity (see [below for nested schema](#nestedatt--gcs--gcp_system_identity))
 - `key_prefix` (String) Subpath in the filesystem to use.
-- `service_account_key` (Attributes) Authenticate to the GCS bucket with a Service Account Key (see [below for nested schema](#nestedatt--gcs--service_account_key))
 
-<a id="nestedatt--gcs--gcp_system_identity"></a>
-### Nested Schema for `gcs.gcp_system_identity`
+<a id="nestedatt--storage_profile--gcs--credential"></a>
+### Nested Schema for `storage_profile.gcs.credential`
+
+Optional:
+
+- `gcp_system_identity` (Attributes) Authenticate to the GCS bucket with GCP System Identity (see [below for nested schema](#nestedatt--storage_profile--gcs--credential--gcp_system_identity))
+- `service_account_key` (Attributes) Authenticate to the GCS bucket with a Service Account Key (see [below for nested schema](#nestedatt--storage_profile--gcs--credential--service_account_key))
+
+<a id="nestedatt--storage_profile--gcs--credential--gcp_system_identity"></a>
+### Nested Schema for `storage_profile.gcs.credential.gcp_system_identity`
+
+Read-Only:
+
+- `enabled` (Boolean) This is just an helper to check if the GCP System Identity is activated for this storage profile.
 
 
-<a id="nestedatt--gcs--service_account_key"></a>
-### Nested Schema for `gcs.service_account_key`
+<a id="nestedatt--storage_profile--gcs--credential--service_account_key"></a>
+### Nested Schema for `storage_profile.gcs.credential.service_account_key`
 
 Required:
 
@@ -175,23 +208,22 @@ Required:
 
 
 
-<a id="nestedatt--s3"></a>
-### Nested Schema for `s3`
+
+<a id="nestedatt--storage_profile--s3"></a>
+### Nested Schema for `storage_profile.s3`
 
 Required:
 
-- `bucket` (String) The bucket name for the storage profile. This attribute is required for `s3` storage profile
-- `region` (String) Region to use for S3 requests. Required if type is `s3`. This attribute is required for `s3` storage profile.
+- `bucket` (String) The bucket name for the storage profile.
+- `credential` (Attributes) Configure the credentials to access the S3 storage. Only one of `access_key`, `cloudflare_r2` or `aws_system_identity` must be provided. (see [below for nested schema](#nestedatt--storage_profile--s3--credential))
+- `region` (String) Region to use for S3 requests.
 - `sts_enabled` (Boolean) Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.
 
 Optional:
 
-- `access_key` (Attributes) Authenticate to the S3 bucket with an Access Key (see [below for nested schema](#nestedatt--s3--access_key))
 - `allow_alternative_protocols` (Boolean) Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.
 - `assume_role_arn` (String) Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile
 - `aws_kms_key_arn` (String) ARN of the KMS key used to encrypt the S3 bucket, if any.
-- `aws_system_identity` (Attributes) Authenticate to the S3 bucket with AWS System Identity (see [below for nested schema](#nestedatt--s3--aws_system_identity))
-- `cloudflare_r2` (Attributes) Authenticate to the S3 bucket with Cloudflare R2 (see [below for nested schema](#nestedatt--s3--cloudflare_r2))
 - `endpoint` (String) Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`
 - `flavor` (String) S3 flavor to use. Defaults to `aws`.
 - `key_prefix` (String) Subpath in the filesystem to use.
@@ -201,8 +233,17 @@ Optional:
 - `sts_role_arn` (String)
 - `sts_token_validity_seconds` (Number) The validity of the STS tokens in seconds. Default is `3600`.
 
-<a id="nestedatt--s3--access_key"></a>
-### Nested Schema for `s3.access_key`
+<a id="nestedatt--storage_profile--s3--credential"></a>
+### Nested Schema for `storage_profile.s3.credential`
+
+Optional:
+
+- `access_key` (Attributes) Authenticate to the S3 bucket with an Access Key (see [below for nested schema](#nestedatt--storage_profile--s3--credential--access_key))
+- `aws_system_identity` (Attributes) Authenticate to the S3 bucket with AWS System Identity (see [below for nested schema](#nestedatt--storage_profile--s3--credential--aws_system_identity))
+- `cloudflare_r2` (Attributes) Authenticate to a Cloudflare R2 Bucket (see [below for nested schema](#nestedatt--storage_profile--s3--credential--cloudflare_r2))
+
+<a id="nestedatt--storage_profile--s3--credential--access_key"></a>
+### Nested Schema for `storage_profile.s3.credential.access_key`
 
 Required:
 
@@ -214,16 +255,16 @@ Optional:
 - `external_id` (String, Sensitive) The external ID.
 
 
-<a id="nestedatt--s3--aws_system_identity"></a>
-### Nested Schema for `s3.aws_system_identity`
+<a id="nestedatt--storage_profile--s3--credential--aws_system_identity"></a>
+### Nested Schema for `storage_profile.s3.credential.aws_system_identity`
 
 Required:
 
 - `external_id` (String, Sensitive) Required for `aws-system-identity` credentials
 
 
-<a id="nestedatt--s3--cloudflare_r2"></a>
-### Nested Schema for `s3.cloudflare_r2`
+<a id="nestedatt--storage_profile--s3--credential--cloudflare_r2"></a>
+### Nested Schema for `storage_profile.s3.credential.cloudflare_r2`
 
 Required:
 
@@ -231,3 +272,15 @@ Required:
 - `account_id` (String, Sensitive) Cloudflare account ID, used to determine the temporary credentials
 - `secret_access_key` (String, Sensitive) Secret key associated with the access key ID
 - `token` (String, Sensitive) Token associated with the access key ID
+
+
+
+
+
+<a id="nestedatt--delete_profile"></a>
+### Nested Schema for `delete_profile`
+
+Optional:
+
+- `expiration_seconds` (Number) When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`
+- `type` (String) Type of the delete profile. Can be `hard` or `soft`
