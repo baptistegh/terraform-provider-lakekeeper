@@ -9,14 +9,11 @@ documentation:
 ci:
   - changed-files:
     - any-glob-to-any-file: .github/**
+    - any-glob-to-any-file: .golangci.yml
 
 go:
   - changed-files:
     - any-glob-to-any-file: '**/*.go'
-
-client:
-  - changed-files:
-    - any-glob-to-any-file: 'lakekeeper/**'
 
 provider:
   - changed-files:
