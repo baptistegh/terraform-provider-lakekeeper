@@ -1,6 +1,9 @@
 package sdk
 
 import (
+	"fmt"
+
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -20,7 +23,7 @@ func AssignmentDataSourceType() schema.NestedAttributeObject {
 			},
 			"assignee_type": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: `The type of this assignee. Can be ` + "`user` or  `role`.",
+				MarkdownDescription: fmt.Sprintf("The type of this assignee. Can be `%s` or `%s`.", permission.UserType, permission.RoleType),
 			},
 			"assignment": schema.StringAttribute{
 				Computed:            true,

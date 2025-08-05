@@ -32,5 +32,5 @@ data "lakekeeper_project_role_access" "foo" {
 
 ### Read-Only
 
-- `allowed_actions` (Set of String) List of the role's allowed actions on the project. The possible values are `assume` `can_grant_assignee` `can_change_ownership` `delete` `update` `read` `create_namespace`
+- `allowed_actions` (Set of String) List of the role's allowed actions on the project. The possible values are `create_warehouse` `delete` `rename` `list_warehouses` `create_role` `list_roles` `search_roles` `read_assignments` `grant_role_creator` `grant_create` `grant_describe` `grant_modify` `grant_select` `grant_project_admin` `grant_security_admin` `grant_data_admin`
 - `id` (String) The internal ID of this data source, in the form `{{project_id}}/{{role_id}}`.

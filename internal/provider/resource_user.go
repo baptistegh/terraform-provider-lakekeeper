@@ -68,9 +68,9 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 				Computed:            true,
 			},
 			"user_type": schema.StringAttribute{
-				MarkdownDescription: "The type of the user, must be `human` or `application`",
+				MarkdownDescription: fmt.Sprintf("The type of the user, must be `%s` or `%s`", managementv1.HumanUserType, managementv1.ApplicationUserType),
 				Required:            true,
-				Validators:          []validator.String{stringvalidator.OneOf("application", "human")},
+				Validators:          []validator.String{stringvalidator.OneOf(string(managementv1.HumanUserType), string(managementv1.ApplicationUserType))},
 			},
 			"created_at": schema.StringAttribute{
 				MarkdownDescription: "When the user has been created.",

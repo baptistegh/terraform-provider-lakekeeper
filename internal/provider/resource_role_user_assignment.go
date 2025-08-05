@@ -74,7 +74,7 @@ func (r *lakekeeperRoleUserAssignmentResource) Schema(ctx context.Context, req r
 			},
 			"assignments": schema.SetAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "List of role assignments for this role. values can be `ownership` or `assignee`",
+				MarkdownDescription: fmt.Sprintf("List of role assignments for this user. values can be `%s` or `%s`", permissionv1.OwnershipRoleAssignment, permissionv1.AssigneeRoleAssignment),
 				Required:            true,
 				Validators: []validator.Set{setvalidator.ValueStringsAre(
 					stringvalidator.OneOf(string(permissionv1.OwnershipRoleAssignment), string(permissionv1.AssigneeRoleAssignment)),

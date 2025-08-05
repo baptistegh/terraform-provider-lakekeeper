@@ -38,5 +38,5 @@ data "lakekeeper_warehouse_assignments" "foo" {
 Read-Only:
 
 - `assignee_id` (String) The ID of this assignee.
-- `assignee_type` (String) The type of this assignee. Can be `user` or  `role`.
+- `assignee_type` (String) The type of this assignee. Can be `user` or `role`.
 - `assignment` (String) The assignment type. Refers to the resource object documentation to see the possible values.

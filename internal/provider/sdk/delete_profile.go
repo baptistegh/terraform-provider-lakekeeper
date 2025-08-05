@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -44,10 +45,10 @@ func DeleteProfileResourceSchema() rschema.SingleNestedAttribute {
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("soft", "hard"),
+					stringvalidator.OneOf(string(profile.HardDeleteProfileType), string(profile.SoftDeleteProfileType)),
 				},
 				Default:             stringdefault.StaticString("hard"),
-				MarkdownDescription: "Type of the delete profile. Can be `hard` or `soft`",
+				MarkdownDescription: fmt.Sprintf("Type of the delete profile. Can be `%s` or `%s`. Default: `%s`", profile.HardDeleteProfileType, profile.SoftDeleteProfileType, profile.HardDeleteProfileType),
 			},
 			"expiration_seconds": rschema.Int32Attribute{
 				Optional:            true,
@@ -66,13 +67,13 @@ func DeleteProfileDatasourceSchema() dschema.SingleNestedAttribute {
 			"type": dschema.StringAttribute{
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("soft", "hard"),
+					stringvalidator.OneOf(string(profile.HardDeleteProfileType), string(profile.SoftDeleteProfileType)),
 				},
-				MarkdownDescription: "Type of the delete profile. Can be `hard` or `soft`",
+				MarkdownDescription: fmt.Sprintf("Type of the delete profile. Can be `%s` or `%s`", profile.HardDeleteProfileType, profile.SoftDeleteProfileType),
 			},
 			"expiration_seconds": dschema.Int32Attribute{
 				Computed:            true,
-				MarkdownDescription: "When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`",
+				MarkdownDescription: fmt.Sprintf("When the types is `%s`. Entity will be deleted after `expiration_seconds`. Default is `3600`", profile.SoftDeleteProfileType),
 			},
 		},
 		Validators: []validator.Object{deleteProfileValidator{}},

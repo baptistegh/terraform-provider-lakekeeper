@@ -68,10 +68,28 @@ func (d *LakekeeperWarehouseRoleAccessDataSource) Schema(_ context.Context, _ da
 			},
 			"allowed_actions": schema.SetAttribute{
 				MarkdownDescription: `List of the role's allowed actions on the warehouse. The possible values are ` +
-					"`create_namespace` `delete` `modify_storage` `modify_storage_credential` `get_config` " +
-					"`get_metadata` `list_namespaces` `include_in_list` `deactivate` `activate` `rename` `list_deleted_tabulars` " +
-					"`read_assignments` `grant_create` `grant_describe` `grant_modify` `grant_select` `grant_pass_grants` " +
-					"`grant_manage_grants` `change_ownership`",
+					fmt.Sprintf("`%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s`",
+						permissionv1.CreateNamespace,
+						permissionv1.DeleteWarehouse,
+						permissionv1.ModifyStorage,
+						permissionv1.ModifyStorageCredential,
+						permissionv1.GetConfig,
+						permissionv1.GetMetadata,
+						permissionv1.ListNamespaces,
+						permissionv1.IncludeInList,
+						permissionv1.Deactivate,
+						permissionv1.Activate,
+						permissionv1.Rename,
+						permissionv1.ListDeletedTabulars,
+						permissionv1.ReadWarehouseAssignments,
+						permissionv1.GrantCreate,
+						permissionv1.GrantDescribe,
+						permissionv1.GrantModify,
+						permissionv1.GrantSelect,
+						permissionv1.GrantPassGrants,
+						permissionv1.GrantManageGrants,
+						permissionv1.ChangeOwnership,
+					),
 				Computed:    true,
 				ElementType: types.StringType,
 			},
