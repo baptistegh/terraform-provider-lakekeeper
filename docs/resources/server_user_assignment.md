@@ -27,7 +27,7 @@ resource "lakekeeper_server_user_assignment" "john_doe" {
 
 ### Required
 
-- `assignments` (Set of String) List of server assignments for this user. values can be `operator` or `admin`
+- `assignments` (Set of String) List of server assignments for this user. values can be `admin` or `operator`
 - `user_id` (String) The ID of the user.
 
 ### Read-Only

@@ -225,11 +225,11 @@ Optional:
 - `assume_role_arn` (String) Optional ARN to assume when accessing the bucket from Lakekeeper for S3 storage profile
 - `aws_kms_key_arn` (String) ARN of the KMS key used to encrypt the S3 bucket, if any.
 - `endpoint` (String) Optional endpoint to use for S3 requests, if not provided the region will be used to determine the endpoint. If both region and endpoint are provided, the endpoint will be used. Example: `http://s3-de.my-domain.com:9000`
-- `flavor` (String) S3 flavor to use. Defaults to `aws`.
+- `flavor` (String) S3 flavor to use. Defaults to `aws`. One of `s3-compat` `aws`
 - `key_prefix` (String) Subpath in the filesystem to use.
 - `path_style_access` (Boolean) Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.
 - `push_s3_delete_disabled` (Boolean) Controls whether the `s3.delete-enabled=false` flag is sent to clients.
-- `remote_signing_url_style` (String) S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.
+- `remote_signing_url_style` (String) S3 URL style detection mode for remote signing. One of `auto`, `path`, `virtual_host`. Default: `auto`.
 - `sts_role_arn` (String)
 - `sts_token_validity_seconds` (Number) The validity of the STS tokens in seconds. Default is `3600`.
 
@@ -283,4 +283,4 @@ Required:
 Optional:
 
 - `expiration_seconds` (Number) When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`
-- `type` (String) Type of the delete profile. Can be `hard` or `soft`
+- `type` (String) Type of the delete profile. Can be `hard` or `soft`. Default: `hard`

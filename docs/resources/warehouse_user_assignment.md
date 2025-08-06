@@ -20,7 +20,7 @@ The `lakekeeper_warehouse_user_assignment` resource allows to manage the lifecyc
 
 ### Required
 
-- `assignments` (Set of String) List of role assignments for this warehouse. values can be `ownership`, `pass_grants_admin`, `manage_grants_admin`, `describe_warehouse`, `select_warehouse`, `create_warehouse`, `modify_warehouse`
+- `assignments` (Set of String) List of assignments the user has on this warehouse. values can be `ownership` `pass_grants` `manage_grants` `describe` `select` `create` `modify`
 - `user_id` (String) The ID of the user to assign to this warehouse.
 - `warehouse_id` (String) The ID of the warehouse.
 

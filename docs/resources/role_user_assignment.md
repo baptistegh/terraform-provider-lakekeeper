@@ -28,7 +28,7 @@ resource "lakekeeper_role_user_assignment" "data_analysts" {
 
 ### Required
 
-- `assignments` (Set of String) List of role assignments for this role. values can be `ownership` or `assignee`
+- `assignments` (Set of String) List of role assignments for this user. values can be `ownership` or `assignee`
 - `role_id` (String) The ID of the role.
 - `user_id` (String) The ID of the user to assign to this role.
 

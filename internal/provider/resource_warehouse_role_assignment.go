@@ -73,9 +73,18 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Schema(ctx context.Context, 
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"assignments": schema.SetAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "List of assignments the role have on this warehouse. values can be `ownership`, `pass_grants_admin`, `manage_grants_admin`, `describe_warehouse`, `select_warehouse`, `create_warehouse`, `modify_warehouse`",
-				Required:            true,
+				ElementType: types.StringType,
+				MarkdownDescription: "List of assignments the role has on this warehouse. values can be " +
+					fmt.Sprintf("`%s` `%s` `%s` `%s` `%s` `%s` `%s`",
+						permissionv1.OwnershipWarehouseAssignment,
+						permissionv1.PassGrantsAdminWarehouseAssignment,
+						permissionv1.ManageGrantsAdminWarehouseAssignment,
+						permissionv1.DescribeWarehouseAssignment,
+						permissionv1.SelectWarehouseAssignment,
+						permissionv1.CreateWarehouseAssignment,
+						permissionv1.ModifyWarehouseAssignment,
+					),
+				Required: true,
 				Validators: []validator.Set{setvalidator.ValueStringsAre(
 					stringvalidator.OneOf(
 						string(permissionv1.OwnershipWarehouseAssignment),

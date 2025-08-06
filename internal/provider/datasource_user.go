@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,7 +69,7 @@ func (d *LakekeeperUserDataSource) Schema(_ context.Context, _ datasource.Schema
 				Computed:            true,
 			},
 			"user_type": schema.StringAttribute{
-				MarkdownDescription: "The type of the user (human/..)",
+				MarkdownDescription: fmt.Sprintf("The type of the user (`%s` or `%s`)", managementv1.HumanUserType, managementv1.ApplicationUserType),
 				Computed:            true,
 			},
 			"created_at": schema.StringAttribute{

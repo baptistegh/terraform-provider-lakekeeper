@@ -7,6 +7,7 @@ import (
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
+	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
 
@@ -168,9 +169,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								Optional: true,
 								Computed: true,
 								Validators: []validator.String{
-									stringvalidator.OneOf("aws", "s3-compat"),
+									stringvalidator.OneOf(string(profile.S3CompatFlavor), string(profile.AWSFlavor)),
 								},
-								MarkdownDescription: "S3 flavor to use. Defaults to `aws`.",
+								MarkdownDescription: fmt.Sprintf("S3 flavor to use. Defaults to `%s`. One of `%s` `%s`", profile.AWSFlavor, profile.S3CompatFlavor, profile.AWSFlavor),
 							},
 							"path_style_access": schema.BoolAttribute{
 								Optional:            true,
@@ -186,9 +187,13 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								Optional: true,
 								Computed: true,
 								Validators: []validator.String{
-									stringvalidator.OneOf("path-style", "virtual-host", "auto"),
+									stringvalidator.OneOf(
+										string(profile.AutoSigningURLStyle),
+										string(profile.PathSigningURLStyle),
+										string(profile.VirtualHostSigningURLStyle),
+									),
 								},
-								MarkdownDescription: "S3 URL style detection mode for remote signing. One of `auto`, `path-style`, `virtual-host`. Default: `auto`.",
+								MarkdownDescription: fmt.Sprintf("S3 URL style detection mode for remote signing. One of `%s`, `%s`, `%s`. Default: `%s`.", profile.AutoSigningURLStyle, profile.PathSigningURLStyle, profile.VirtualHostSigningURLStyle, profile.AutoSigningURLStyle),
 							}, "sts_role_arn": schema.StringAttribute{
 								Optional: true,
 							},

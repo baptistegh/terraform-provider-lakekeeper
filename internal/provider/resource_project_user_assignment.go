@@ -73,9 +73,19 @@ func (r *lakekeeperProjectUserAssignmentResource) Schema(ctx context.Context, re
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"assignments": schema.SetAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "List of project assignments for this user. values can be `project_admin` `security_admin` `data_admin` `role_creator` `describe` `select` `create` `modify`",
-				Required:            true,
+				ElementType: types.StringType,
+				MarkdownDescription: "List of project assignments for this user. values can be " +
+					fmt.Sprintf("`%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s`",
+						permissionv1.AdminProjectAssignment,
+						permissionv1.SecurityAdminProjectAssignment,
+						permissionv1.DataAdminProjectAssignment,
+						permissionv1.RoleCreatorProjectAssignment,
+						permissionv1.DescribeProjectAssignment,
+						permissionv1.SelectProjectAssignment,
+						permissionv1.CreateProjectAssignment,
+						permissionv1.ModifyProjectAssignment,
+					),
+				Required: true,
 				Validators: []validator.Set{setvalidator.ValueStringsAre(
 					stringvalidator.OneOf(
 						string(permissionv1.AdminProjectAssignment),

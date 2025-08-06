@@ -35,4 +35,4 @@ data "lakekeeper_user" "john_doe" {
 - `last_updated_with` (String) The endpoint who last modified the user.
 - `name` (String) The name of the user.
 - `updated_at` (String) When the user has last been modified.
-- `user_type` (String) The type of the user (human/..)
+- `user_type` (String) The type of the user (`human` or `application`)

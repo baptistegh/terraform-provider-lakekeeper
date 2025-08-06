@@ -27,7 +27,7 @@ resource "lakekeeper_server_role_assignment" "data_analysts" {
 
 ### Required
 
-- `assignments` (Set of String) List of server assignments for this role. values can be `operator` or `admin`
+- `assignments` (Set of String) List of server assignments for this role. values can be `admin` or `operator`
 - `role_id` (String) The ID of the role.
 
 ### Read-Only

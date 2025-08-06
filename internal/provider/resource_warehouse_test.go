@@ -38,6 +38,7 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 							endpoint = "http://minio:9000/"
 							region = "eu-west-1"
 							sts_enabled = false
+							remote_signing_url_style = "path"
 							credential = {
 								access_key = {
 									access_key_id = "minio-root-user"
@@ -60,6 +61,7 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.endpoint", "http://minio:9000/"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.region", "eu-west-1"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.sts_enabled", "false"),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.remote_signing_url_style", "path"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.credential.access_key.access_key_id", "minio-root-user"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.credential.access_key.secret_access_key", "minio-root-password"),
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.credential.aws_system_identity"),
@@ -88,6 +90,7 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 							endpoint = "http://minio:9000/"
 							region = "eu-west-1"
 							sts_enabled = true
+							remote_signing_url_style = "virtual_host"
 							assume_role_arn = "arn:aws:iam::123456789012:role/AssumeRole"
 							credential = {
 								access_key = {
@@ -111,6 +114,7 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.endpoint", "http://minio:9000/"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.region", "eu-west-1"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.sts_enabled", "true"),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.remote_signing_url_style", "virtual_host"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.credential.access_key.access_key_id", "minio-root-user"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.credential.access_key.secret_access_key", "minio-root-password-1"),
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.s3", "storage_profile.s3.credential.aws_system_identity"),
