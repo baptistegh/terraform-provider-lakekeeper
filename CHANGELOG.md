@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [0.4.2](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.1...v0.4.2) (2025-08-06)
+
+
+### Features
+
+* use the string constants of the client ([#164](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/164)) ([bf5bbf5](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/bf5bbf53397c9bba43ec5e24bf73d54ad58ded9f))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump github.com/baptistegh/go-lakekeeper from 0.0.14 to 0.0.16 ([#161](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/161)) ([a359ecb](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/a359ecbe75f0285b399883bc1ee4d52f771269bc))
+* **deps:** bump github.com/baptistegh/go-lakekeeper from 0.0.16 to 0.0.17 ([#165](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/165)) ([3d4817b](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/3d4817b45ada6e0ac3c17833a3ed3d3fff88b864))
+
 ## [0.4.1](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.0...v0.4.1) (2025-08-03)
 
 
