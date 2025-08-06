@@ -38,6 +38,8 @@ Terraform provider for [Lakekeeper](https://docs.lakekeeper.io/).
 
 All documentation for this provider can be found on the Terraform Registry: <https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs>.
 
+The provider is also available from [OpenTofu registry](https://search.opentofu.org/provider/baptistegh/lakekeeper/latest).
+
 ## Installation
 
 This provider can be installed automatically by using the `terraform` configuration block:
