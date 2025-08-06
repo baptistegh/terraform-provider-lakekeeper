@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.4.3](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.2...v0.4.3) (2025-08-06)
+
+
+### Documentation
+
+* add link to OpenTofu registry ([#166](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/166)) ([c31678c](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c31678cfbf173c6d6ddd7f9ff4f3cd3655b34a9a))
+
 ## [0.4.2](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.1...v0.4.2) (2025-08-06)
 
 
