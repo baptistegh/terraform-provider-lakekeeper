@@ -123,7 +123,7 @@ Optional:
 Required:
 
 - `account_name` (String) Name of the azure storage account.
-- `credential` (Attributes) Configure the credentials to access the ADLS storage. One of `shared_access_key`, `client_credentials` or `azure_system_identity` must be provided. (see [below for nested schema](#nestedatt--storage_profile--adls--credential))
+- `credential` (Attributes) Configure the credentials to access the ADLS storage. One of `shared_access_key`, `client_credentials` or `azure_system_identity` must be provided. This is not available for imported resources. (see [below for nested schema](#nestedatt--storage_profile--adls--credential))
 - `filesystem` (String) Name of the adls filesystem, in blobstorage also known as container.
 
 Optional:
@@ -177,7 +177,7 @@ Required:
 Required:
 
 - `bucket` (String) The bucket name.
-- `credential` (Attributes) Configure the credentials to access the GCS storage. One of `service_account_key` or `gcp_system_identity` must be provided. (see [below for nested schema](#nestedatt--storage_profile--gcs--credential))
+- `credential` (Attributes) Configure the credentials to access the GCS storage. One of `service_account_key` or `gcp_system_identity` must be provided. This is not available for imported resources. (see [below for nested schema](#nestedatt--storage_profile--gcs--credential))
 
 Optional:
 
@@ -215,7 +215,7 @@ Required:
 Required:
 
 - `bucket` (String) The bucket name for the storage profile.
-- `credential` (Attributes) Configure the credentials to access the S3 storage. Only one of `access_key`, `cloudflare_r2` or `aws_system_identity` must be provided. (see [below for nested schema](#nestedatt--storage_profile--s3--credential))
+- `credential` (Attributes) Configure the credentials to access the S3 storage. Only one of `access_key`, `cloudflare_r2` or `aws_system_identity` must be provided. This is not available for imported resources. (see [below for nested schema](#nestedatt--storage_profile--s3--credential))
 - `region` (String) Region to use for S3 requests.
 - `sts_enabled` (Boolean) Whether to enable STS for S3 storage profile. Required if the storage type is `s3`. If enabled, the `sts_role_arn` or `assume_role_arn` must be provided.
 
@@ -284,3 +284,14 @@ Optional:
 
 - `expiration_seconds` (Number) When the types is `soft`. Entity will be deleted after `expiration_seconds`. Default is `3600`
 - `type` (String) Type of the delete profile. Can be `hard` or `soft`. Default: `hard`
+
+## Import
+
+Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+```shell
+# id is "{{project_id}}/{{warehouse_id}}"
+terraform import lakekeeper_warehouse.s3 "261bd4e4-5c57-4707-96ad-44128f9038c0/37cf8760-5092-4d5d-8b29-a6b46a45f067"
+```

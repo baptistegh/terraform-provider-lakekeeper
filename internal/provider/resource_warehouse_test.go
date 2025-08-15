@@ -71,12 +71,11 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.s3", "storage_profile.gcs"),
 				),
 			},
-			// Import is not configured
 			{
-				ResourceName:      "lakekeeper_warehouse.s3",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ExpectError:       regexp.MustCompile("Import Not Implemented"),
+				ResourceName:            "lakekeeper_warehouse.s3",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_profile.s3.credential"},
 			},
 			{
 				Config: fmt.Sprintf(`		
@@ -172,6 +171,12 @@ func TestAccLakekeeperWarehouse_GCS_SystemIdentity(t *testing.T) {
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.gcs_system_identity", "storage_profile.s3"),
 				),
 			},
+			{
+				ResourceName:            "lakekeeper_warehouse.gcs_system_identity",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_profile.gcs.credential"},
+			},
 		},
 	})
 }
@@ -225,6 +230,12 @@ func TestAccLakekeeperWarehouse_GCS_ServiceAccountKey(t *testing.T) {
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.gcs_service_account_key", "storage_profile.s3"),
 				),
 			},
+			{
+				ResourceName:            "lakekeeper_warehouse.gcs_service_account_key",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_profile.gcs.credential"},
+			},
 		},
 	})
 }
@@ -274,6 +285,12 @@ func TestAccLakekeeperWarehouse_ADLS_SharedAccessKey(t *testing.T) {
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.adls", "storage_profile.s3"),
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.adls", "storage_profile.gcs"),
 				),
+			},
+			{
+				ResourceName:            "lakekeeper_warehouse.adls",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_profile.adls.credential"},
 			},
 		},
 	})
@@ -329,6 +346,12 @@ func TestAccLakekeeperWarehouse_ADLS_ClientCredentials(t *testing.T) {
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.adls", "storage_profile.gcs"),
 				),
 			},
+			{
+				ResourceName:            "lakekeeper_warehouse.adls",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_profile.adls.credential"},
+			},
 		},
 	})
 }
@@ -356,7 +379,7 @@ func TestAccLakekeeperWarehouse_ADLS_SystemIdentity(t *testing.T) {
 							credential = {
 								azure_system_identity = {}
 							}
-			}
+						}
 					}
 				}
 				`, rName, project.ID),
@@ -376,6 +399,12 @@ func TestAccLakekeeperWarehouse_ADLS_SystemIdentity(t *testing.T) {
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.adls", "storage_profile.s3"),
 					resource.TestCheckNoResourceAttr("lakekeeper_warehouse.adls", "storage_profile.gcs"),
 				),
+			},
+			{
+				ResourceName:            "lakekeeper_warehouse.adls",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_profile.adls.credential"},
 			},
 		},
 	})
