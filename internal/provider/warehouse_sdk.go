@@ -81,19 +81,15 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.W
 			return diags
 		}
 		oldProfile = s
-	} else {
+	} else if m.StorageProfile != nil {
 		s, err := sdk.OnlyOneStorageProfile(m.StorageProfile.S3StorageProfile, m.StorageProfile.GCSStorageProfile, m.StorageProfile.ADLSStorageProfile)
 		if err != nil {
 			diags.AddError(errorMessage, err.Error())
 			return diags
 		}
 		oldProfile = s
-	}
-
-	creds, err := oldProfile.GetCredentials()
-	if err != nil {
-		diags.AddError(errorMessage, err.Error())
-		return diags
+	} else {
+		oldProfile = nil
 	}
 
 	storageProfile, err := sdk.StorageProfileModelFromSDK(w.StorageProfile)
@@ -102,9 +98,17 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.W
 		return diags
 	}
 
-	if err := storageProfile.AddCreds(creds); err != nil {
-		diags.AddError(errorMessage, err.Error())
-		return diags
+	if oldProfile != nil {
+		creds, err := oldProfile.GetCredentials()
+		if err != nil {
+			diags.AddError(errorMessage, err.Error())
+			return diags
+		}
+
+		if err := storageProfile.AddCreds(creds); err != nil {
+			diags.AddError(errorMessage, err.Error())
+			return diags
+		}
 	}
 
 	m.StorageProfile = &storageProfileWrapper{}

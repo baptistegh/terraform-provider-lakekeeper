@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -27,12 +29,9 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource              = &lakekeeperWarehouseResource{}
-	_ resource.ResourceWithConfigure = &lakekeeperWarehouseResource{}
-
-	// Lakekeeper API does not give storage credentials on GET
-	// we can't activate the import on warehouse for now
-	// _ resource.ResourceWithImportState = &lakekeeperWarehouseResource{}
+	_ resource.Resource                = &lakekeeperWarehouseResource{}
+	_ resource.ResourceWithConfigure   = &lakekeeperWarehouseResource{}
+	_ resource.ResourceWithImportState = &lakekeeperWarehouseResource{}
 )
 
 func init() {
@@ -207,7 +206,7 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 							},
 							"credential": schema.SingleNestedAttribute{
 								Required:            true,
-								MarkdownDescription: "Configure the credentials to access the S3 storage. Only one of `access_key`, `cloudflare_r2` or `aws_system_identity` must be provided.",
+								MarkdownDescription: "Configure the credentials to access the S3 storage. Only one of `access_key`, `cloudflare_r2` or `aws_system_identity` must be provided. This is not available for imported resources.",
 								Attributes: map[string]schema.Attribute{
 									"access_key": schema.SingleNestedAttribute{
 										Optional:            true,
@@ -315,7 +314,7 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 							},
 							"credential": schema.SingleNestedAttribute{
 								Required:            true,
-								MarkdownDescription: "Configure the credentials to access the ADLS storage. One of `shared_access_key`, `client_credentials` or `azure_system_identity` must be provided.",
+								MarkdownDescription: "Configure the credentials to access the ADLS storage. One of `shared_access_key`, `client_credentials` or `azure_system_identity` must be provided. This is not available for imported resources.",
 								Attributes: map[string]schema.Attribute{
 									"shared_access_key": schema.SingleNestedAttribute{
 										Optional:            true,
@@ -378,7 +377,7 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 							},
 							"credential": schema.SingleNestedAttribute{
 								Required:            true,
-								MarkdownDescription: "Configure the credentials to access the GCS storage. One of `service_account_key` or `gcp_system_identity` must be provided.",
+								MarkdownDescription: "Configure the credentials to access the GCS storage. One of `service_account_key` or `gcp_system_identity` must be provided. This is not available for imported resources.",
 								Attributes: map[string]schema.Attribute{
 									"service_account_key": schema.SingleNestedAttribute{
 										Optional:            true,
@@ -654,4 +653,22 @@ func (r *lakekeeperWarehouseResource) Delete(ctx context.Context, req resource.D
 	}
 
 	resp.State.RemoveResource(ctx)
+}
+
+// ImportState imports the resource into the Terraform state.
+func (r *lakekeeperWarehouseResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Expected format: "project_id/warehouse_id"
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID format",
+			"Expected format: project_id/warehouse_id",
+		)
+		return
+	}
+
+	resp.State.SetAttribute(ctx, path.Root("project_id"), parts[0])
+	resp.State.SetAttribute(ctx, path.Root("warehouse_id"), parts[1])
+
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
