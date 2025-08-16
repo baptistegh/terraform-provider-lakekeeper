@@ -256,7 +256,7 @@ func (r *lakekeeperRoleResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	resp.State.SetAttribute(ctx, path.Root("prokect_id"), parts[0])
+	resp.State.SetAttribute(ctx, path.Root("project_id"), parts[0])
 	resp.State.SetAttribute(ctx, path.Root("role_id"), parts[1])
 
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
