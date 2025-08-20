@@ -1,6 +1,29 @@
 # Changelog
 
 
+## [0.4.3](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.2...v0.4.3) (2025-08-20)
+
+
+### Features
+
+* **warehouse:** add import on warehouse resources ([#170](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/170)) ([b9b761c](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/b9b761cec1ce61883e380e6dde09fa698616cb57))
+
+
+### Bug Fixes
+
+* **roles:** typo error on import state project_id ([#169](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/169)) ([23e0c16](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/23e0c163b12d1fb5de48382dfe8ac02d6a44d413))
+
+
+### Documentation
+
+* add link to OpenTofu registry ([#166](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/166)) ([c31678c](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c31678cfbf173c6d6ddd7f9ff4f3cd3655b34a9a))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 4 to 5 in the github-actions group ([#168](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/168)) ([b9c678f](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/b9c678f2a31759188667f94da6911ad6cee9d9b3))
+* **deps:** bump github.com/hashicorp/terraform-plugin-testing from 1.13.2 to 1.13.3 in the terraform-plugin group ([#171](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/171)) ([83da6b1](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/83da6b159820b0f83152ca3392b51f2c1e0f1240))
+
 ## [0.4.2](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.1...v0.4.2) (2025-08-06)
 
 
