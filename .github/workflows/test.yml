@@ -23,7 +23,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: mfinelli/setup-shfmt@v3
+      - uses: mfinelli/setup-shfmt@v4
 
       - run: go mod download
   
