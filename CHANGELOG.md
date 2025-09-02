@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [0.4.4](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.3...v0.4.4) (2025-09-02)
+
+
+### Bug Fixes
+
+* handle role renaming ([#174](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/174)) ([89acec1](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/89acec1d002aba4ba160582f98c350b47df0982f))
+
+
+### Miscellaneous Chores
+
+* add tests on lakekeeper v0.9.4 / v0.9.5 ([#175](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/175)) ([0b0fa42](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/0b0fa4279e9eee5d9d48dfce4b442871ba0ae9cb))
+* **deps:** bump mfinelli/setup-shfmt from 3 to 4 in the github-actions group ([#172](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/172)) ([15afd7b](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/15afd7b5d05c5a56bc59af05c6d92c10eb6557f8))
+
 ## [0.4.3](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.2...v0.4.3) (2025-08-20)
 
 
