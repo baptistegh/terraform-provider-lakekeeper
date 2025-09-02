@@ -75,6 +75,32 @@ func TestAccLakekeeperRole_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			// Rename resource
+			{
+				Config: fmt.Sprintf(`
+				data "lakekeeper_default_project" "default" {}		
+				resource "lakekeeper_role" "foo" {
+				  name = "new-name"
+				  project_id = data.lakekeeper_default_project.default.id
+				  description = "%s"
+				}
+				`, rDescription),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("lakekeeper_role.foo", "name", "new-name"),
+					resource.TestCheckResourceAttr("lakekeeper_role.foo", "description", rDescription),
+					resource.TestCheckResourceAttr("lakekeeper_role.foo", "project_id", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttrSet("lakekeeper_role.foo", "id"),
+					resource.TestCheckResourceAttrSet("lakekeeper_role.foo", "role_id"),
+					resource.TestCheckResourceAttrSet("lakekeeper_role.foo", "created_at"),
+					resource.TestCheckResourceAttrSet("lakekeeper_role.foo", "updated_at"),
+				),
+			},
+			// Verify import
+			{
+				ResourceName:      "lakekeeper_role.foo",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
