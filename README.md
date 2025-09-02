@@ -61,6 +61,8 @@ This provider will officially support the latest three last versions of Lakekeep
 The following Lakekeeper versions are used when running acceptance tests in CI:
 
 - Unreleased (latest-main)
+- v0.9.5
+- v0.9.4
 - v0.9.3
 
 _The provider should be compatible with Lakekeeper >= v0.9.3 thanks to the introduction of skip storage validation._
