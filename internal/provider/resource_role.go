@@ -207,7 +207,7 @@ func (r *lakekeeperRoleResource) Update(ctx context.Context, req resource.Update
 
 	state.RoleID = types.StringValue(role.ID)
 	state.ProjectID = types.StringValue(role.ProjectID)
-
+	state.Name = types.StringValue(role.Name)
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
 
 	state.CreatedAt = types.StringValue(role.CreatedAt)
