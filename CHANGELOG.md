@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.4.5](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.4...v0.4.5) (2025-09-05)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the github-actions group with 2 updates ([#176](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/176)) ([1a0e83a](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/1a0e83aca0eb4867d0f0cb16a93f520e59ed0053))
+
 ## [0.4.4](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.3...v0.4.4) (2025-09-02)
 
 
