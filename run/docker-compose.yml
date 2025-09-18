@@ -60,7 +60,7 @@ services:
   db:
     image: postgres:16
     environment:
-      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRES_PASSWORD=postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -p 5432 -d postgres" ]
       interval: 2s
@@ -75,7 +75,7 @@ services:
   openfga-db:
     image: postgres:16
     environment:
-      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRES_PASSWORD=postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -p 5432 -d postgres" ]
       interval: 2s
