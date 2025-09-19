@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/baptistegh/go-lakekeeper v0.0.17
+	github.com/baptistegh/go-lakekeeper v0.0.18
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 )
 
@@ -113,7 +113,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/substrait-io/substrait v0.69.0 // indirect
 	github.com/substrait-io/substrait-go/v3 v3.9.1 // indirect
 	github.com/twmb/murmur3 v1.1.8 // indirect
