@@ -1,6 +1,24 @@
 # Changelog
 
 
+## [0.4.5](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.4...v0.4.5) (2025-10-02)
+
+
+### Bug Fixes
+
+* **warehouse:** use actions instead of assignments ([#184](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/184)) ([c4a069f](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c4a069f77169ada495d27e4563d23ebc3faa0618))
+
+
+### Miscellaneous Chores
+
+* add compatibility for lakekeeper 0.10.0 ([#183](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/183)) ([aa5fbb8](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/aa5fbb89bf9333e6435cc6290dfac146444bee9e))
+* **deps:** bump github.com/baptistegh/go-lakekeeper from 0.0.17 to 0.0.18 ([#181](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/181)) ([33a03be](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/33a03be58431e8a31495c6d5034e6e4bd0533340))
+* **deps:** bump github.com/hashicorp/terraform-plugin-framework from 1.16.0 to 1.16.1 in the terraform-plugin group ([#182](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/182)) ([8dd680d](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/8dd680da35c65d6973e119b89666e8dda451db62))
+* **deps:** bump golang.org/x/oauth2 from 0.30.0 to 0.31.0 ([#178](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/178)) ([01db534](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/01db53495d540cd959fa501299f774ffbd7fefc8))
+* **deps:** bump the github-actions group with 2 updates ([#176](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/176)) ([1a0e83a](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/1a0e83aca0eb4867d0f0cb16a93f520e59ed0053))
+* **deps:** bump the terraform-plugin group with 3 updates ([#179](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/179)) ([0dd04e8](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/0dd04e8adf9f9a173f4b27c69a3597ebdae9b658))
+* remove bitnami postgresql image ([#180](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/180)) ([35756b2](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/35756b22441f1a8ef161d51450cf8004b7664212))
+
 ## [0.4.4](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.3...v0.4.4) (2025-09-02)
 
 
