@@ -61,6 +61,9 @@ func (r *lakekeeperRoleRoleAssignmentResource) Schema(ctx context.Context, req r
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The internal ID of this resource. In the form: <role_id>:<assignee_id>",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"role_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the role.",

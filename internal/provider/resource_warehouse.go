@@ -20,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -80,10 +82,16 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The internal ID of this resource. In the form: `{{project_id}}/{{warehouse_id}}`",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"warehouse_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the warehouse.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: `Name of the warehouse to create. Must be unique within a project and may not contain "/"`,
@@ -102,18 +110,27 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"active": schema.BoolAttribute{
 				MarkdownDescription: "Whether the warehouse is active. Default is `true`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"managed_access": schema.BoolAttribute{
 				MarkdownDescription: "Whether the managed access is configured on this warehouse. Default is `false`.",
 				Computed:            true,
 				Optional:            true,
 				Default:             booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"delete_profile": sdk.DeleteProfileResourceSchema(),
 			"storage_profile": schema.SingleNestedAttribute{
@@ -147,6 +164,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								MarkdownDescription: "Allow `s3a://`, `s3n://`, `wasbs://` in locations. This is disabled by default. We do not recommend to use this setting except for migration.",
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"assume_role_arn": schema.StringAttribute{
 								Optional:            true,
@@ -163,6 +183,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								Validators: []validator.String{
 									stringvalidator.RegexMatches(regexp.MustCompile("/$"), "Endpoint must ends with '/' character"),
 								},
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"flavor": schema.StringAttribute{
 								Optional: true,
@@ -171,16 +194,25 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 									stringvalidator.OneOf(string(profile.S3CompatFlavor), string(profile.AWSFlavor)),
 								},
 								MarkdownDescription: fmt.Sprintf("S3 flavor to use. Defaults to `%s`. One of `%s` `%s`", profile.AWSFlavor, profile.S3CompatFlavor, profile.AWSFlavor),
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"path_style_access": schema.BoolAttribute{
 								Optional:            true,
 								Computed:            true,
 								MarkdownDescription: "Path style access for S3 requests. If the underlying S3 supports both, we recommend to not set path_style_access.",
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"push_s3_delete_disabled": schema.BoolAttribute{
 								Optional:            true,
 								Computed:            true,
 								MarkdownDescription: "Controls whether the `s3.delete-enabled=false` flag is sent to clients.",
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"remote_signing_url_style": schema.StringAttribute{
 								Optional: true,
@@ -193,6 +225,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 									),
 								},
 								MarkdownDescription: fmt.Sprintf("S3 URL style detection mode for remote signing. One of `%s`, `%s`, `%s`. Default: `%s`.", profile.AutoSigningURLStyle, profile.PathSigningURLStyle, profile.VirtualHostSigningURLStyle, profile.AutoSigningURLStyle),
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							}, "sts_role_arn": schema.StringAttribute{
 								Optional: true,
 							},
@@ -203,6 +238,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 									int64validator.AtLeast(0),
 								},
 								MarkdownDescription: "The validity of the STS tokens in seconds. Default is `3600`.",
+								PlanModifiers: []planmodifier.Int64{
+									int64planmodifier.UseStateForUnknown(),
+								},
 							},
 							"credential": schema.SingleNestedAttribute{
 								Required:            true,
@@ -289,16 +327,25 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								MarkdownDescription: "Allow alternative protocols such as wasbs:// in locations. This is disabled by default. We do not recommend to use this setting except for migration.",
+								PlanModifiers: []planmodifier.Bool{
+									boolplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"authority_host": schema.StringAttribute{
 								Optional:            true,
 								Computed:            true,
 								MarkdownDescription: "The authority host to use for authentication. Defaults to `https://login.microsoftonline.com`.",
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"host": schema.StringAttribute{
 								Optional:            true,
 								Computed:            true,
 								MarkdownDescription: "The host to use for the storage account. Defaults to `dfs.core.windows.net`.",
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"key_prefix": schema.StringAttribute{
 								Optional:            true,
@@ -310,6 +357,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The validity of the sas token in seconds. Default is `3600`.",
 								Validators: []validator.Int64{
 									int64validator.AtLeast(0),
+								},
+								PlanModifiers: []planmodifier.Int64{
+									int64planmodifier.UseStateForUnknown(),
 								},
 							},
 							"credential": schema.SingleNestedAttribute{

@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -66,6 +68,9 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "The email of the user.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"user_type": schema.StringAttribute{
 				MarkdownDescription: fmt.Sprintf("The type of the user, must be `%s` or `%s`", managementv1.HumanUserType, managementv1.ApplicationUserType),
@@ -75,6 +80,9 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 			"created_at": schema.StringAttribute{
 				MarkdownDescription: "When the user has been created.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "When the user has last been modified.",
