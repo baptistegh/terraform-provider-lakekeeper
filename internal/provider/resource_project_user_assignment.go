@@ -61,6 +61,9 @@ func (r *lakekeeperProjectUserAssignmentResource) Schema(ctx context.Context, re
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The internal ID of this resource. In the form: `{{project_id}}/{{user_id}}`",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the project.",
