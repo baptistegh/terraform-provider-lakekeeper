@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
@@ -69,6 +70,9 @@ func (r *lakekeeperRoleUserAssignmentResource) Schema(ctx context.Context, req r
 				MarkdownDescription: "The ID of the role.",
 				Required:            true,
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile("^[^/]+$"), "must be a role UUID and NOT include the project UUID"),
+				},
 			},
 			"user_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the user to assign to this role.",

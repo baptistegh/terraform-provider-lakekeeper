@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
@@ -95,6 +96,27 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 				ResourceName:      "lakekeeper_role_role_assignment.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			// Check some basic attribute validation
+			{
+				Config: fmt.Sprintf(`				
+					resource "lakekeeper_role_role_assignment" "test" {
+						role_id = "%s/%s"
+						assignee_id = "%s"
+						assignments = ["ownership"]
+					}
+				`, project.ID, role.ID, assignee.ID),
+				ExpectError: regexp.MustCompile("Attribute role_id must be a role UUID and NOT include the project UUID"),
+			},
+			{
+				Config: fmt.Sprintf(`				
+					resource "lakekeeper_role_role_assignment" "test" {
+						role_id = "%s"
+						assignee_id = "%s/%s"
+						assignments = ["ownership"]
+					}
+				`, role.ID, project.ID, assignee.ID),
+				ExpectError: regexp.MustCompile("Attribute assignee_id must be a role UUID and NOT include the project UUID"),
 			},
 			// delete all assignments
 			{

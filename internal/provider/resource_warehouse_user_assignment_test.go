@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"regexp"
 	"testing"
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
@@ -100,6 +101,17 @@ func TestAccLakekeeperWarehouseUserAssignment_basic(t *testing.T) {
 				ResourceName:      "lakekeeper_warehouse_user_assignment.test",
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			// Check some basic attribute validation
+			{
+				Config: fmt.Sprintf(`
+					resource "lakekeeper_warehouse_user_assignment" "test" {
+						warehouse_id = "%s/%s"
+						user_id = "%s"
+						assignments = ["ownership"]
+					}
+				`, project.ID, warehouse.ID, user.ID),
+				ExpectError: regexp.MustCompile("Attribute warehouse_id must be a warehouse UUID and NOT include the project\nUUID"),
 			},
 			// delete all assignments
 			{
