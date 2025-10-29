@@ -65,7 +65,7 @@ The following Lakekeeper versions are used when running acceptance tests in CI:
 - v0.10.3
 - v0.10.2
 
-_The provider should be compatible with Lakekeeper >= v0.9.3.
+_The provider should be compatible with Lakekeeper >= v0.9.3._
 
 _Acceptance tests are executed using Terraform v1.9.8._
 
