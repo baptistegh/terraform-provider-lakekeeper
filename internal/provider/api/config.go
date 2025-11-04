@@ -7,10 +7,12 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/go-lakekeeper/pkg/core"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
@@ -86,8 +88,13 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		Scopes:       c.Scopes,
 	}
 
+	// configure context for OAuth client
+	oauthCtx := context.Background()
+	httpClient := &http.Client{Timeout: 2 * time.Second}
+	oauthCtx = context.WithValue(oauthCtx, oauth2.HTTPClient, httpClient)
+
 	client, err := lakekeeper.NewAuthSourceClient(ctx, &core.OAuthTokenSource{
-		TokenSource: oauthConfig.TokenSource(ctx),
+		TokenSource: oauthConfig.TokenSource(oauthCtx),
 	}, c.BaseURL, opts...)
 	if err != nil {
 		return nil, err
