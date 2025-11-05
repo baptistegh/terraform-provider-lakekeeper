@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.4.6](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.5...v0.4.6) (2025-11-05)
+
+
+### Bug Fixes
+
+* **authn:** use dedicated http client for OAuth2 Token Source ([#193](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/193)) ([60d0225](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/60d02251a646c044bce0fdde0d34a12520a0c0f1))
+
+
+### Miscellaneous Chores
+
+* use go1.25 ([#194](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/194)) ([1ce0adf](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/1ce0adf31501d8eb115106869efefd972b6888dd))
+
 ## [0.4.5](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.4...v0.4.5) (2025-10-29)
 
 
