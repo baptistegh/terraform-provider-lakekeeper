@@ -75,7 +75,7 @@ testacc-settings: ## Run application settings acceptance tests against a Lakekee
 
 tool-golangci-lint:
 	@mkdir -p $(GOBIN)
-	@[ -f $(GOBIN)/golangci-lint ] || { curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.2.0; }
+	@[ -f $(GOBIN)/golangci-lint ] || { curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.6.1; }
 
 tool-shfmt:
 	@$(call install-tool, mvdan.cc/sh/v3/cmd/shfmt)
