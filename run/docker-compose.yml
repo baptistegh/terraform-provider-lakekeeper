@@ -88,7 +88,7 @@ services:
       iceberg_net:
   
   openfga-migrate:
-    image: openfga/openfga:v1.8
+    image: openfga/openfga:v1.11
     command: migrate
     environment:
       - OPENFGA_DATASTORE_ENGINE=postgres
@@ -105,7 +105,7 @@ services:
         condition: service_healthy
       openfga-migrate:
         condition: service_completed_successfully
-    image: openfga/openfga:v1.8
+    image: openfga/openfga:v1.11
     command: run
     environment:
       - OPENFGA_DATASTORE_ENGINE=postgres
@@ -128,7 +128,7 @@ services:
       retries: 3
   
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0.7
+    image: quay.io/keycloak/keycloak:26.4.5
     environment:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
