@@ -58,7 +58,7 @@ services:
       iceberg_net:
 
   db:
-    image: postgres:16
+    image: postgres:18
     environment:
       - POSTGRES_PASSWORD=postgres
       - PGDATA=/var/lib/postgresql/data/pgdata
@@ -74,7 +74,7 @@ services:
       iceberg_net:
   
   openfga-db:
-    image: postgres:16
+    image: postgres:18
     environment:
       - POSTGRES_PASSWORD=postgres
       - PGDATA=/var/lib/postgresql/data/pgdata
