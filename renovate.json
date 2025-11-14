@@ -1,9 +1,25 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
+    "config:base",
     "config:recommended",
     "group:allNonMajor",
     ":automergeMinor",
     ":automergePatch"
+  ],
+  "packageRules": [
+    {
+      "matchDepTypes": ["golang"],
+      "groupName": "go-toolchain",
+      "separateMinorPatch": true,
+      "separateMajor": true
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchDepTypes": ["go"],
+      "groupName": "go-version",
+      "separateMinorPatch": true,
+      "separateMajor": true
+    }
   ]
 }
