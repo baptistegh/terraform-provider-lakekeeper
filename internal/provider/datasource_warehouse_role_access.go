@@ -68,7 +68,7 @@ func (d *LakekeeperWarehouseRoleAccessDataSource) Schema(_ context.Context, _ da
 			},
 			"allowed_actions": schema.SetAttribute{
 				MarkdownDescription: `List of the role's allowed actions on the warehouse. The possible values are ` +
-					fmt.Sprintf("`%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s`",
+					fmt.Sprintf("`%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s`",
 						permissionv1.CreateNamespace,
 						permissionv1.DeleteWarehouse,
 						permissionv1.ModifyStorage,
@@ -91,6 +91,7 @@ func (d *LakekeeperWarehouseRoleAccessDataSource) Schema(_ context.Context, _ da
 						permissionv1.ChangeOwnership,
 						permissionv1.GetAllTasks,
 						permissionv1.ControlAllTasks,
+						permissionv1.GetWarehouseEndpointStatistics,
 					),
 				Computed:    true,
 				ElementType: types.StringType,
