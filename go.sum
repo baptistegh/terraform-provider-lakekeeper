@@ -208,6 +208,8 @@ github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiE
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/baptistegh/go-lakekeeper v0.0.21 h1:5eVotmR3yrAC6FiEQWumZmHST58aZ3Lx+9u8rgxfNZU=
 github.com/baptistegh/go-lakekeeper v0.0.21/go.mod h1:S/p1+jnWey7GNZ497kCdw3vtvNfb+6Cqw+ykDKHrpN0=
+github.com/baptistegh/go-lakekeeper v0.0.22 h1:Onb2SRiN4KPVagoQpG6WCbGTF+4hYB2aF+gulehKmTg=
+github.com/baptistegh/go-lakekeeper v0.0.22/go.mod h1:S/p1+jnWey7GNZ497kCdw3vtvNfb+6Cqw+ykDKHrpN0=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
