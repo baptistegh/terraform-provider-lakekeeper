@@ -1,6 +1,42 @@
 # Changelog
 
 
+## [0.4.7](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.6...v0.4.7) (2025-11-25)
+
+
+### Features
+
+* add namespace resource ([#216](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/216)) ([59a9654](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/59a96549ff91ecbff3d86b717cea3d1a7cf2da3b))
+* **warehouse:** add `get_endpoint_statistics` action in permissions ([#217](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/217)) ([f5474a6](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f5474a6981d60e04ec1326d0e9b93ab9dbae8ad2))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies (minor) ([#208](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/208)) ([c67e202](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c67e20247c42b2a9d58c6a477ab90d894dc82365))
+* **deps:** update module github.com/baptistegh/go-lakekeeper to v0.0.20 ([#218](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/218)) ([10d9f5a](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/10d9f5a4ef052465900e12a5dfdeef730ae12ada))
+* **deps:** update module github.com/baptistegh/go-lakekeeper to v0.0.22 ([#220](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/220)) ([1b52449](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/1b5244928646bb5e7c8264e3ed59a8ed3d73813d))
+
+
+### Miscellaneous Chores
+
+* **ci:** configure renovate ([#204](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/204)) ([50791b1](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/50791b157186515b0da498f784f6b151eb57fbde))
+* **ci:** Remove daily schedule from renovate.json ([#205](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/205)) ([892d8f9](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/892d8f990739f4eabd4acdc8879fae97ab4f44e0))
+* **ci:** Update renovate.json for Go dependency management ([#211](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/211)) ([bd075fb](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/bd075fb973486f72ba9ecc319d85dccb1863ccba))
+* Configure Renovate ([#200](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/200)) ([dc99d0d](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/dc99d0d99e60ed6b8f989d027e5629e025cd9399))
+* **deps:** bump golang.org/x/crypto ([2c07839](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/2c07839b19293ab30fb23cd9be355f031e62087f))
+* **deps:** bump golang.org/x/crypto from 0.42.0 to 0.45.0 in the go_modules group across 1 directory ([#212](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/212)) ([2c07839](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/2c07839b19293ab30fb23cd9be355f031e62087f))
+* **deps:** bump golang.org/x/oauth2 from 0.32.0 to 0.33.0 ([#197](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/197)) ([17587ca](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/17587caac39a50f468e820df0b42bfac2a2830ea))
+* **deps:** bump golangci/golangci-lint-action from 8.0.0 to 9.0.0 in the github-actions group ([#198](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/198)) ([b6d170a](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/b6d170a4b096837f09a1b5b0d98b5c616f733fb5))
+* **deps:** update actions/checkout action to v5.0.1 ([#206](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/206)) ([32238bb](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/32238bb724d3fb04e59b517f5bc0a37f6d01ca01))
+* **deps:** update actions/checkout action to v6 ([#214](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/214)) ([ddb6779](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/ddb67799dd606ad0e168872077777a6a47c2060a))
+* **deps:** update all non-major dependencies ([bd0ef35](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/bd0ef35c6ce548e1f27d75c6e2da32934fde7c93))
+* **deps:** update all non-major dependencies (minor) ([#213](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/213)) ([bd0ef35](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/bd0ef35c6ce548e1f27d75c6e2da32934fde7c93))
+* **deps:** update postgres docker tag to v18 ([#209](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/209)) ([d1fb8e5](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/d1fb8e5ae725c8268fe535e9190fee816794cbd2))
+* remove use of deprecated GetDefault() ([#219](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/219)) ([44388e8](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/44388e82e9d9dffc8893fcf573b9252f6495014e))
+* **renovate:** remove grouping dependencies ([#215](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/215)) ([5cc2dbc](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/5cc2dbcbab6cc70dc520cae1a1c3dd753e853023))
+* **renovate:** Update configuration ([#207](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/207)) ([b83b4d2](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/b83b4d24c2d0a908cfb936260dd3842275a8eb54))
+* **tests:** use slices contains for allowed actions checks ([#221](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/221)) ([89d2fc4](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/89d2fc43dad79318fb62b27f2cfd05d5821a1f16))
+
 ## [0.4.6](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.5...v0.4.6) (2025-11-05)
 
 
