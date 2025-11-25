@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.4.8](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.7...v0.4.8) (2025-11-25)
+
+
+### Miscellaneous Chores
+
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.4.6 ([#222](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/222)) ([160c2e1](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/160c2e18ee7bdfbfaa4dad8235a4ce36bd727116))
+
 ## [0.4.7](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.6...v0.4.7) (2025-11-25)
 
 
