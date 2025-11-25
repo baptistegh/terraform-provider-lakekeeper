@@ -32,5 +32,5 @@ data "lakekeeper_warehouse_role_access" "foo" {
 
 ### Read-Only
 
-- `allowed_actions` (Set of String) List of the role's allowed actions on the warehouse. The possible values are `create_namespace` `delete` `modify_storage` `modify_storage_credential` `get_config` `get_metadata` `list_namespaces` `include_in_list` `deactivate` `activate` `rename` `list_deleted_tabulars` `read_assignments` `grant_create` `grant_describe` `grant_modify` `grant_select` `grant_pass_grants` `grant_manage_grants` `change_ownership` `get_all_tasks` `control_all_tasks`
+- `allowed_actions` (Set of String) List of the role's allowed actions on the warehouse. The possible values are `create_namespace` `delete` `modify_storage` `modify_storage_credential` `get_config` `get_metadata` `list_namespaces` `include_in_list` `deactivate` `activate` `rename` `list_deleted_tabulars` `read_assignments` `grant_create` `grant_describe` `grant_modify` `grant_select` `grant_pass_grants` `grant_manage_grants` `change_ownership` `get_all_tasks` `control_all_tasks` `get_endpoint_statistics`
 - `id` (String) The internal ID of this data source, in the form <warehouse_id>:<role_id>.

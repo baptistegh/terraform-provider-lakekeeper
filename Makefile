@@ -11,7 +11,7 @@ build: ## Build the provider binary.
 	GOBIN=$(GOBIN) go install
 
 generate: ## Generate documentation.
-	PATH="$(GOBIN):$(PATH)" go generate --tags tools ./...
+	PATH="$(GOBIN):$(PATH)" go generate --tags lint ./...
 
 ifdef RUN
 TESTARGS += -test.run $(RUN)
@@ -20,22 +20,22 @@ endif
 test: ## Run unit tests.
 	go test -cover $(TESTARGS) $(PROVIDER_SRC_DIR)
 
-fmt: tool-golangci-lint tool-terraform tool-shfmt ## Format files and fix issues.
+fmt: tool-terraform ## Format files and fix issues.
 	gofmt -s -w -e .
-	$(GOBIN)/golangci-lint run --build-tags acceptance --fix
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --build-tags acceptance --fix
 	$(GOBIN)/terraform fmt -recursive -list ./examples ./playground
-	$(GOBIN)/shfmt -l -s -w ./examples
+	go run mvdan.cc/sh/v3/cmd/shfmt -l -s -w ./examples
 
 lint: lint-golangci lint-examples-tf lint-examples-sh lint-generated
 
-lint-golangci: tool-golangci-lint ## Run golangci-lint linter (same as fmt but without modifying files).
-	PATH="$(GOBIN):$(PATH)" golangci-lint run --build-tags acceptance
+lint-golangci: ## Run golangci-lint linter (same as fmt but without modifying files).
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --build-tags acceptance
 
 lint-examples-tf: tool-terraform ## Run terraform linter on examples (same as fmt but without modifying files).
 	PATH="$(GOBIN):$(PATH)" terraform fmt -recursive -check -diff ./examples ./playground
 
 lint-examples-sh: tool-shfmt ## Run shell linter on examples (same as fmt but without modifying files).
-	PATH="$(GOBIN):$(PATH)" shfmt -l -s -d ./examples
+	go run mvdan.cc/sh/v3/cmd/shfmt -l -s -d ./examples
 
 lint-generated: generate ## Check that "make generate" was called. Note this only works if the git workspace is clean.
 	@echo "Checking git status"
@@ -69,20 +69,6 @@ testacc-flakey: ## Run flakey acceptance tests against a Lakekeeper instance.
 
 testacc-settings: ## Run application settings acceptance tests against a Lakekeeper instance.
 	TF_ACC=1 LAKEKEEPER_ENDPOINT=$(LAKEKEEPER_ENDPOINT) LAKEKEEPER_AUTH_URL=$(LAKEKEEPER_AUTH_URL) LAKEKEEPER_CLIENT_ID=$(LAKEKEEPER_CLIENT_ID) LAKEKEEPER_CLIENT_SECRET=$(LAKEKEEPER_CLIENT_SECRET) go test -cover --tags settings -v $(PROVIDER_SRC_DIR) $(TESTARGS) -timeout 40m
-
-# TOOLS
-# Tool dependencies are installed into a project-local /bin folder.
-
-tool-golangci-lint:
-	@mkdir -p $(GOBIN)
-	@[ -f $(GOBIN)/golangci-lint ] || { curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(GOBIN) v2.6.1; }
-
-tool-shfmt:
-	@$(call install-tool, mvdan.cc/sh/v3/cmd/shfmt)
-
-define install-tool
-	GOBIN=$(GOBIN) go install $(1)
-endef
 
 playground: tool-terraform build
 	@cd playground; \
