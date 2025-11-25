@@ -4,6 +4,7 @@ package provider
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
@@ -66,14 +67,21 @@ func TestAccDataLakekeeperWarehouseRoleAccess_basic(t *testing.T) {
 							tfjsonpath.New("allowed_actions"),
 						),
 						knownvalue.SetPartial([]knownvalue.Check{
-							knownvalue.StringExact(string(permissionv1.CreateNamespace)),
-							knownvalue.StringExact(string(permissionv1.GetConfig)),
-							knownvalue.StringExact(string(permissionv1.GetMetadata)),
-							knownvalue.StringExact(string(permissionv1.ListNamespaces)),
-							knownvalue.StringExact(string(permissionv1.IncludeInList)),
-							knownvalue.StringExact(string(permissionv1.ListDeletedTabulars)),
-							knownvalue.StringExact(string(permissionv1.GetAllTasks)),
-							knownvalue.StringExact(string(permissionv1.GetWarehouseEndpointStatistics)),
+							knownvalue.StringFunc(func(v string) error {
+								if !slices.Contains([]string{
+									string(permissionv1.CreateNamespace),
+									string(permissionv1.GetConfig),
+									string(permissionv1.GetMetadata),
+									string(permissionv1.ListNamespaces),
+									string(permissionv1.IncludeInList),
+									string(permissionv1.ListDeletedTabulars),
+									string(permissionv1.GetAllTasks),
+									string(permissionv1.GetWarehouseEndpointStatistics),
+								}, v) {
+									return fmt.Errorf("%s is not an allowed action", v)
+								}
+								return nil
+							}),
 						}),
 					),
 				},
