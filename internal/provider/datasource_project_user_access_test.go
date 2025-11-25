@@ -4,6 +4,7 @@ package provider
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
@@ -63,23 +64,30 @@ func TestAccDataLakekeeperProjectUserAccess_basic(t *testing.T) {
 							tfjsonpath.New("allowed_actions"),
 						),
 						knownvalue.SetPartial([]knownvalue.Check{
-							knownvalue.StringExact(string(permissionv1.CreateRole)),
-							knownvalue.StringExact(string(permissionv1.CreateWarehouse)),
-							knownvalue.StringExact(string(permissionv1.DeleteProject)),
-							knownvalue.StringExact(string(permissionv1.RenameProject)),
-							knownvalue.StringExact(string(permissionv1.ListWarehouses)),
-							knownvalue.StringExact(string(permissionv1.ListRoles)),
-							knownvalue.StringExact(string(permissionv1.SearchRoles)),
-							knownvalue.StringExact(string(permissionv1.ReadProjectAssignments)),
-							knownvalue.StringExact(string(permissionv1.GrantProjectRoleCreator)),
-							knownvalue.StringExact(string(permissionv1.GrantProjectCreate)),
-							knownvalue.StringExact(string(permissionv1.GrantProjectDescribe)),
-							knownvalue.StringExact(string(permissionv1.GrantProjectModify)),
-							knownvalue.StringExact(string(permissionv1.GrantProjectSelet)),
-							knownvalue.StringExact(string(permissionv1.GrantProjectAdmin)),
-							knownvalue.StringExact(string(permissionv1.GrantSecurityAdmin)),
-							knownvalue.StringExact(string(permissionv1.GrantDataAdmin)),
-							knownvalue.StringExact(string(permissionv1.GetProjectEndpointStatistics)),
+							knownvalue.StringFunc(func(v string) error {
+								if !slices.Contains([]string{
+									string(permissionv1.CreateRole),
+									string(permissionv1.CreateWarehouse),
+									string(permissionv1.DeleteProject),
+									string(permissionv1.RenameProject),
+									string(permissionv1.ListWarehouses),
+									string(permissionv1.ListRoles),
+									string(permissionv1.SearchRoles),
+									string(permissionv1.ReadProjectAssignments),
+									string(permissionv1.GrantProjectRoleCreator),
+									string(permissionv1.GrantProjectCreate),
+									string(permissionv1.GrantProjectDescribe),
+									string(permissionv1.GrantProjectModify),
+									string(permissionv1.GrantProjectSelet),
+									string(permissionv1.GrantProjectAdmin),
+									string(permissionv1.GrantSecurityAdmin),
+									string(permissionv1.GrantDataAdmin),
+									string(permissionv1.GetProjectEndpointStatistics),
+								}, v) {
+									return fmt.Errorf("%s is not an allowed action", v)
+								}
+								return nil
+							}),
 						}),
 					),
 				},
