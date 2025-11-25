@@ -506,7 +506,7 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 
 	// set protection
 	if state.Protected.ValueBool() {
-		_, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).SetProtection(ctx, w.ID, state.Protected.ValueBool())
+		_, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).SetWarehouseProtection(ctx, w.ID, &managementv1.SetProtectionOptions{Protected: state.Protected.ValueBool()})
 		if err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred.",
 				fmt.Sprintf("Unable to set protection to %t for warehouse %s, %v", state.Protected.ValueBool(), w.ID, err),
@@ -623,7 +623,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 
 	// Set warehouse protection if the protected field is different
 	if plan.Protected.ValueBool() != state.Protected.ValueBool() {
-		if _, _, err := r.client.WarehouseV1(projectID).SetProtection(ctx, warehouseID, plan.Protected.ValueBool()); err != nil {
+		if _, _, err := r.client.WarehouseV1(projectID).SetWarehouseProtection(ctx, warehouseID, &managementv1.SetProtectionOptions{Protected: plan.Protected.ValueBool()}); err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set protection for warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
