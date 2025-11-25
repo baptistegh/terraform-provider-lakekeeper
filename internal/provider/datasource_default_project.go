@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -83,7 +84,7 @@ func (d *LakekeeperDefaultProjectDataSource) Read(ctx context.Context, req datas
 	}
 
 	// Make API call to read default project
-	project, _, err := d.client.ProjectV1().GetDefault(ctx)
+	project, _, err := d.client.ProjectV1().Get(ctx, uuid.Nil.String())
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read default project, %v", err))
 		return

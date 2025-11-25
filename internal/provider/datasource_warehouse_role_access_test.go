@@ -11,6 +11,9 @@ import (
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccDataLakekeeperWarehouseRoleAccess_basic(t *testing.T) {
@@ -33,7 +36,7 @@ func TestAccDataLakekeeperWarehouseRoleAccess_basic(t *testing.T) {
 						Type:  permissionv1.RoleType,
 						Value: role.ID,
 					},
-					Assignment: permissionv1.ModifyWarehouseAssignment,
+					Assignment: permissionv1.CreateWarehouseAssignment,
 				},
 			},
 		},
@@ -54,22 +57,26 @@ func TestAccDataLakekeeperWarehouseRoleAccess_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "id", fmt.Sprintf("%s/%s", warehouse.ID, role.ID)),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "role_id", role.ID),
-
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.#", "13"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.0", "activate"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.1", "control_all_tasks"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.2", "deactivate"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.3", "delete"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.4", "get_all_tasks"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.5", "get_config"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.6", "get_metadata"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.7", "include_in_list"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.8", "list_deleted_tabulars"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.9", "list_namespaces"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.10", "modify_storage"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.11", "modify_storage_credential"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.12", "rename"),
+					resource.TestCheckResourceAttrSet("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.#"),
 				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"data.lakekeeper_warehouse_role_access.foo",
+						tfjsonpath.Path(
+							tfjsonpath.New("allowed_actions"),
+						),
+						knownvalue.SetPartial([]knownvalue.Check{
+							knownvalue.StringExact(string(permissionv1.CreateNamespace)),
+							knownvalue.StringExact(string(permissionv1.GetConfig)),
+							knownvalue.StringExact(string(permissionv1.GetMetadata)),
+							knownvalue.StringExact(string(permissionv1.ListNamespaces)),
+							knownvalue.StringExact(string(permissionv1.IncludeInList)),
+							knownvalue.StringExact(string(permissionv1.ListDeletedTabulars)),
+							knownvalue.StringExact(string(permissionv1.GetAllTasks)),
+							knownvalue.StringExact(string(permissionv1.GetWarehouseEndpointStatistics)),
+						}),
+					),
+				},
 			},
 		},
 	})

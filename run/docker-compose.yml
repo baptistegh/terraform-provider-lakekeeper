@@ -121,7 +121,7 @@ services:
         [
           "CMD",
           "/usr/local/bin/grpc_health_probe",
-          "-addr=openfga:8081"
+          "-addr=localhost:8081"
         ]
       interval: 5s
       timeout: 30s

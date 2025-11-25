@@ -124,7 +124,7 @@ func TestAccLakekeeperRole_duplicate(t *testing.T) {
 				  name = "%s"
 				}
 				`, rName, rName),
-				ExpectError: regexp.MustCompile("RoleAlreadyExists"),
+				ExpectError: regexp.MustCompile("Role(Name)?AlreadyExists"),
 			},
 		},
 	})
