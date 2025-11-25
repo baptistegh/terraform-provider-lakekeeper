@@ -10,6 +10,9 @@ import (
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccDataLakekeeperProjectRoleAccess_basic(t *testing.T) {
@@ -50,24 +53,33 @@ func TestAccDataLakekeeperProjectRoleAccess_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "id", fmt.Sprintf("%s/%s", project.ID, role.ID)),
 					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "project_id", project.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "role_id", role.ID),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.#", "16"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.0", "create_role"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.1", "create_warehouse"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.2", "delete"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.3", "grant_create"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.4", "grant_data_admin"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.5", "grant_describe"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.6", "grant_modify"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.7", "grant_project_admin"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.8", "grant_role_creator"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.9", "grant_security_admin"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.10", "grant_select"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.11", "list_roles"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.12", "list_warehouses"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.13", "read_assignments"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.14", "rename"),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_role_access.foo", "allowed_actions.15", "search_roles"),
 				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"data.lakekeeper_project_role_access.foo",
+						tfjsonpath.Path(
+							tfjsonpath.New("allowed_actions"),
+						),
+						knownvalue.SetPartial([]knownvalue.Check{
+							knownvalue.StringExact(string(permissionv1.CreateRole)),
+							knownvalue.StringExact(string(permissionv1.CreateWarehouse)),
+							knownvalue.StringExact(string(permissionv1.DeleteProject)),
+							knownvalue.StringExact(string(permissionv1.RenameProject)),
+							knownvalue.StringExact(string(permissionv1.ListWarehouses)),
+							knownvalue.StringExact(string(permissionv1.ListRoles)),
+							knownvalue.StringExact(string(permissionv1.SearchRoles)),
+							knownvalue.StringExact(string(permissionv1.ReadProjectAssignments)),
+							knownvalue.StringExact(string(permissionv1.GrantProjectRoleCreator)),
+							knownvalue.StringExact(string(permissionv1.GrantProjectCreate)),
+							knownvalue.StringExact(string(permissionv1.GrantProjectDescribe)),
+							knownvalue.StringExact(string(permissionv1.GrantProjectModify)),
+							knownvalue.StringExact(string(permissionv1.GrantProjectSelet)),
+							knownvalue.StringExact(string(permissionv1.GrantProjectAdmin)),
+							knownvalue.StringExact(string(permissionv1.GrantSecurityAdmin)),
+							knownvalue.StringExact(string(permissionv1.GrantDataAdmin)),
+							knownvalue.StringExact(string(permissionv1.GetProjectEndpointStatistics))}),
+					),
+				},
 			},
 		},
 	})

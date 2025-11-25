@@ -11,6 +11,9 @@ import (
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccDataLakekeeperWarehouseUserAccess_basic(t *testing.T) {
@@ -54,15 +57,25 @@ func TestAccDataLakekeeperWarehouseUserAccess_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "id", fmt.Sprintf("%s/%s", warehouse.ID, user.ID)),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "warehouse_id", warehouse.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "user_id", user.ID),
-
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.#", "6"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.0", "get_all_tasks"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.1", "get_config"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.2", "get_metadata"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.3", "include_in_list"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.4", "list_deleted_tabulars"),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.5", "list_namespaces"),
+					resource.TestCheckResourceAttrSet("data.lakekeeper_warehouse_user_access.foo", "allowed_actions.#"),
 				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"data.lakekeeper_warehouse_user_access.foo",
+						tfjsonpath.Path(
+							tfjsonpath.New("allowed_actions"),
+						),
+						knownvalue.SetPartial([]knownvalue.Check{
+							knownvalue.StringExact(string(permissionv1.GetConfig)),
+							knownvalue.StringExact(string(permissionv1.GetMetadata)),
+							knownvalue.StringExact(string(permissionv1.ListNamespaces)),
+							knownvalue.StringExact(string(permissionv1.IncludeInList)),
+							knownvalue.StringExact(string(permissionv1.ListDeletedTabulars)),
+							knownvalue.StringExact(string(permissionv1.GetAllTasks)),
+							knownvalue.StringExact(string(permissionv1.GetWarehouseEndpointStatistics)),
+						}),
+					),
+				},
 			},
 		},
 	})
