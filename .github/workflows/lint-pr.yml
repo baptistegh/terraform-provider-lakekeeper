@@ -45,15 +45,6 @@ jobs:
               * `chore(deps): update dependencies`
 
               We only use types: `feat`, `fix`, `docs`, `chore`, `test` and `ci`.
-
-      - uses: marocchino/sticky-pull-request-comment@v2
-        if: ${{ steps.check.outputs.success == 'true'}}
-        with:
-          header: 'pr-title-checker'
-          recreate: true
-          message: |
-              ### ✅ PR Title Formatted Correctly
-              The title of this PR match the correct format. Thank you!
       
       - if: ${{ steps.check.outputs.success == 'false'}}
         name: Fail on invalid title
