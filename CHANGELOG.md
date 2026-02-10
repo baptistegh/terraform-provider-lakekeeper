@@ -1,6 +1,35 @@
 # Changelog
 
 
+## [0.4.8](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.7...v0.4.8) (2026-01-24)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/hashicorp/terraform-plugin-framework to v1.17.0 ([#229](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/229)) ([7f17135](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/7f1713583b3ec5e5b03fe464108a2d69d6bc413c))
+* **deps:** update module github.com/hashicorp/terraform-plugin-testing to v1.14.0 ([#231](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/231)) ([0158458](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/015845863ee6afafe97d3ffd5dc5981936643992))
+* **deps:** update module golang.org/x/oauth2 to v0.34.0 ([#237](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/237)) ([2a76585](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/2a76585b40912727b3eb8076fdd82fb13802d52e))
+
+
+### Miscellaneous Chores
+
+* **ci:** disable freebsd and 386 ([#235](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/235)) ([26279ba](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/26279ba00afd7e46183f7f8b9f9a50a68f48c418))
+* **ci:** enable cache for build test ([#234](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/234)) ([c065c53](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c065c53912bc484120ecf0c36344e9c6d871df0c))
+* **ci:** use import in tools package ([#242](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/242)) ([db3030a](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/db3030a67c4d2969d7648d52ef514942b0302052))
+* **deps:** update actions/checkout action to v6.0.1 ([#228](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/228)) ([a068118](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/a068118199d8be4e433bcffab587d9bd7ed72308))
+* **deps:** update actions/checkout action to v6.0.2 ([#243](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/243)) ([53bc2b8](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/53bc2b869bd593934357d6e03b6afa66680deae6))
+* **deps:** update actions/setup-go action to v6.2.0 ([#240](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/240)) ([97424d2](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/97424d21f4df117f177cb2c45ba841b34ffea976))
+* **deps:** update golangci/golangci-lint-action action to v9.2.0 ([#230](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/230)) ([4f31e5d](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/4f31e5d19e43c47a74d65cb2420c528a00d678e1))
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.7.0 ([#232](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/232)) ([f66508e](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f66508ea71db0adfedc34696f901567aa2bea14c))
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.7.1 ([#233](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/233)) ([f1e2993](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f1e29930147d3f64bef9580616fd276a52129aab))
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.7.2 ([#236](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/236)) ([c7be4eb](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c7be4ebb564a90d5c75bb534dd25b24783c5ed5f))
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.8.0 ([#239](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/239)) ([38ce152](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/38ce15226c521a7b3d24835284855288dfa13008))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.4.6 ([#222](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/222)) ([160c2e1](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/160c2e18ee7bdfbfaa4dad8235a4ce36bd727116))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.4.7 ([#227](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/227)) ([7200185](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/7200185f9f99d10521b456d42a3460be88110417))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.5.0 ([#238](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/238)) ([69ed3d7](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/69ed3d70991c676acf58f09c6a81c56f1bbb2d4c))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.5.2 ([#241](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/241)) ([1526b94](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/1526b9406219ba45e3c4e1370ea646a20bace1ff))
+* do not comment on correct PR title ([#224](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/224)) ([eae4619](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/eae46198f6f79421123130b8f759fed65282ccfe))
+
 ## [0.4.7](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.6...v0.4.7) (2025-11-25)
 
 
