@@ -29,7 +29,7 @@ jobs:
           configuration_path: ".github/pr-title-checker-config.json"
           pass_on_octokit_error: false
 
-      - uses: marocchino/sticky-pull-request-comment@v2
+      - uses: marocchino/sticky-pull-request-comment@v3
         if: ${{ steps.check.outputs.success == 'false'}}
         with:
           header: 'pr-title-checker'
@@ -65,7 +65,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: ./.github/pull-request-triage.sh
-      - uses: marocchino/sticky-pull-request-comment@v2
+      - uses: marocchino/sticky-pull-request-comment@v3
         if: ${{ steps.check.outputs.breaking_change == 'true'}}
         with:
           header: 'breaking-change'
@@ -80,7 +80,7 @@ jobs:
               - [ ] Update the relevant documentation and examples (`examples/`, `playground/`)
               - [ ] Details on this change should be added to the PR body
               - [ ] Add migration instructions if necessary
-      - uses: marocchino/sticky-pull-request-comment@v2
+      - uses: marocchino/sticky-pull-request-comment@v3
         if: ${{ steps.check.outputs.breaking_change == 'false'}}
         with:
           header: 'breaking-change'
