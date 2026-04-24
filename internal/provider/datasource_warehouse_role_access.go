@@ -123,7 +123,7 @@ func (d *LakekeeperWarehouseRoleAccessDataSource) Read(ctx context.Context, req 
 
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s", state.WarehouseID.ValueString(), state.RoleID.ValueString()))
 
-	access, _, err := d.client.PermissionV1().WarehousePermission().GetAccess(ctx, state.WarehouseID.ValueString(), &permissionv1.GetWarehouseAccessOptions{
+	access, _, err := d.client.PermissionV1().WarehousePermission().GetAllowedAuthorizerActions(ctx, state.WarehouseID.ValueString(), &permissionv1.GetWarehouseAllowedAuthorizerActionsOptions{
 		PrincipalRole: core.Ptr(state.RoleID.ValueString()),
 	})
 	if err != nil {
