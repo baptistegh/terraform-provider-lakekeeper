@@ -22,7 +22,7 @@ require (
 )
 
 require (
-	github.com/baptistegh/go-lakekeeper v0.0.22
+	github.com/baptistegh/go-lakekeeper v0.0.23
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 )
 
@@ -95,7 +95,7 @@ require (
 	github.com/golangci/unconvert v0.0.0-20250410112200-a129a6e6413e // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/renameio/v2 v2.0.2 // indirect
 	github.com/gookit/color v1.6.0 // indirect
 	github.com/hamba/avro/v2 v2.31.0 // indirect
