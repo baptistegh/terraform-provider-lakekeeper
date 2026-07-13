@@ -264,6 +264,33 @@ func (m *ADLSStorageProfileModel) AsSDK() (profile.StorageSettings, error) {
 		opt...,
 	)
 
+	// NewADLSStorageSettings injects client-side defaults for several optional
+	// fields (host = "dfs.core.windows.net", authority_host =
+	// "https://login.microsoftonline.com", sas_token_validity_seconds = 3600).
+	// The Lakekeeper server, like the UI, expects these to be omitted unless
+	// explicitly set: it stores null and applies its own defaults at runtime.
+	// Sending the injected defaults instead breaks in field-specific ways:
+	//   - host: a non-empty host becomes CloudLocation::Custom, which reuses the
+	//     dfs URI for the blob service client and breaks the blob-only "Get User
+	//     Delegation Key" SAS minting (400 InvalidUri from the Windows-Azure-HDFS
+	//     endpoint) for azure_system_identity and client_credentials.
+	//   - authority_host: treated as immutable, so updating a warehouse stored
+	//     with null fails ("Field `authority_host` cannot be updated to prevent
+	//     loss of data").
+	//   - sas_token_validity_seconds: Optional+Computed stored as null, so a sent
+	//     3600 triggers a "provider produced inconsistent result" error.
+	// Mirror the UI and omit each value when the user has not set it explicitly,
+	// letting the server apply its defaults.
+	if m.Host.ValueString() == "" {
+		sp.Host = nil
+	}
+	if m.AuthorityHost.ValueString() == "" {
+		sp.AuthorityHost = nil
+	}
+	if m.SASTokenValiditySeconds.IsNull() || m.SASTokenValiditySeconds.IsUnknown() {
+		sp.SASTokenValiditySeconds = nil
+	}
+
 	return sp, nil
 }
 
