@@ -55,8 +55,8 @@ func (r *lakekeeperUserResource) Schema(ctx context.Context, req resource.Schema
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile("^(oidc|kubernetes)~"),
-						"The id must be prefixed with `<idp-identifier>~`. `<idp-identifier>` can be `oidc` or `kubernetes`.",
+						regexp.MustCompile("^[^~]+~.+"),
+						"The id must be in the format `<idp-identifier>~<id>`, for example `oidc~1234567890`.",
 					),
 				},
 			},
