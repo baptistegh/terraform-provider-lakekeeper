@@ -504,6 +504,22 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
+	// The warehouse now EXISTS server-side. Persist its identity to state
+	// immediately, before the post-create steps below (protection, activation,
+	// managed access, read-back). If any of those fail and we returned without
+	// having saved state, Terraform would consider the warehouse never-created
+	// and try to create it again on the next apply — which fails with
+	// CreateWarehouseStorageProfileOverlap and leaves the resource permanently
+	// orphaned (created in Lakekeeper, absent from state). Recording the ID here
+	// makes such a failure recoverable: the next apply updates/reads the existing
+	// warehouse instead of re-creating it.
+	state.ID = types.StringValue(state.ProjectID.ValueString() + "/" + w.ID)
+	state.WarehouseID = types.StringValue(w.ID)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// set protection
 	if state.Protected.ValueBool() {
 		_, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).SetWarehouseProtection(ctx, w.ID, &managementv1.SetProtectionOptions{Protected: state.Protected.ValueBool()})
