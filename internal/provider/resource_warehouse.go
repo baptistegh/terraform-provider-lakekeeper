@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -532,13 +533,23 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 	}
 
 	if !state.ManagedAccess.IsNull() {
-		_, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(ctx, warehouse.ID, &permissionv1.SetWarehouseManagedAccessOptions{
+		httpResp, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(ctx, warehouse.ID, &permissionv1.SetWarehouseManagedAccessOptions{
 			ManagedAccess: state.ManagedAccess.ValueBool(),
 		})
 		if err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred",
-				fmt.Sprintf("Unable to set managed access, %v", err))
-			return
+			// The managed-access endpoint only exists when the server runs an
+			// authorization backend (e.g. OpenFGA); on an `allowall` backend it
+			// returns 404. Treat that as "managed access not applicable here"
+			// rather than a hard error, so warehouses can still be managed on
+			// allowall clusters. Any other error is real.
+			if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+				resp.Diagnostics.AddWarning("Managed access not supported by server",
+					fmt.Sprintf("Warehouse %s created; skipping managed_access (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouse.ID))
+			} else {
+				resp.Diagnostics.AddError("Lakekeeper API error occurred",
+					fmt.Sprintf("Unable to set managed access, %v", err))
+				return
+			}
 		}
 	}
 
@@ -575,12 +586,24 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	// get managed access property
-	m, _, err := r.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, warehouse.ID)
+	// get managed access property. Like SetManagedAccess, this endpoint only
+	// exists when the server runs an authorization backend (e.g. OpenFGA); on an
+	// `allowall` backend it returns 404. Tolerate that (leave managed_access as
+	// refreshed from the warehouse settings) instead of erroring — otherwise Read
+	// (and therefore plan/refresh/import) is impossible on an allowall cluster.
+	// Note the prior code also dereferenced a nil `m` on error; guard that too.
+	m, httpResp, err := r.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, warehouse.ID)
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err))
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddWarning("Managed access not supported by server",
+				fmt.Sprintf("Warehouse %s: skipping managed_access read (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouseID))
+		} else {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err))
+			return
+		}
+	} else if m != nil {
+		state.ManagedAccess = types.BoolValue(m.ManagedAccess)
 	}
-	state.ManagedAccess = types.BoolValue(m.ManagedAccess)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -655,12 +678,18 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	// Update the authorization property
-	if _, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(ctx, warehouseID, &permissionv1.SetWarehouseManagedAccessOptions{
+	// Update the authorization property. As in Create, tolerate a 404 from the
+	// managed-access endpoint (server without an authz backend, e.g. allowall).
+	if httpResp, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(ctx, warehouseID, &permissionv1.SetWarehouseManagedAccessOptions{
 		ManagedAccess: plan.ManagedAccess.ValueBool(),
 	}); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set authorization properties for warehouse %s in project %s, %v", warehouseID, projectID, err))
-		return
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddWarning("Managed access not supported by server",
+				fmt.Sprintf("Skipping managed_access update for warehouse %s (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouseID))
+		} else {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set authorization properties for warehouse %s in project %s, %v", warehouseID, projectID, err))
+			return
+		}
 	}
 	state.ManagedAccess = plan.ManagedAccess
 
