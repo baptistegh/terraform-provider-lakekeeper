@@ -1,6 +1,23 @@
 # Changelog
 
 
+## [0.4.9](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.8...v0.4.9) (2026-07-23)
+
+
+### Bug Fixes
+
+* **warehouse:** persist ID to state right after create ([#305](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/305)) ([9a4ae0e](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/9a4ae0e615fb1b3ca9e0622acb19fc09deaebe45))
+* **warehouse:** tolerate 404 from managed-access endpoint on allowall backends ([#306](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/306)) ([9471754](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/947175492becb8086a4b40b69f0e216a61c20740))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the go_modules group across 1 directory with 2 updates ([#310](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/310)) ([2823fd5](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/2823fd556acc32bd33bde22612b96a1d52d069f4))
+* **deps:** update actions/checkout action to v7 ([#304](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/304)) ([a41da5d](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/a41da5de0916aa2c14ff1f398a94cf8f9de4a055))
+* **deps:** update actions/labeler action to v7 ([#307](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/307)) ([fbdedee](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/fbdedee24fc5588d611409a1860f3ac146dda2fc))
+* **deps:** update actions/setup-go action to v7 ([#309](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/309)) ([13f7aba](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/13f7aba7b46abee74d8b3d27e053375dc4c9c29f))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.7.0 ([#302](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/302)) ([795c62e](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/795c62e40c608eac2686f75515ab7012ebfc804b))
+
 ## [0.4.8](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.7...v0.4.8) (2026-07-20)
 
 
