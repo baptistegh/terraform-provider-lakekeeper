@@ -586,12 +586,24 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	// get managed access property
-	m, _, err := r.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, warehouse.ID)
+	// get managed access property. Like SetManagedAccess, this endpoint only
+	// exists when the server runs an authorization backend (e.g. OpenFGA); on an
+	// `allowall` backend it returns 404. Tolerate that (leave managed_access as
+	// refreshed from the warehouse settings) instead of erroring — otherwise Read
+	// (and therefore plan/refresh/import) is impossible on an allowall cluster.
+	// Note the prior code also dereferenced a nil `m` on error; guard that too.
+	m, httpResp, err := r.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, warehouse.ID)
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err))
+		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
+			resp.Diagnostics.AddWarning("Managed access not supported by server",
+				fmt.Sprintf("Warehouse %s: skipping managed_access read (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouseID))
+		} else {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err))
+			return
+		}
+	} else if m != nil {
+		state.ManagedAccess = types.BoolValue(m.ManagedAccess)
 	}
-	state.ManagedAccess = types.BoolValue(m.ManagedAccess)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
