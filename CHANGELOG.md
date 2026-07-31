@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.4.11](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.10...v0.4.11) (2026-07-31)
+
+
+### Miscellaneous Chores
+
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.12.2 ([#285](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/285)) ([8ec085c](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/8ec085cebb2e6d2ac01bae6269c6ffc24bcacfef))
+
 ## [0.4.10](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.9...v0.4.10) (2026-07-31)
 
 
