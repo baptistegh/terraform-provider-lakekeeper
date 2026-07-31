@@ -78,6 +78,6 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `f
 
 Every commit that involved AI assistance **must** include an `Assisted-By` trailer (not `Co-Authored-By`). Use the model ID and interface, for example:
 
-```
+```text
 Assisted-By: claude-sonnet-4-6 (Claude Code)
 ```

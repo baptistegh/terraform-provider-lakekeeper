@@ -34,7 +34,7 @@ lint-golangci: ## Run golangci-lint linter (same as fmt but without modifying fi
 lint-examples-tf: tool-terraform ## Run terraform linter on examples (same as fmt but without modifying files).
 	PATH="$(GOBIN):$(PATH)" terraform fmt -recursive -check -diff ./examples ./playground
 
-lint-examples-sh: tool-shfmt ## Run shell linter on examples (same as fmt but without modifying files).
+lint-examples-sh: ## Run shell linter on examples (same as fmt but without modifying files).
 	go run mvdan.cc/sh/v3/cmd/shfmt -l -s -d ./examples
 
 lint-generated: generate ## Check that "make generate" was called. Note this only works if the git workspace is clean.
