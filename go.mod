@@ -1,6 +1,6 @@
 module github.com/baptistegh/terraform-provider-lakekeeper
 
-go 1.25.8
+go 1.26.0
 
 tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/terraform-community-providers/terraform-plugin-framework-utils v0.4.0
-	golang.org/x/oauth2 v0.36.0
+	golang.org/x/oauth2 v0.37.0
 )
 
 require (
