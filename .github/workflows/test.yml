@@ -36,7 +36,7 @@ jobs:
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_wrapper: false
-          terraform_version: 1.9.8
+          terraform_version: v1.16.5
 
       - name: Run Terraform linter on examples and playground
         run: terraform fmt -recursive -check -diff ./examples ./playground
@@ -107,7 +107,7 @@ jobs:
           cache: true
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
-          terraform_version: 1.12.2
+          terraform_version: v1.16.5
           terraform_wrapper: false
       - run: go mod download
       - run: make testacc-up
