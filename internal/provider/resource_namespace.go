@@ -69,7 +69,7 @@ func (r *lakekeeperNamespaceResource) Schema(ctx context.Context, req resource.S
 				},
 			},
 			"namespace_id":   schema.StringAttribute{Computed: true, MarkdownDescription: "Namespace UUID used by the permissions API."},
-			"managed_access": schema.BoolAttribute{Optional: true, MarkdownDescription: "Centralize grants on descendants. Leave unset with allow-all. Requires OpenFGA when set."},
+			"managed_access": schema.BoolAttribute{Optional: true, MarkdownDescription: "Centralize grants on descendants. Requires OpenFGA when set. Leaving this unset avoids the managed-access endpoint. Removing the setting preserves its remote value."},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "The internal ID of the project where the namespace is located.",
 				Required:            true,

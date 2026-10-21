@@ -46,7 +46,9 @@ func (r *namespaceRoleAssignmentResource) Schema(_ context.Context, _ resource.S
 		}
 	}
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages all direct namespace permissions for one role. Other roles and users are preserved. Requires Lakekeeper's OpenFGA authorization backend. Import existing grants before managing them.",
+		MarkdownDescription: "Manages all direct namespace permissions for one role. Other roles and users are preserved. Use one resource per namespace-role pair and import existing grants before managing them.\n\n" +
+			"Requires Lakekeeper's OpenFGA authorization backend. Namespace grants apply to descendants according to Lakekeeper's authorization model.\n\n" +
+			"Updates revoke obsolete permissions before adding new ones. A failed write can leave partial progress; refresh and reapply. Failed reads and deletes return errors and preserve state. A missing permissions endpoint is an error, including with allow-all.",
 		Attributes: map[string]schema.Attribute{
 			"id":           schema.StringAttribute{Computed: true, MarkdownDescription: "project_id/namespace_id/role_id", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
 			"project_id":   identity("Project containing both the namespace and role."),
@@ -144,7 +146,7 @@ func (r *namespaceRoleAssignmentResource) Create(ctx context.Context, req resour
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// Create adopts existing direct grants only when they already match; import is required otherwise.
+	// Existing direct grants must be imported before this resource can manage them.
 	current, err := namespaceRoleAssignments(ctx, r.client, plan.ProjectID.ValueString(), plan.NamespaceID.ValueString(), plan.RoleID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Cannot read namespace grants", err.Error())

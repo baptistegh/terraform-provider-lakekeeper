@@ -32,9 +32,14 @@ resource "lakekeeper_namespace" "example" {
 - `project_id` (String) The internal ID of the project where the namespace is located.
 - `warehouse_name` (String) The name of the warehouse where the namespace is located.
 
+### Optional
+
+- `managed_access` (Boolean) Centralize grants on descendants. Requires OpenFGA when set. Leaving this unset avoids the managed-access endpoint. Removing the setting preserves its remote value.
+
 ### Read-Only
 
 - `id` (String) The ID the namespace. In the form `{{project_id}}/{{warehouse_name}}/{{name}}`
+- `namespace_id` (String) Namespace UUID used by the permissions API.
 
 ## Import
 
@@ -46,12 +51,3 @@ The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/c
 # id is "{{project_id}}/{{warehouse_name}}/{{name}}"
 terraform import lakekeeper_namespace.example "891d18c8-1da4-471e-89f1-6e43eb4dcb38/warehouse_example/my_namespace"
 ```
-
-## Namespace authorization
-
-`namespace_id` is the computed UUID used by `lakekeeper_namespace_role_assignment`.
-The existing composite `id` and import format remain unchanged.
-
-Set the optional Boolean `managed_access` to manage descendant grant administration.
-Leave it unset while using allow-all; configuring it requires OpenFGA.
-Removing this optional setting stops managing it and preserves the remote value.
