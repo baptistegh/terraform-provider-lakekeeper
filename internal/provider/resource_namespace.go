@@ -2,7 +2,9 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"strings"
 
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
@@ -45,6 +47,8 @@ type lakekeeperNamespaceResource struct {
 // lakekeeperNamespaceResourceModel describes the resource data model.
 type lakekeeperNamespaceResourceModel struct {
 	ID            types.String `tfsdk:"id"`
+	NamespaceID   types.String `tfsdk:"namespace_id"`
+	ManagedAccess types.Bool   `tfsdk:"managed_access"`
 	ProjectID     types.String `tfsdk:"project_id"`
 	WarehouseName types.String `tfsdk:"warehouse_name"`
 	Name          types.String `tfsdk:"name"`
@@ -64,6 +68,8 @@ func (r *lakekeeperNamespaceResource) Schema(ctx context.Context, req resource.S
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"namespace_id":   schema.StringAttribute{Computed: true, MarkdownDescription: "Namespace UUID used by the permissions API."},
+			"managed_access": schema.BoolAttribute{Optional: true, MarkdownDescription: "Centralize grants on descendants. Leave unset with allow-all. Requires OpenFGA when set."},
 			"project_id": schema.StringAttribute{
 				MarkdownDescription: "The internal ID of the project where the namespace is located.",
 				Required:            true,
@@ -124,6 +130,18 @@ func (r *lakekeeperNamespaceResource) Create(ctx context.Context, req resource.C
 
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s/%s", project_id, warehouse_name, name))
 
+	// Save catalog identity before any optional authorization call.
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if err := r.refreshNamespace(ctx, &state); err != nil {
+		resp.Diagnostics.AddError("Cannot read created namespace", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if err := r.setManagedAccess(ctx, &state); err != nil {
+		resp.Diagnostics.AddError("Cannot set managed access", err.Error())
+		return
+	}
+
 	// Log the creation of the resource
 	tflog.Debug(ctx, "created a namespace", map[string]any{
 		"id": state.ID.ValueString(),
@@ -143,7 +161,28 @@ func (r *lakekeeperNamespaceResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	// TODO: implements
+	if err := r.refreshNamespace(ctx, &state); err != nil {
+		if errors.Is(err, catalog.ErrNoSuchNamespace) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError("Cannot read namespace", err.Error())
+		return
+	}
+	if !state.ManagedAccess.IsNull() {
+		var props struct {
+			Managed *bool `json:"managed-access"`
+		}
+		if err := namespaceRequest(ctx, r.client, state.ProjectID.ValueString(), state.NamespaceID.ValueString(), "", "GET", nil, &props); err != nil {
+			resp.Diagnostics.AddError("Cannot read managed access", err.Error())
+			return
+		}
+		if props.Managed == nil {
+			resp.Diagnostics.AddError("Cannot read managed access", "Response has no managed-access field")
+			return
+		}
+		state.ManagedAccess = types.BoolValue(*props.Managed)
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -159,7 +198,13 @@ func (r *lakekeeperNamespaceResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	plan.ID = state.ID
+	plan.NamespaceID = state.NamespaceID
+	if err := r.setManagedAccess(ctx, &plan); err != nil {
+		resp.Diagnostics.AddError("Cannot set managed access", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 // Deletes removes the resource.
@@ -209,4 +254,27 @@ func (r *lakekeeperNamespaceResource) ImportState(ctx context.Context, req resou
 	resp.State.SetAttribute(ctx, path.Root("name"), parts[2])
 
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r *lakekeeperNamespaceResource) refreshNamespace(ctx context.Context, state *lakekeeperNamespaceResourceModel) error {
+	cat, err := r.client.CatalogV1(ctx, state.ProjectID.ValueString(), state.WarehouseName.ValueString())
+	if err != nil {
+		return err
+	}
+	props, err := cat.LoadNamespaceProperties(ctx, catalog.ToIdentifier(state.Name.ValueString()))
+	if err != nil {
+		return err
+	}
+	id := props["namespace_id"]
+	if _, err := uuid.Parse(id); err != nil {
+		return fmt.Errorf("catalog returned an invalid namespace_id")
+	}
+	state.NamespaceID = types.StringValue(id)
+	return nil
+}
+func (r *lakekeeperNamespaceResource) setManagedAccess(ctx context.Context, state *lakekeeperNamespaceResourceModel) error {
+	if state.ManagedAccess.IsNull() {
+		return nil
+	}
+	return namespaceRequest(ctx, r.client, state.ProjectID.ValueString(), state.NamespaceID.ValueString(), "/managed-access", "POST", map[string]bool{"managed-access": state.ManagedAccess.ValueBool()}, nil)
 }
