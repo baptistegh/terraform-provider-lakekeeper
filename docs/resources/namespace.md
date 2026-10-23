@@ -32,9 +32,14 @@ resource "lakekeeper_namespace" "example" {
 - `project_id` (String) The internal ID of the project where the namespace is located.
 - `warehouse_name` (String) The name of the warehouse where the namespace is located.
 
+### Optional
+
+- `managed_access` (Boolean) Centralize grants on descendants. Requires OpenFGA when set. Leaving this unset avoids the managed-access endpoint. Removing the setting preserves its remote value.
+
 ### Read-Only
 
 - `id` (String) The ID the namespace. In the form `{{project_id}}/{{warehouse_name}}/{{name}}`
+- `namespace_id` (String) Namespace UUID used by the permissions API.
 
 ## Import
 
