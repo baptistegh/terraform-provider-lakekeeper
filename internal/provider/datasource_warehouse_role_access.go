@@ -123,7 +123,9 @@ func (d *LakekeeperWarehouseRoleAccessDataSource) Read(ctx context.Context, req 
 
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s", state.WarehouseID.ValueString(), state.RoleID.ValueString()))
 
-	access, _, err := d.client.PermissionV1().WarehousePermission().GetAccess(ctx, state.WarehouseID.ValueString(), &permissionv1.GetWarehouseAccessOptions{
+	// GetAccess is deprecated, but its replacements do not fit yet: GetAllowedAuthorizerActions only
+	// returns OpenFGA relations, and go-lakekeeper v0.0.23 cannot decode the WarehouseV1().GetAllowedActions response.
+	access, _, err := d.client.PermissionV1().WarehousePermission().GetAccess(ctx, state.WarehouseID.ValueString(), &permissionv1.GetWarehouseAccessOptions{ //nolint:staticcheck // see above
 		PrincipalRole: core.Ptr(state.RoleID.ValueString()),
 	})
 	if err != nil {
