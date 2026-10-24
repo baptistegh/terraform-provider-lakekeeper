@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.4.12](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.11...v0.4.12) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deps:** Update dependencies ([#282](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/282)) ([3313b7f](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/3313b7f7208774e5ab224766dc9199ba376f0290))
+
 ## [0.4.11](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.10...v0.4.11) (2026-10-24)
 
 
