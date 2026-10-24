@@ -1,6 +1,35 @@
 # Changelog
 
 
+## [0.4.11](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.10...v0.4.11) (2026-10-24)
+
+
+### Features
+
+* manage namespace role assignments and managed access ([#330](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/330)) ([f1da193](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/f1da193c5446052c57a98b4893c9d61b89695f01))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/apache/iceberg-go to v0.7.0 ([#327](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/327)) ([1189b54](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/1189b54d81cd21c2ca48d67f42c11821b54ce620))
+* **deps:** update module golang.org/x/oauth2 to v0.37.0 ([#320](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/320)) ([8240f19](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/8240f19830cc585b55fefb64a3e94b50fc371a77))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump google.golang.org/grpc ([#321](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/321)) ([4fbbeb6](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/4fbbeb64b24d5946a3ee11efa1b804ae1fe4a9b0))
+* **deps:** update dependency terraform to v1.17.0 ([#322](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/322)) ([7e87579](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/7e87579a4b02979c9efb36e21243583fd85ff444))
+* **deps:** update goreleaser/goreleaser-action action to v7.3.0 ([#329](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/329)) ([84cae7f](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/84cae7fc8771e3d9378560158b5a92a0d7a244a4))
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.12.2 ([#285](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/285)) ([8ec085c](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/8ec085cebb2e6d2ac01bae6269c6ffc24bcacfef))
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.13.2 ([#319](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/319)) ([2742953](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/27429538c5c73183ed9608cf29e35482eb9f3408))
+* **deps:** update module github.com/golangci/golangci-lint/v2 to v2.14.0 ([#325](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/325)) ([4590727](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/4590727ff61df550582219d569d3b0c35e285d81))
+* **deps:** update module mvdan.cc/sh/v3 to v3.14.1 ([#318](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/318)) ([43a1dd9](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/43a1dd94fb0feab66bfb6144f6f75242f4cf0b29))
+* **deps:** update openfga/openfga docker tag to v1.19 ([#317](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/317)) ([987ecf9](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/987ecf9326c08b0280d661e67a12e6e0ee0fb2ad))
+* **deps:** update openfga/openfga docker tag to v1.21 ([#324](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/324)) ([26996d0](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/26996d079b15dab6641a04f8d48966af0af86b06))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.7.1 ([#315](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/315)) ([c381514](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c38151438c75ca46d1d6fffbab73576886da7291))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.8.0 ([#326](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/326)) ([3bb261d](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/3bb261d6101b5e2077c8957fea602d3f0f24124c))
+* **deps:** update thehanimo/pr-title-checker action to v2 ([#328](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/328)) ([c25e2ef](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/c25e2efde116aa95a1f50ec0620e97364b595d2f))
+
 ## [0.4.10](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.9...v0.4.10) (2026-07-31)
 
 
