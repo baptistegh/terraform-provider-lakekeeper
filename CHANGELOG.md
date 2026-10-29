@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.4.13](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.12...v0.4.13) (2026-10-29)
+
+
+### Miscellaneous Chores
+
+* **deps:** update dependency terraform to v1.17.1 ([#332](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/332)) ([fe1d9ef](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/fe1d9efd4ce3177a9840ce6204d8cf23ef29ee90))
+
 ## [0.4.12](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.11...v0.4.12) (2026-10-24)
 
 
