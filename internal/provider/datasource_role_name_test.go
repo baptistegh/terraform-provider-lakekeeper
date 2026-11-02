@@ -14,13 +14,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestRoleExactNameLookup(t *testing.T) {
+func TestRoleNameLookup(t *testing.T) {
 	for _, tc := range []struct {
 		name      string
 		pages     []string
 		wantError string
 	}{
 		{"exact", []string{`{"roles":[{"id":"r","project-id":"p","name":"target"}]}`}, ""},
+		{"different case", []string{`{"roles":[{"id":"r","project-id":"p","name":"Target"}]}`}, ""},
 		{"missing", []string{`{"roles":[]}`}, "no role"},
 		{"prefix is not exact", []string{`{"roles":[{"id":"r","project-id":"p","name":"target-extra"}]}`}, "no role"},
 		{"other project", []string{`{"roles":[{"id":"r","project-id":"other","name":"target"}]}`}, "another project"},
@@ -98,8 +99,11 @@ func TestRoleReadByIDAndName(t *testing.T) {
 			d.Schema(t.Context(), datasource.SchemaRequest{}, &schema)
 			state := tfsdk.State{Schema: schema.Schema}
 			input := LakekeeperRoleDataSourceModel{ProjectID: types.StringValue("p")}
+			wantName := "target"
 			if byName {
-				input.Name = types.StringValue("target")
+				// A configured name keeps its spelling even when Lakekeeper stores another case.
+				wantName = "Target"
+				input.Name = types.StringValue(wantName)
 			} else {
 				input.RoleID = types.StringValue("r")
 			}
@@ -115,7 +119,7 @@ func TestRoleReadByIDAndName(t *testing.T) {
 			if diags := resp.State.Get(t.Context(), &result); diags.HasError() {
 				t.Fatal(diags)
 			}
-			if result.ID.ValueString() != "p/r" || result.RoleID.ValueString() != "r" || result.Name.ValueString() != "target" {
+			if result.ID.ValueString() != "p/r" || result.RoleID.ValueString() != "r" || result.Name.ValueString() != wantName {
 				t.Fatalf("incorrect role state: %+v", result)
 			}
 		})

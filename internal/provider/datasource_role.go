@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
 	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
@@ -77,7 +78,7 @@ func (d *LakekeeperRoleDataSource) Schema(_ context.Context, _ datasource.Schema
 				Required:            true,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Exact role name within project_id. Name lookup requires one visible match and permission to list the project's roles. Configure exactly one of role_id or name.",
+				MarkdownDescription: "Role name within project_id. Matching ignores case, as Lakekeeper does for role names. Name lookup requires one visible match and permission to list the project's roles. Configure exactly one of role_id or name.",
 				Optional:            true,
 				Computed:            true,
 				Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
@@ -141,7 +142,9 @@ func (d *LakekeeperRoleDataSource) Read(ctx context.Context, req datasource.Read
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
 	state.RoleID = types.StringValue(role.ID)
 	state.ProjectID = types.StringValue(role.ProjectID)
-	state.Name = types.StringValue(role.Name)
+	if state.Name.IsNull() {
+		state.Name = types.StringValue(role.Name)
+	}
 	state.CreatedAt = types.StringValue(role.CreatedAt)
 
 	state.Description = types.StringPointerValue(role.Description)
@@ -164,7 +167,7 @@ func findRoleByName(ctx context.Context, client *lakekeeper.Client, projectID, n
 			if role.ProjectID != projectID {
 				return nil, fmt.Errorf("role list returned a role from another project")
 			}
-			if role.Name != name {
+			if !strings.EqualFold(role.Name, name) {
 				continue
 			}
 			if match != nil && match.ID != role.ID {
