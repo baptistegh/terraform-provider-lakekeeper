@@ -1,6 +1,20 @@
 # Changelog
 
 
+## [0.4.13](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.12...v0.4.13) (2026-11-05)
+
+
+### Features
+
+* resolve roles by exact project-scoped name ([#334](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/334)) ([a822f39](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/a822f39da695f80f6756e43a601d3e83989d19c0))
+
+
+### Miscellaneous Chores
+
+* **deps:** update dependency terraform to v1.17.1 ([#332](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/332)) ([fe1d9ef](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/fe1d9efd4ce3177a9840ce6204d8cf23ef29ee90))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.8.2 ([#336](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/336)) ([8da98f5](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/8da98f57140efd5d8b08b4a6b393d20e8f93f6df))
+* return a diagnostic on unexpected provider data in Configure ([#337](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/337)) ([d19f43b](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/d19f43b28c13e3c4c6d3b391e6ae1f42139441d3))
+
 ## [0.4.12](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.11...v0.4.12) (2026-10-24)
 
 
