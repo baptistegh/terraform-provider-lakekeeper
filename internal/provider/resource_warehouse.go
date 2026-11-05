@@ -463,14 +463,8 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 }
 
 // Configure adds the provider configured client to the resource.
-func (r *lakekeeperWarehouseResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured.
-	if req.ProviderData == nil {
-		return
-	}
-
-	resourceData := req.ProviderData.(*LakekeeperResourceData)
-	r.client = resourceData.Client
+func (r *lakekeeperWarehouseResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.client = resourceClient(req, resp)
 }
 
 // Create creates a new upstream resources and adds it into the Terraform state.

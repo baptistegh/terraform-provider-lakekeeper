@@ -100,13 +100,8 @@ func (d *LakekeeperRoleDataSource) Schema(_ context.Context, _ datasource.Schema
 }
 
 // Configure adds the provider configured client to the data source.
-func (d *LakekeeperRoleDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, _ *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	datasource := req.ProviderData.(*LakekeeperDatasourceData)
-	d.client = datasource.Client
+func (d *LakekeeperRoleDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = datasourceClient(req, resp)
 }
 
 // Read refreshes the Terraform state with the latest data.

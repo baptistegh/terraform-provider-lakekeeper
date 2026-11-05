@@ -61,10 +61,8 @@ func (r *namespaceRoleAssignmentResource) Schema(_ context.Context, _ resource.S
 		},
 	}
 }
-func (r *namespaceRoleAssignmentResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
-	if req.ProviderData != nil {
-		r.client = req.ProviderData.(*LakekeeperResourceData).Client
-	}
+func (r *namespaceRoleAssignmentResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.client = resourceClient(req, resp)
 }
 
 type namespaceAssignment struct {
