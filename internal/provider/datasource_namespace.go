@@ -53,10 +53,8 @@ func (d *lakekeeperNamespaceDataSource) Schema(_ context.Context, _ datasource.S
 		},
 	}
 }
-func (d *lakekeeperNamespaceDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, _ *datasource.ConfigureResponse) {
-	if req.ProviderData != nil {
-		d.client = req.ProviderData.(*LakekeeperDatasourceData).Client
-	}
+func (d *lakekeeperNamespaceDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = datasourceClient(req, resp)
 }
 func (d *lakekeeperNamespaceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state lakekeeperNamespaceDataSourceModel

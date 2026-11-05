@@ -63,13 +63,8 @@ func (d *LakekeeperDefaultProjectDataSource) Schema(_ context.Context, _ datasou
 }
 
 // Configure adds the provider configured client to the data source.
-func (d *LakekeeperDefaultProjectDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, _ *datasource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-
-	datasource := req.ProviderData.(*LakekeeperDatasourceData)
-	d.client = datasource.Client
+func (d *LakekeeperDefaultProjectDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = datasourceClient(req, resp)
 }
 
 // Read refreshes the Terraform state with the latest data.
