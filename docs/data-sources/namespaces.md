@@ -3,13 +3,13 @@
 page_title: "lakekeeper_namespaces Data Source - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
-  The lakekeeper_namespaces data source lists the direct child namespaces of a warehouse, or of a namespace in it, that the provider's identity can see, sorted by name. It follows every page of the Iceberg REST catalog list. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions.
+  The lakekeeper_namespaces data source lists the direct child namespaces of a warehouse, or of a namespace in it, that the provider's identity can see, sorted by path. It follows every page of the Iceberg REST catalog list. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions.
   Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/catalog/#tag/Catalog-API/operation/listNamespaces
 ---
 
 # lakekeeper_namespaces (Data Source)
 
-The `lakekeeper_namespaces` data source lists the direct child namespaces of a warehouse, or of a namespace in it, that the provider's identity can see, sorted by name. It follows every page of the Iceberg REST catalog list. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions.
+The `lakekeeper_namespaces` data source lists the direct child namespaces of a warehouse, or of a namespace in it, that the provider's identity can see, sorted by path. It follows every page of the Iceberg REST catalog list. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions.
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/catalog/#tag/Catalog-API/operation/listNamespaces)
 
@@ -41,7 +41,7 @@ data "lakekeeper_namespaces" "instruments" {
 
 ### Read-Only
 
-- `namespaces` (Attributes List) Visible direct child namespaces, sorted by name. (see [below for nested schema](#nestedatt--namespaces))
+- `namespaces` (Attributes List) Visible direct child namespaces, sorted by path. (see [below for nested schema](#nestedatt--namespaces))
 
 <a id="nestedatt--namespaces"></a>
 ### Nested Schema for `namespaces`

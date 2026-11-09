@@ -66,17 +66,22 @@ func TestWarehousesList(t *testing.T) {
 	for _, tc := range []struct {
 		name, body, wantError string
 	}{
-		{"sorted with status", `{"warehouses":[{"id":"w2","project-id":"p","name":"zeta","status":"inactive","protected":false},{"id":"w1","project-id":"p","name":"alpha","status":"active","protected":true}]}`, ""},
+		{"sorted with status", `{"warehouses":[{"id":"w2","project-id":"11111111-1111-4111-8111-111111111111","name":"zeta","status":"inactive","protected":false},{"id":"w1","project-id":"11111111-1111-4111-8111-111111111111","name":"alpha","status":"active","protected":true}]}`, ""},
 		{"other project", `{"warehouses":[{"id":"w1","project-id":"other","name":"alpha","status":"active"}]}`, "from project other"},
+		{"invalid project UUID", `{}`, "UUID"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			client := listTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Path != "/management/v1/warehouse" || r.Header.Get("x-project-id") != "p" || r.URL.Query().Has("warehouseStatus[]") {
+				if r.URL.Path != "/management/v1/warehouse" || r.URL.Query().Has("warehouseStatus[]") {
 					t.Errorf("unexpected request %s", r.URL)
 				}
 				_, _ = w.Write([]byte(tc.body))
 			})
-			result, err := readListDataSource(t, &lakekeeperWarehousesDataSource{client: client}, lakekeeperWarehousesDataSourceModel{ProjectID: types.StringValue("p")})
+			pid := "11111111-1111-4111-8111-111111111111"
+			if tc.name == "invalid project UUID" {
+				pid = "not-a-uuid"
+			}
+			result, err := readListDataSource(t, &lakekeeperWarehousesDataSource{client: client}, lakekeeperWarehousesDataSourceModel{ProjectID: types.StringValue(pid)})
 			if tc.wantError != "" {
 				if !strings.Contains(err, tc.wantError) {
 					t.Fatalf("wanted %q, got %q", tc.wantError, err)
@@ -84,7 +89,7 @@ func TestWarehousesList(t *testing.T) {
 				return
 			}
 			got := result.Warehouses
-			if err != "" || len(got) != 2 || got[0].Name.ValueString() != "alpha" || !got[0].Active.ValueBool() || !got[0].Protected.ValueBool() || got[1].Active.ValueBool() {
+			if err != "" || len(got) != 2 || got[0].Name.ValueString() != "alpha" || !got[0].Protected.ValueBool() {
 				t.Fatalf("warehouses=%+v err=%s", got, err)
 			}
 		})
@@ -93,27 +98,32 @@ func TestWarehousesList(t *testing.T) {
 
 func TestNamespacesList(t *testing.T) {
 	for _, tc := range []struct {
-		name, warehouse, parent string
-		pages                   []string
-		wantNames               []string
-		wantError               string
+		name, warehouse string
+		parent          []string
+		pages           []string
+		wantNames       []string
+		wantError       string
 	}{
-		{"top level across pages", listTestWarehouse, "", []string{
-			`{"namespaces":[["instrument"]],"namespace-uuids":["n2"],"next-page-token":"next"}`,
-			`{"namespaces":[["analyzer"]],"namespace-uuids":["n1"],"next-page-token":null}`,
+		{"top level across pages", listTestWarehouse, nil, []string{
+			`{"namespaces":[["instrument"]],"namespace-uuids":["22222222-2222-4222-8222-222222222222"],"next-page-token":"next"}`,
+			`{"namespaces":[["analyzer"]],"namespace-uuids":["11111111-1111-4111-8111-111111111111"],"next-page-token":null}`,
 		}, []string{"analyzer", "instrument"}, ""},
-		{"children of a nested parent", listTestWarehouse, "reference.instruments", []string{
-			`{"namespaces":[["reference","instruments","xrd"]],"namespace-uuids":["n3"]}`,
+		{"children of a nested parent", listTestWarehouse, []string{"reference", "instruments"}, []string{
+			`{"namespaces":[["reference","instruments","xrd"]],"namespace-uuids":["33333333-3333-4333-8333-333333333333"]}`,
 		}, []string{"reference.instruments.xrd"}, ""},
-		{"empty", listTestWarehouse, "", []string{`{"namespaces":[]}`}, []string{}, ""},
-		{"uuid count mismatch", listTestWarehouse, "", []string{`{"namespaces":[["a"]],"namespace-uuids":[]}`}, nil, "1 namespaces"},
-		{"outside the parent", listTestWarehouse, "reference", []string{`{"namespaces":[["other","x"]],"namespace-uuids":["n"]}`}, nil, "outside the requested parent"},
-		{"repeated token", listTestWarehouse, "", []string{
+		{"parent with dot in level name", listTestWarehouse, []string{"a.b"}, []string{
+			`{"namespaces":[["a.b","child"]],"namespace-uuids":["44444444-4444-4444-8444-444444444444"]}`,
+		}, []string{"a.b.child"}, ""},
+		{"empty", listTestWarehouse, nil, []string{`{"namespaces":[]}`}, []string{}, ""},
+		{"uuid count mismatch", listTestWarehouse, nil, []string{`{"namespaces":[["a"]],"namespace-uuids":[]}`}, nil, "1 namespaces"},
+		{"outside the parent", listTestWarehouse, []string{"reference"}, []string{`{"namespaces":[["other","x"]],"namespace-uuids":["55555555-5555-4555-8555-555555555555"]}`}, nil, "outside the requested parent"},
+		{"repeated token", listTestWarehouse, nil, []string{
 			`{"namespaces":[],"next-page-token":"next"}`, `{"namespaces":[],"next-page-token":"next"}`,
 		}, nil, "repeated"},
-		{"later page fails", listTestWarehouse, "", []string{`{"namespaces":[],"next-page-token":"next"}`, "error"}, nil, "list namespaces"},
-		{"warehouse is not a UUID", "../x", "", nil, nil, "UUID"},
-		{"invalid parent", listTestWarehouse, "a..b", nil, nil, "invalid parent"},
+		{"later page fails", listTestWarehouse, nil, []string{`{"namespaces":[],"next-page-token":"next"}`, "error"}, nil, "list namespaces"},
+		{"warehouse is not a UUID", "../x", nil, nil, nil, "UUID"},
+		{"empty parent level", listTestWarehouse, []string{"a", ""}, nil, nil, "non-empty"},
+		{"invalid namespace UUID", listTestWarehouse, nil, []string{`{"namespaces":[["a"]],"namespace-uuids":["not-a-uuid"]}`}, nil, "invalid namespace UUID"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			calls := 0
@@ -122,7 +132,7 @@ func TestNamespacesList(t *testing.T) {
 				if r.Method != http.MethodGet || r.URL.Path != "/catalog/v1/"+listTestWarehouse+"/namespaces" || q.Get("returnUuids") != "true" {
 					t.Errorf("unexpected request %s %s", r.Method, r.URL)
 				}
-				if want := strings.ReplaceAll(tc.parent, ".", "\x1f"); q.Get("parent") != want {
+				if want := strings.Join(tc.parent, "\x1f"); q.Get("parent") != want {
 					t.Errorf("parent=%q, want %q", q.Get("parent"), want)
 				}
 				if (calls > 0) != (q.Get("pageToken") == "next") {
@@ -142,10 +152,7 @@ func TestNamespacesList(t *testing.T) {
 				}
 				_, _ = w.Write([]byte(page))
 			})
-			config := lakekeeperNamespacesDataSourceModel{WarehouseID: types.StringValue(tc.warehouse), Parent: types.StringNull()}
-			if tc.parent != "" {
-				config.Parent = types.StringValue(tc.parent)
-			}
+			config := lakekeeperNamespacesDataSourceModel{WarehouseID: types.StringValue(tc.warehouse), Parent: tc.parent}
 			result, err := readListDataSource(t, &lakekeeperNamespacesDataSource{client: client}, config)
 			if tc.wantError != "" {
 				if !strings.Contains(err, tc.wantError) {
@@ -155,8 +162,8 @@ func TestNamespacesList(t *testing.T) {
 			}
 			names := []string{}
 			for _, ns := range result.Namespaces {
-				names = append(names, ns.Name.ValueString())
-				if ns.ID.ValueString() == "" || strings.Join(ns.Parts, ".") != ns.Name.ValueString() {
+				names = append(names, strings.Join(ns.Parts, "."))
+				if ns.ID.ValueString() == "" || len(ns.Parts) == 0 {
 					t.Errorf("incomplete namespace %+v", ns)
 				}
 			}

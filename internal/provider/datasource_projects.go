@@ -53,10 +53,8 @@ func (d *lakekeeperProjectsDataSource) Schema(_ context.Context, _ datasource.Sc
 		},
 	}
 }
-func (d *lakekeeperProjectsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, _ *datasource.ConfigureResponse) {
-	if req.ProviderData != nil {
-		d.client = req.ProviderData.(*LakekeeperDatasourceData).Client
-	}
+func (d *lakekeeperProjectsDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	d.client = datasourceClient(req, resp)
 }
 func (d *lakekeeperProjectsDataSource) Read(ctx context.Context, _ datasource.ReadRequest, resp *datasource.ReadResponse) {
 	list, _, err := d.client.ProjectV1().List(ctx)

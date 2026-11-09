@@ -42,18 +42,20 @@ func TestAccDataLakekeeperNamespaces_basic(t *testing.T) {
 				}
 				data "lakekeeper_namespaces" "children" {
 				  warehouse_id = "%[4]s"
-				  parent       = lakekeeper_namespace.a.name
+				  parent       = ["%[3]sa"]
 				  depends_on   = [lakekeeper_namespace.child]
 				}
 				`, project.ID, warehouse.Name, prefix, warehouse.ID),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.top", "namespaces.#", "2"),
-					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.top", "namespaces.0.name", prefix+"a"),
+					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.top", "namespaces.0.parts.#", "1"),
+					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.top", "namespaces.0.parts.0", prefix+"a"),
 					resource.TestCheckResourceAttrPair("data.lakekeeper_namespaces.top", "namespaces.0.id", "lakekeeper_namespace.a", "namespace_id"),
-					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.top", "namespaces.1.name", prefix+"b"),
+					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.top", "namespaces.1.parts.0", prefix+"b"),
 					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.children", "namespaces.#", "1"),
-					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.children", "namespaces.0.name", prefix+"a.c"),
 					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.children", "namespaces.0.parts.#", "2"),
+					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.children", "namespaces.0.parts.0", prefix+"a"),
+					resource.TestCheckResourceAttr("data.lakekeeper_namespaces.children", "namespaces.0.parts.1", "c"),
 					resource.TestCheckResourceAttrPair("data.lakekeeper_namespaces.children", "namespaces.0.id", "lakekeeper_namespace.child", "namespace_id"),
 				),
 			},
