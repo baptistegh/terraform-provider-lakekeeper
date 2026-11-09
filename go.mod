@@ -19,7 +19,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/lakekeeper/go-lakekeeper v0.1.1-0.20261109105634-026472b87e30
 	github.com/terraform-community-providers/terraform-plugin-framework-utils v0.4.0
-	golang.org/x/oauth2 v0.37.0
+	golang.org/x/oauth2 v0.38.0
 )
 
 require github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
