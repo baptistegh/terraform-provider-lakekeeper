@@ -1,0 +1,175 @@
+package provider
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+const listTestWarehouse = "22222222-2222-4222-8222-222222222222"
+
+func listTestClient(t *testing.T, handler http.HandlerFunc) *lakekeeper.Client {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		handler(w, r)
+	}))
+	t.Cleanup(server.Close)
+	client, err := lakekeeper.NewClient(t.Context(), "test", server.URL, lakekeeper.WithoutRetries())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return client
+}
+
+// readListDataSource runs Read with config as input and decodes the resulting state.
+func readListDataSource[M any](t *testing.T, d datasource.DataSource, config M) (M, string) {
+	t.Helper()
+	var schema datasource.SchemaResponse
+	d.Schema(t.Context(), datasource.SchemaRequest{}, &schema)
+	state := tfsdk.State{Schema: schema.Schema}
+	if diags := state.Set(t.Context(), config); diags.HasError() {
+		t.Fatal(diags)
+	}
+	resp := datasource.ReadResponse{State: state}
+	d.Read(t.Context(), datasource.ReadRequest{Config: tfsdk.Config{Schema: schema.Schema, Raw: state.Raw}}, &resp)
+	var result M
+	if resp.Diagnostics.HasError() {
+		return result, resp.Diagnostics[0].Detail()
+	}
+	if diags := resp.State.Get(t.Context(), &result); diags.HasError() {
+		t.Fatal(diags)
+	}
+	return result, ""
+}
+
+func TestProjectsListSortedByName(t *testing.T) {
+	client := listTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/management/v1/project-list" {
+			t.Errorf("unexpected request %s", r.URL)
+		}
+		_, _ = w.Write([]byte(`{"projects":[{"project-id":"b","project-name":"zeta"},{"project-id":"a","project-name":"alpha"}]}`))
+	})
+	result, err := readListDataSource(t, &lakekeeperProjectsDataSource{client: client}, lakekeeperProjectsDataSourceModel{})
+	if err != "" || len(result.Projects) != 2 || result.Projects[0].Name.ValueString() != "alpha" || result.Projects[1].ID.ValueString() != "b" {
+		t.Fatalf("projects=%+v err=%s", result.Projects, err)
+	}
+}
+
+func TestWarehousesList(t *testing.T) {
+	for _, tc := range []struct {
+		name, body, wantError string
+	}{
+		{"sorted", `{"warehouses":[{"id":"w2","project-id":"11111111-1111-4111-8111-111111111111","name":"zeta","protected":false},{"id":"w1","project-id":"11111111-1111-4111-8111-111111111111","name":"alpha","protected":true}]}`, ""},
+		{"other project", `{"warehouses":[{"id":"w1","project-id":"other","name":"alpha"}]}`, "from project other"},
+		{"invalid project UUID", `{}`, "UUID"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			client := listTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/management/v1/warehouse" || r.URL.Query().Has("warehouseStatus[]") {
+					t.Errorf("unexpected request %s", r.URL)
+				}
+				_, _ = w.Write([]byte(tc.body))
+			})
+			pid := "11111111-1111-4111-8111-111111111111"
+			if tc.name == "invalid project UUID" {
+				pid = "not-a-uuid"
+			}
+			result, err := readListDataSource(t, &lakekeeperWarehousesDataSource{client: client}, lakekeeperWarehousesDataSourceModel{ProjectID: types.StringValue(pid)})
+			if tc.wantError != "" {
+				if !strings.Contains(err, tc.wantError) {
+					t.Fatalf("wanted %q, got %q", tc.wantError, err)
+				}
+				return
+			}
+			got := result.Warehouses
+			if err != "" || len(got) != 2 || got[0].Name.ValueString() != "alpha" || !got[0].Protected.ValueBool() {
+				t.Fatalf("warehouses=%+v err=%s", got, err)
+			}
+		})
+	}
+}
+
+func TestNamespacesList(t *testing.T) {
+	for _, tc := range []struct {
+		name, warehouse string
+		parent          []string
+		pages           []string
+		wantNames       []string
+		wantError       string
+	}{
+		{"top level across pages", listTestWarehouse, nil, []string{
+			`{"namespaces":[["instrument"]],"namespace-uuids":["22222222-2222-4222-8222-222222222222"],"next-page-token":"next"}`,
+			`{"namespaces":[["analyzer"]],"namespace-uuids":["11111111-1111-4111-8111-111111111111"],"next-page-token":null}`,
+		}, []string{"analyzer", "instrument"}, ""},
+		{"children of a nested parent", listTestWarehouse, []string{"reference", "instruments"}, []string{
+			`{"namespaces":[["reference","instruments","xrd"]],"namespace-uuids":["33333333-3333-4333-8333-333333333333"]}`,
+		}, []string{"reference.instruments.xrd"}, ""},
+		{"parent with dot in level name", listTestWarehouse, []string{"a.b"}, []string{
+			`{"namespaces":[["a.b","child"]],"namespace-uuids":["44444444-4444-4444-8444-444444444444"]}`,
+		}, []string{"a.b.child"}, ""},
+		{"empty", listTestWarehouse, nil, []string{`{"namespaces":[]}`}, []string{}, ""},
+		{"uuid count mismatch", listTestWarehouse, nil, []string{`{"namespaces":[["a"]],"namespace-uuids":[]}`}, nil, "1 namespaces"},
+		{"outside the parent", listTestWarehouse, []string{"reference"}, []string{`{"namespaces":[["other","x"]],"namespace-uuids":["55555555-5555-4555-8555-555555555555"]}`}, nil, "outside the requested parent"},
+		{"repeated token", listTestWarehouse, nil, []string{
+			`{"namespaces":[],"next-page-token":"next"}`, `{"namespaces":[],"next-page-token":"next"}`,
+		}, nil, "repeated"},
+		{"later page fails", listTestWarehouse, nil, []string{`{"namespaces":[],"next-page-token":"next"}`, "error"}, nil, "list namespaces"},
+		{"warehouse is not a UUID", "../x", nil, nil, nil, "UUID"},
+		{"empty parent level", listTestWarehouse, []string{"a", ""}, nil, nil, "non-empty"},
+		{"invalid namespace UUID", listTestWarehouse, nil, []string{`{"namespaces":[["a"]],"namespace-uuids":["not-a-uuid"]}`}, nil, "invalid namespace UUID"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			calls := 0
+			client := listTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				q := r.URL.Query()
+				if r.Method != http.MethodGet || r.URL.Path != "/catalog/v1/"+listTestWarehouse+"/namespaces" || q.Get("returnUuids") != "true" {
+					t.Errorf("unexpected request %s %s", r.Method, r.URL)
+				}
+				if want := strings.Join(tc.parent, "\x1f"); q.Get("parent") != want {
+					t.Errorf("parent=%q, want %q", q.Get("parent"), want)
+				}
+				if (calls > 0) != (q.Get("pageToken") == "next") {
+					t.Errorf("call %d sent pageToken %q", calls, q.Get("pageToken"))
+				}
+				if calls >= len(tc.pages) {
+					t.Error("unexpected extra page")
+					w.WriteHeader(500)
+					return
+				}
+				page := tc.pages[calls]
+				calls++
+				if page == "error" {
+					w.WriteHeader(403)
+					_, _ = w.Write([]byte(`{"error":{"message":"denied","type":"Forbidden","code":403}}`))
+					return
+				}
+				_, _ = w.Write([]byte(page))
+			})
+			config := lakekeeperNamespacesDataSourceModel{WarehouseID: types.StringValue(tc.warehouse), Parent: tc.parent}
+			result, err := readListDataSource(t, &lakekeeperNamespacesDataSource{client: client}, config)
+			if tc.wantError != "" {
+				if !strings.Contains(err, tc.wantError) {
+					t.Fatalf("wanted %q, got %q", tc.wantError, err)
+				}
+				return
+			}
+			names := []string{}
+			for _, ns := range result.Namespaces {
+				names = append(names, strings.Join(ns.Parts, "."))
+				if ns.ID.ValueString() == "" || len(ns.Parts) == 0 {
+					t.Errorf("incomplete namespace %+v", ns)
+				}
+			}
+			if err != "" || strings.Join(names, ",") != strings.Join(tc.wantNames, ",") {
+				t.Fatalf("names=%v err=%s", names, err)
+			}
+		})
+	}
+}

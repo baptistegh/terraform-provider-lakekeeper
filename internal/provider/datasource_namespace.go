@@ -80,10 +80,9 @@ func readExistingNamespace(ctx context.Context, client *lakekeeper.Client, proje
 		}
 	}
 	parts := strings.Split(name, ".")
-	for _, part := range parts {
-		if part == "" || strings.ContainsAny(part, "/\x1f") {
-			return "", false, fmt.Errorf("invalid namespace path")
-		}
+	parsed, err := encodeNamespacePath(parts)
+	if err != nil {
+		return "", false, err
 	}
 	w, _, err := client.WarehouseV1(project).Get(ctx, warehouse)
 	if err != nil {
@@ -94,12 +93,10 @@ func readExistingNamespace(ctx context.Context, client *lakekeeper.Client, proje
 	}
 	// Use the verified UUID directly, including for nested namespaces. A warehouse
 	// rename or a replacement with the same name cannot redirect this lookup.
-	req, err := client.NewRequest(ctx, http.MethodGet, "/", nil, []core.RequestOptionFunc{core.WithHeader("x-project-id", project)})
+	req, err := newCatalogRequest(ctx, client, warehouse, "/namespaces/"+parsed, nil, core.WithHeader("x-project-id", project))
 	if err != nil {
 		return "", false, err
 	}
-	req.URL.Path = strings.TrimSuffix(client.BaseURL().Path, "/management/v1") + "/catalog/v1/" + warehouse + "/namespaces/" + strings.Join(parts, "\x1f")
-	req.URL.RawPath = ""
 	var result struct {
 		Namespace  []string          `json:"namespace"`
 		Properties map[string]string `json:"properties"`
