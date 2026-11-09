@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"cmp"
 	"context"
 	"fmt"
 	"slices"
@@ -27,11 +26,13 @@ func NewLakekeeperNamespacesDataSource() datasource.DataSource {
 }
 
 type lakekeeperNamespacesDataSource struct{ client *lakekeeper.Client }
+
 type lakekeeperNamespacesDataSourceModel struct {
 	WarehouseID types.String                    `tfsdk:"warehouse_id"`
 	Parent      []string                        `tfsdk:"parent"`
 	Namespaces  []lakekeeperNamespacesItemModel `tfsdk:"namespaces"`
 }
+
 type lakekeeperNamespacesItemModel struct {
 	ID    types.String `tfsdk:"id"`
 	Parts []string     `tfsdk:"parts"`
@@ -40,6 +41,7 @@ type lakekeeperNamespacesItemModel struct {
 func (d *lakekeeperNamespacesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_namespaces"
 }
+
 func (d *lakekeeperNamespacesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: `The ` + "`lakekeeper_namespaces`" + ` data source lists the direct child namespaces of a warehouse, or of a namespace in it, that the provider's identity can see, sorted by path. It follows every page of the Iceberg REST catalog list. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions.
@@ -59,9 +61,11 @@ func (d *lakekeeperNamespacesDataSource) Schema(_ context.Context, _ datasource.
 		},
 	}
 }
+
 func (d *lakekeeperNamespacesDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	d.client = datasourceClient(req, resp)
 }
+
 func (d *lakekeeperNamespacesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state lakekeeperNamespacesDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
@@ -86,7 +90,7 @@ type listNamespacesOptions struct {
 func listNamespaces(ctx context.Context, client *lakekeeper.Client, warehouse string, parentParts []string) ([]lakekeeperNamespacesItemModel, error) {
 	opts := listNamespacesOptions{ReturnUUIDs: true}
 	if len(parentParts) > 0 {
-		parsed, err := parseNamespacePath(parentParts)
+		parsed, err := encodeNamespacePath(parentParts)
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +137,7 @@ func listNamespaces(ctx context.Context, client *lakekeeper.Client, warehouse st
 		opts.PageToken = *page.NextPageToken
 	}
 	slices.SortFunc(namespaces, func(a, b lakekeeperNamespacesItemModel) int {
-		return cmp.Compare(strings.Join(a.Parts, "."), strings.Join(b.Parts, "."))
+		return slices.Compare(a.Parts, b.Parts)
 	})
 	return namespaces, nil
 }

@@ -31,8 +31,8 @@ func TestCatalogURLBuilding(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if req.Request.URL.Path != tc.wantPath {
-				t.Errorf("path=%q, want %q", req.Request.URL.Path, tc.wantPath)
+			if req.URL.Path != tc.wantPath {
+				t.Errorf("path=%q, want %q", req.URL.Path, tc.wantPath)
 			}
 		})
 	}
@@ -51,15 +51,15 @@ func TestCatalogURLWithProjectHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := req.Request.Header.Get("x-project-id"); got != project {
+	if got := req.Header.Get("x-project-id"); got != project {
 		t.Errorf("x-project-id header=%q, want %q", got, project)
 	}
-	if !strings.HasSuffix(req.Request.URL.Path, "/namespaces/a") {
-		t.Errorf("path=%q does not end with /namespaces/a", req.Request.URL.Path)
+	if !strings.HasSuffix(req.URL.Path, "/namespaces/a") {
+		t.Errorf("path=%q does not end with /namespaces/a", req.URL.Path)
 	}
 }
 
-func TestParseNamespacePath(t *testing.T) {
+func TestEncodeNamespacePath(t *testing.T) {
 	for _, tc := range []struct {
 		name, want, wantError string
 		parts                 []string
@@ -72,7 +72,7 @@ func TestParseNamespacePath(t *testing.T) {
 		{"level with separator", "", "cannot contain", []string{"a\x1fb"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := parseNamespacePath(tc.parts)
+			got, err := encodeNamespacePath(tc.parts)
 			if tc.wantError != "" {
 				if err == nil || !strings.Contains(err.Error(), tc.wantError) {
 					t.Fatalf("wanted error %q, got %v", tc.wantError, err)
@@ -83,7 +83,7 @@ func TestParseNamespacePath(t *testing.T) {
 				t.Fatal(err)
 			}
 			if got != tc.want {
-				t.Errorf("parseNamespacePath(%v)=%q, want %q", tc.parts, got, tc.want)
+				t.Errorf("encodeNamespacePath(%v)=%q, want %q", tc.parts, got, tc.want)
 			}
 		})
 	}

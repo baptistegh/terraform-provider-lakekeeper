@@ -28,7 +28,6 @@ func TestAccDataLakekeeperWarehouses_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouses.this", "warehouses.#", "1"),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouses.this", "warehouses.0.id", warehouse.ID),
 					resource.TestCheckResourceAttr("data.lakekeeper_warehouses.this", "warehouses.0.name", warehouse.Name),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouses.this", "warehouses.0.active", "true"),
 				),
 			},
 		},

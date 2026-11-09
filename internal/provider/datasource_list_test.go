@@ -66,8 +66,8 @@ func TestWarehousesList(t *testing.T) {
 	for _, tc := range []struct {
 		name, body, wantError string
 	}{
-		{"sorted with status", `{"warehouses":[{"id":"w2","project-id":"11111111-1111-4111-8111-111111111111","name":"zeta","status":"inactive","protected":false},{"id":"w1","project-id":"11111111-1111-4111-8111-111111111111","name":"alpha","status":"active","protected":true}]}`, ""},
-		{"other project", `{"warehouses":[{"id":"w1","project-id":"other","name":"alpha","status":"active"}]}`, "from project other"},
+		{"sorted", `{"warehouses":[{"id":"w2","project-id":"11111111-1111-4111-8111-111111111111","name":"zeta","protected":false},{"id":"w1","project-id":"11111111-1111-4111-8111-111111111111","name":"alpha","protected":true}]}`, ""},
+		{"other project", `{"warehouses":[{"id":"w1","project-id":"other","name":"alpha"}]}`, "from project other"},
 		{"invalid project UUID", `{}`, "UUID"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

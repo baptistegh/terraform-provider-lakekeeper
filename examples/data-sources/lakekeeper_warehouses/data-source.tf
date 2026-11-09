@@ -3,5 +3,5 @@ data "lakekeeper_warehouses" "this" {
 }
 
 locals {
-  active_warehouse_ids = { for w in data.lakekeeper_warehouses.this.warehouses : w.name => w.id if w.active }
+  warehouse_ids = { for w in data.lakekeeper_warehouses.this.warehouses : w.name => w.id }
 }

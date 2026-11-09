@@ -3,13 +3,13 @@
 page_title: "lakekeeper_warehouses Data Source - terraform-provider-lakekeeper"
 subcategory: ""
 description: |-
-  The lakekeeper_warehouses data source lists a project's warehouses that the provider's identity can see, sorted by name. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions. The request sets no status filter, so the list contains whatever Lakekeeper returns by default; use active to filter.
+  The lakekeeper_warehouses data source lists a project's warehouses that the provider's identity can see, sorted by name. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions. The list contains active warehouses only (Lakekeeper lists only active warehouses when no status filter is sent).
   Upstream API: Lakekeeper REST API docs https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/list_warehouses
 ---
 
 # lakekeeper_warehouses (Data Source)
 
-The `lakekeeper_warehouses` data source lists a project's warehouses that the provider's identity can see, sorted by name. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions. The request sets no status filter, so the list contains whatever Lakekeeper returns by default; use `active` to filter.
+The `lakekeeper_warehouses` data source lists a project's warehouses that the provider's identity can see, sorted by name. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions. The list contains active warehouses only (Lakekeeper lists only active warehouses when no status filter is sent).
 
 **Upstream API**: [Lakekeeper REST API docs](https://docs.lakekeeper.io/docs/nightly/api/management/#tag/warehouse/operation/list_warehouses)
 
@@ -21,7 +21,7 @@ data "lakekeeper_warehouses" "this" {
 }
 
 locals {
-  active_warehouse_ids = { for w in data.lakekeeper_warehouses.this.warehouses : w.name => w.id if w.active }
+  warehouse_ids = { for w in data.lakekeeper_warehouses.this.warehouses : w.name => w.id }
 }
 ```
 
@@ -30,18 +30,17 @@ locals {
 
 ### Required
 
-- `project_id` (String) Project ID.
+- `project_id` (String) Project UUID.
 
 ### Read-Only
 
-- `warehouses` (Attributes List) Visible warehouses in the project, sorted by name. (see [below for nested schema](#nestedatt--warehouses))
+- `warehouses` (Attributes List) Visible active warehouses in the project, sorted by name. (see [below for nested schema](#nestedatt--warehouses))
 
 <a id="nestedatt--warehouses"></a>
 ### Nested Schema for `warehouses`
 
 Read-Only:
 
-- `active` (Boolean) Whether the warehouse status is `active`.
 - `id` (String) Warehouse ID.
 - `name` (String) Warehouse name.
 - `protected` (Boolean) Whether the warehouse is protected from deletion.

@@ -26,10 +26,12 @@ func NewLakekeeperWarehousesDataSource() datasource.DataSource {
 }
 
 type lakekeeperWarehousesDataSource struct{ client *lakekeeper.Client }
+
 type lakekeeperWarehousesDataSourceModel struct {
 	ProjectID  types.String                    `tfsdk:"project_id"`
 	Warehouses []lakekeeperWarehousesItemModel `tfsdk:"warehouses"`
 }
+
 type lakekeeperWarehousesItemModel struct {
 	ID        types.String `tfsdk:"id"`
 	Name      types.String `tfsdk:"name"`
@@ -39,6 +41,7 @@ type lakekeeperWarehousesItemModel struct {
 func (d *lakekeeperWarehousesDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_warehouses"
 }
+
 func (d *lakekeeperWarehousesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: `The ` + "`lakekeeper_warehouses`" + ` data source lists a project's warehouses that the provider's identity can see, sorted by name. With an authorizer such as OpenFGA, Lakekeeper filters the list by the caller's permissions. The list contains active warehouses only (Lakekeeper lists only active warehouses when no status filter is sent).
@@ -58,9 +61,11 @@ func (d *lakekeeperWarehousesDataSource) Schema(_ context.Context, _ datasource.
 		},
 	}
 }
+
 func (d *lakekeeperWarehousesDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	d.client = datasourceClient(req, resp)
 }
+
 func (d *lakekeeperWarehousesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state lakekeeperWarehousesDataSourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)

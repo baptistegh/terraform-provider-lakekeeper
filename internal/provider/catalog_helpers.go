@@ -13,9 +13,9 @@ import (
 	retryablehttp "github.com/hashicorp/go-retryablehttp"
 )
 
-// parseNamespacePath parses a list of namespace levels into the \x1f-separated
-// format Lakekeeper expects. Each level must be non-empty.
-func parseNamespacePath(parts []string) (string, error) {
+// encodeNamespacePath validates namespace levels and joins them into the
+// \x1f-separated format Lakekeeper expects. Each level must be non-empty.
+func encodeNamespacePath(parts []string) (string, error) {
 	for _, part := range parts {
 		if part == "" {
 			return "", fmt.Errorf("namespace levels must be non-empty")
@@ -48,8 +48,8 @@ func newCatalogRequest(ctx context.Context, client *lakekeeper.Client, warehouse
 	catalogBase.Path = strings.TrimSuffix(catalogBase.Path, managementv1.APIManagementVersionPath)
 	catalogBase.Path = catalogBase.Path + "/catalog/v1/" + warehouse + suffix
 	// Preserve the query string from the original request
-	catalogBase.RawQuery = req.Request.URL.RawQuery
-	req.Request.URL = catalogBase
-	req.Request.URL.RawPath = ""
+	catalogBase.RawQuery = req.URL.RawQuery
+	req.URL = catalogBase
+	req.URL.RawPath = ""
 	return req, nil
 }

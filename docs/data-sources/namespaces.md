@@ -24,7 +24,7 @@ data "lakekeeper_namespaces" "roots" {
 # Direct children of a nested namespace.
 data "lakekeeper_namespaces" "instruments" {
   warehouse_id = "a8a6b1b8-1c0e-4c3b-9f0a-2e5d7f3c9b11"
-  parent       = "reference.instruments"
+  parent       = ["reference", "instruments"]
 }
 ```
 
@@ -37,7 +37,7 @@ data "lakekeeper_namespaces" "instruments" {
 
 ### Optional
 
-- `parent` (String) Dotted path of the namespace whose children to list. Lists the warehouse's top-level namespaces when unset.
+- `parent` (List of String) Namespace levels of the parent whose children to list. Lists the warehouse's top-level namespaces when unset. Each level must be non-empty.
 
 ### Read-Only
 
@@ -49,5 +49,4 @@ data "lakekeeper_namespaces" "instruments" {
 Read-Only:
 
 - `id` (String) Namespace UUID.
-- `name` (String) Dotted namespace path, including all parent levels.
 - `parts` (List of String) Namespace path levels.

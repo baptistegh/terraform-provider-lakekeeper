@@ -80,7 +80,7 @@ func readExistingNamespace(ctx context.Context, client *lakekeeper.Client, proje
 		}
 	}
 	parts := strings.Split(name, ".")
-	parsed, err := parseNamespacePath(parts)
+	parsed, err := encodeNamespacePath(parts)
 	if err != nil {
 		return "", false, err
 	}
