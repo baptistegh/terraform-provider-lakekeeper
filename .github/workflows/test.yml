@@ -116,3 +116,32 @@ jobs:
           ./scripts/await-healthy.sh
       - run: make testacc
         timeout-minutes: 10
+
+  # Aggregate status checks, so branch protection only needs these two stable
+  # job names instead of every matrix entry. `always()` makes them run (and
+  # fail) even when an upstream job failed or was skipped.
+  unit-tests-ok:
+    name: Unit Tests OK
+    if: always()
+    needs: [lint, build, test-unit]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check unit test results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")' > /dev/null \
+            || { echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'; exit 1; }
+
+  acceptance-tests-ok:
+    name: Acceptance Tests OK
+    if: always()
+    needs: [lint, test-acceptance]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check acceptance test results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -e 'all(.[]; .result == "success")' > /dev/null \
+            || { echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'; exit 1; }
