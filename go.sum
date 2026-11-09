@@ -595,6 +595,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/lakekeeper/go-lakekeeper v0.1.1-0.20261109105634-026472b87e30 h1:rZnT/WeuAvivt++8pjRHUWE+Z2xgk6hFa4Z3fxc9wio=
 github.com/lakekeeper/go-lakekeeper v0.1.1-0.20261109105634-026472b87e30/go.mod h1:Su5MnRB3mPpAPH5REpsFArpJSV+khPrp5s/LDZwXDs8=
+github.com/lakekeeper/go-lakekeeper v0.1.1-0.20261109150501-f65df7e34bd1 h1:D4urvdl1U+urhkzr7WrxI2eAbF8Ye6IxTwVQO1P8QJ4=
+github.com/lakekeeper/go-lakekeeper v0.1.1-0.20261109150501-f65df7e34bd1/go.mod h1:Su5MnRB3mPpAPH5REpsFArpJSV+khPrp5s/LDZwXDs8=
 github.com/ldez/exptostd v0.4.5 h1:kv2ZGUVI6VwRfp/+bcQ6Nbx0ghFWcGIKInkG/oFn1aQ=
 github.com/ldez/exptostd v0.4.5/go.mod h1:QRjHRMXJrCTIm9WxVNH6VW7oN7KrGSht69bIRwvdFsM=
 github.com/ldez/gomoddirectives v0.10.0 h1:Zb23rfMMkG21B6pZ9OfESzemByP5Qr7YvWcXQZE/S3Q=

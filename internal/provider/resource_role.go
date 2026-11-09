@@ -124,7 +124,13 @@ func (r *lakekeeperRoleResource) Create(ctx context.Context, req resource.Create
 		opts.SetDescription(*description)
 	}
 
-	role, err := r.client.Roles.Create(ctx, state.ProjectID.ValueString(), opts)
+	scope, err := inProject(state.ProjectID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
+
+	role, err := r.client.Roles.Create(ctx, opts, scope)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create role, %v", err))
 		return
@@ -159,8 +165,13 @@ func (r *lakekeeperRoleResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	projectID, roleID := splitInternalID(state.ID)
+	scope, err := inProject(projectID)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
 
-	role, err := r.client.Roles.Get(ctx, projectID, roleID)
+	role, err := r.client.Roles.Get(ctx, roleID, scope)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role %s in project %s, %v", roleID, projectID, err))
 		return
@@ -201,13 +212,18 @@ func (r *lakekeeperRoleResource) Update(ctx context.Context, req resource.Update
 	}
 
 	projectID, roleID := splitInternalID(state.ID)
+	scope, err := inProject(projectID)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
 
 	opts := managementv1.NewUpdateRoleRequest(plan.Name.ValueString())
 	if description := plan.Description.ValueStringPointer(); description != nil {
 		opts.SetDescription(*description)
 	}
 
-	role, err := r.client.Roles.Update(ctx, projectID, roleID, opts)
+	role, err := r.client.Roles.Update(ctx, roleID, opts, scope)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update role %s in project %s, %v", roleID, projectID, err))
 		return
@@ -242,8 +258,13 @@ func (r *lakekeeperRoleResource) Delete(ctx context.Context, req resource.Delete
 	}
 
 	projectID, roleID := splitInternalID(state.ID)
+	scope, err := inProject(projectID)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
 
-	err := r.client.Roles.Delete(ctx, projectID, roleID)
+	err = r.client.Roles.Delete(ctx, roleID, scope)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete role %s in project %s, %v", roleID, projectID, err))
 		return

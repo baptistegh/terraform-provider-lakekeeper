@@ -118,12 +118,17 @@ func (d *LakekeeperRoleDataSource) Read(ctx context.Context, req datasource.Read
 	id := state.RoleID.ValueString()
 	projectID := state.ProjectID.ValueString()
 
+	scope, err := inProject(projectID)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
+
 	var role *v1.Role
-	var err error
 	if state.RoleID.IsNull() {
 		role, err = findRoleByName(ctx, d.client, projectID, state.Name.ValueString())
 	} else {
-		role, err = d.client.Roles.Get(ctx, projectID, id)
+		role, err = d.client.Roles.Get(ctx, id, scope)
 	}
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role %s in project %s, %v", id, projectID, err))
@@ -149,19 +154,21 @@ func (d *LakekeeperRoleDataSource) Read(ctx context.Context, req datasource.Read
 	resp.Diagnostics.Append(diags...)
 }
 
+// findRoleByName pages through every role of the project. Roles.Search is not
+// used: it returns a fixed number of fuzzy matches and can miss an exact name.
 func findRoleByName(ctx context.Context, client *lakekeeper.Client, projectID, name string) (*v1.Role, error) {
-	// The role list has no name filter, so page through every role of the project.
-	pageToken := ""
+	scope, err := inProject(projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := &lakekeeper.ListRolesOptions{}
 	seenTokens := map[string]bool{}
 	var match *v1.Role
 	for {
-		list := client.RoleAPI.ListRoles(ctx).XProjectId(projectID)
-		if pageToken != "" {
-			list = list.PageToken(pageToken)
-		}
-		page, _, err := list.Execute()
+		page, err := client.Roles.List(ctx, opts, scope)
 		if err != nil {
-			return nil, fmt.Errorf("list roles in project %s: %w", projectID, apiError(err))
+			return nil, fmt.Errorf("list roles in project %s: %w", projectID, err)
 		}
 		for _, role := range page.Roles {
 			if role.ProjectId != projectID {
@@ -183,7 +190,7 @@ func findRoleByName(ctx context.Context, client *lakekeeper.Client, projectID, n
 			return nil, fmt.Errorf("role list repeated a page token")
 		}
 		seenTokens[token] = true
-		pageToken = token
+		opts.PageToken = token
 	}
 	if match == nil {
 		return nil, fmt.Errorf("no role named %q in project %s", name, projectID)

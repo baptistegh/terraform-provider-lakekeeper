@@ -142,9 +142,9 @@ func newHTTPClient(transport http.RoundTripper, authSource core.AuthSource) *htt
 // bootstrap bootstraps the server as an operator application, unless it is
 // already bootstrapped.
 func bootstrap(ctx context.Context, client *lakekeeper.Client) error {
-	info, _, err := client.ServerAPI.GetServerInfo(ctx).Execute()
+	info, err := client.Server.Info(ctx)
 	if err != nil {
-		return fmt.Errorf("server info: %w", err)
+		return err
 	}
 	if info.Bootstrapped {
 		return nil
@@ -154,6 +154,5 @@ func bootstrap(ctx context.Context, client *lakekeeper.Client) error {
 	req.SetIsOperator(true)
 	req.SetUserType(managementv1.USERTYPE_APPLICATION)
 
-	_, err = client.ServerAPI.Bootstrap(ctx).BootstrapRequest(*req).Execute()
-	return err
+	return client.Server.Bootstrap(ctx, req)
 }

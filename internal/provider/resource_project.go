@@ -117,8 +117,13 @@ func (r *lakekeeperProjectResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	id := state.ID.ValueString()
+	scope, err := inProject(id)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
 
-	project, err := r.client.Projects.Get(ctx, id)
+	project, err := r.client.Projects.Get(ctx, scope)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project %s, %v", id, err.Error()))
 		return
@@ -148,7 +153,13 @@ func (r *lakekeeperProjectResource) Update(ctx context.Context, req resource.Upd
 			"newName": plan.Name.ValueString(),
 		})
 
-		err := r.client.Projects.Rename(ctx, state.ID.ValueString(), managementv1.NewRenameProjectRequest(plan.Name.ValueString()))
+		scope, err := inProject(state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Invalid project ID", err.Error())
+			return
+		}
+
+		err = r.client.Projects.Rename(ctx, managementv1.NewRenameProjectRequest(plan.Name.ValueString()), scope)
 		if err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to rename project %s, %v", state.ID.ValueString(), err.Error()))
 			return
@@ -172,8 +183,13 @@ func (r *lakekeeperProjectResource) Delete(ctx context.Context, req resource.Del
 	}
 
 	id := state.ID.ValueString()
+	scope, err := inProject(id)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
 
-	err := r.client.Projects.Delete(ctx, id)
+	err = r.client.Projects.Delete(ctx, scope)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete project %s, %v", id, err))
 		return

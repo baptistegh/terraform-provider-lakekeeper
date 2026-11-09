@@ -11,6 +11,9 @@ import (
 	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
+// catalogErrorBodyLimit caps how much of an error response is quoted in the error.
+const catalogErrorBodyLimit = 1024
+
 // catalogGet sends a GET request to the Iceberg REST catalog API of
 // Lakekeeper and decodes the JSON response into result. path is relative to
 // /catalog/v1/, such as "{warehouse_id}/namespaces/{namespace}".
@@ -41,7 +44,7 @@ func catalogGet(ctx context.Context, client *lakekeeper.Client, project, path st
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, apiErrorBodyLimit))
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, catalogErrorBodyLimit))
 		return fmt.Errorf("GET %s: %s: %s", u.Path, resp.Status, strings.TrimSpace(string(body)))
 	}
 

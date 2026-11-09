@@ -7,14 +7,13 @@ import (
 	"testing"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccDataLakekeeperRole_basic(t *testing.T) {
 
 	project := testutil.CreateProject(t)
-	defaultProject, err := testutil.TestLakekeeperClient.Projects.Get(t.Context(), uuid.Nil.String())
+	defaultProject, err := testutil.TestLakekeeperClient.Projects.Get(t.Context())
 	if err != nil {
 		t.Fatalf("could not get default project, %v", err)
 	}

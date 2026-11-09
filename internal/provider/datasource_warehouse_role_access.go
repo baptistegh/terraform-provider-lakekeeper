@@ -95,11 +95,9 @@ func (d *LakekeeperWarehouseRoleAccessDataSource) Read(ctx context.Context, req 
 
 	// The access endpoint is deprecated in favor of the authorizer-actions
 	// endpoint, which only returns OpenFGA relations.
-	access, _, err := d.client.PermissionsOpenfgaAPI.GetWarehouseAccessById(ctx, state.WarehouseID.ValueString()).
-		PrincipalRole(state.RoleID.ValueString()).
-		Execute()
+	access, err := d.client.Permissions.Warehouses.Access(ctx, state.WarehouseID.ValueString(), &lakekeeper.GetWarehouseAccessByIDOptions{PrincipalRole: state.RoleID.ValueString()})
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read acess for role %s on warehouse %s, %v", state.RoleID.ValueString(), state.ID.ValueString(), apiError(err)))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read access for role %s on warehouse %s, %v", state.RoleID.ValueString(), state.WarehouseID.ValueString(), err))
 		return
 	}
 

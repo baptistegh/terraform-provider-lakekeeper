@@ -95,11 +95,15 @@ func (d *LakekeeperProjectRoleAccessDataSource) Read(ctx context.Context, req da
 
 	// The access endpoint is deprecated in favor of the authorizer-actions
 	// endpoint, which only returns OpenFGA relations.
-	access, _, err := d.client.PermissionsOpenfgaAPI.GetProjectAccessById(ctx, state.ProjectID.ValueString()).
-		PrincipalRole(state.RoleID.ValueString()).
-		Execute()
+	scope, err := inProject(state.ProjectID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read acess for role %s on project %s, %v", state.RoleID.ValueString(), state.ID.ValueString(), apiError(err)))
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
+
+	access, err := d.client.Permissions.Projects.Access(ctx, &lakekeeper.GetProjectAccessOptions{PrincipalRole: state.RoleID.ValueString()}, scope)
+	if err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read access for role %s on project %s, %v", state.RoleID.ValueString(), state.ProjectID.ValueString(), err))
 		return
 	}
 

@@ -99,10 +99,10 @@ func (d *LakekeeperWhoamiDataSource) Read(ctx context.Context, req datasource.Re
 
 	state.ID = types.StringValue(user.Id)
 	state.Name = types.StringValue(user.Name)
-	state.Email = types.StringPointerValue(user.Email)
+	state.Email = types.StringPointerValue(user.Email.Get())
 	state.UserType = types.StringValue(string(user.UserType))
 	state.CreatedAt = timeValue(user.CreatedAt)
-	state.UpdatedAt = timePointerValue(user.UpdatedAt)
+	state.UpdatedAt = timePointerValue(user.UpdatedAt.Get())
 	state.LastUpdatedWith = types.StringValue(string(user.LastUpdatedWith))
 
 	diags := resp.State.Set(ctx, &state)

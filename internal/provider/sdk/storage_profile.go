@@ -3,6 +3,7 @@ package sdk
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
@@ -251,9 +252,7 @@ func (m *ADLSStorageProfileModel) AsSDK() (managementv1.StorageProfile, error) {
 	}
 
 	if m.SASTokenValiditySeconds.ValueInt64() != 0 {
-		opt = append(opt, func(p *managementv1.StorageProfileAdls) {
-			p.SasTokenValiditySeconds = m.SASTokenValiditySeconds.ValueInt64Pointer()
-		})
+		opt = append(opt, profile.WithADLSSASTokenValidity(time.Duration(m.SASTokenValiditySeconds.ValueInt64())*time.Second))
 	}
 
 	if m.AllowAlternativeProtocols.ValueBool() {
@@ -427,15 +426,15 @@ func StorageProfileModelFromSDK(sp managementv1.StorageProfile) (StorageProfileM
 			Bucket:                    types.StringValue(cfg.Bucket),
 			Region:                    types.StringValue(cfg.Region),
 			STSEnabled:                types.BoolValue(cfg.StsEnabled),
-			STSRoleARN:                types.StringPointerValue(cfg.StsRoleArn),
+			STSRoleARN:                types.StringPointerValue(cfg.StsRoleArn.Get()),
 			STSTokenValiditySeconds:   types.Int64PointerValue(cfg.StsTokenValiditySeconds),
 			PushS3DeleteDisabled:      types.BoolPointerValue(cfg.PushS3DeleteDisabled),
-			KeyPrefix:                 types.StringPointerValue(cfg.KeyPrefix),
-			AllowAlternativeProtocols: types.BoolPointerValue(cfg.AllowAlternativeProtocols),
-			AssumeRoleARN:             types.StringPointerValue(cfg.AssumeRoleArn),
-			AWSKMSKeyARN:              types.StringPointerValue(cfg.AwsKmsKeyArn),
-			Endpoint:                  types.StringPointerValue(cfg.Endpoint),
-			PathStyleAccess:           types.BoolPointerValue(cfg.PathStyleAccess),
+			KeyPrefix:                 types.StringPointerValue(cfg.KeyPrefix.Get()),
+			AllowAlternativeProtocols: types.BoolPointerValue(cfg.AllowAlternativeProtocols.Get()),
+			AssumeRoleARN:             types.StringPointerValue(cfg.AssumeRoleArn.Get()),
+			AWSKMSKeyARN:              types.StringPointerValue(cfg.AwsKmsKeyArn.Get()),
+			Endpoint:                  types.StringPointerValue(cfg.Endpoint.Get()),
+			PathStyleAccess:           types.BoolPointerValue(cfg.PathStyleAccess.Get()),
 		}
 
 		var f *string
@@ -458,10 +457,10 @@ func StorageProfileModelFromSDK(sp managementv1.StorageProfile) (StorageProfileM
 		return &ADLSStorageProfileModel{
 			AccountName:               types.StringValue(cfg.AccountName),
 			Filesystem:                types.StringValue(cfg.Filesystem),
-			Host:                      types.StringPointerValue(cfg.Host),
-			AuthorityHost:             types.StringPointerValue(cfg.AuthorityHost),
-			KeyPrefix:                 types.StringPointerValue(cfg.KeyPrefix),
-			SASTokenValiditySeconds:   types.Int64PointerValue(cfg.SasTokenValiditySeconds),
+			Host:                      types.StringPointerValue(cfg.Host.Get()),
+			AuthorityHost:             types.StringPointerValue(cfg.AuthorityHost.Get()),
+			KeyPrefix:                 types.StringPointerValue(cfg.KeyPrefix.Get()),
+			SASTokenValiditySeconds:   types.Int64PointerValue(cfg.SasTokenValiditySeconds.Get()),
 			AllowAlternativeProtocols: types.BoolPointerValue(cfg.AllowAlternativeProtocols),
 		}, nil
 	}
@@ -469,7 +468,7 @@ func StorageProfileModelFromSDK(sp managementv1.StorageProfile) (StorageProfileM
 	if cfg, ok := profile.AsGCS(sp); ok {
 		return &GCSStorageProfileModel{
 			Bucket:    types.StringValue(cfg.Bucket),
-			KeyPrefix: types.StringPointerValue(cfg.KeyPrefix),
+			KeyPrefix: types.StringPointerValue(cfg.KeyPrefix.Get()),
 		}, nil
 	}
 

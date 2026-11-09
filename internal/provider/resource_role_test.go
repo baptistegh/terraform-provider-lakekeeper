@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 func TestAccLakekeeperRole_basic(t *testing.T) {
@@ -191,7 +192,7 @@ func testAccCheckLakekeeperRoleDestroy(s *terraform.State) error {
 
 		projectID, roleID := splitInternalID(types.StringValue(rs.Primary.ID))
 
-		_, err := testutil.TestLakekeeperClient.Roles.Get(context.Background(), projectID, roleID)
+		_, err := testutil.TestLakekeeperClient.Roles.Get(context.Background(), roleID, lakekeeper.WithProject(projectID))
 		if err == nil {
 			return fmt.Errorf("Role with id %s still exists", rs.Primary.ID)
 		}

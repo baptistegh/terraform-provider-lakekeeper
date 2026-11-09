@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 func TestAccLakekeeperProject_basic(t *testing.T) {
@@ -82,7 +83,7 @@ func testAccCheckLakekeeperProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, err := testutil.TestLakekeeperClient.Projects.Get(context.Background(), rs.Primary.ID)
+		_, err := testutil.TestLakekeeperClient.Projects.Get(context.Background(), lakekeeper.WithProject(rs.Primary.ID))
 		if err == nil {
 			return fmt.Errorf("Project with id %s still exists", rs.Primary.ID)
 		}

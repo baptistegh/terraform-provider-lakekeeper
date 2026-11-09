@@ -107,9 +107,9 @@ func readExistingNamespace(ctx context.Context, client *lakekeeper.Client, proje
 	if _, err := uuid.Parse(id); err != nil {
 		return "", false, fmt.Errorf("catalog returned an invalid namespace_id")
 	}
-	props, _, err := client.PermissionsOpenfgaAPI.GetNamespaceById(ctx, id).Execute()
+	props, resp, err := client.PermissionsOpenfgaAPI.GetNamespaceById(ctx, id).Execute()
 	if err != nil {
-		return "", false, apiError(err)
+		return "", false, lakekeeper.WrapAPIError("get namespace", err, resp)
 	}
 	return id, props.ManagedAccess, nil
 }

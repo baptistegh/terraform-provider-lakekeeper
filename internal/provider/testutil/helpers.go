@@ -58,12 +58,12 @@ func CreateProject(t *testing.T) *managementv1.GetProjectResponse {
 	}
 
 	t.Cleanup(func() {
-		if err := TestLakekeeperClient.Projects.Delete(context.Background(), resp.ProjectId); err != nil {
+		if err := TestLakekeeperClient.Projects.Delete(context.Background(), client.WithProject(resp.ProjectId)); err != nil {
 			t.Fatalf("could not cleanup test project: %v", err)
 		}
 	})
 
-	project, err := TestLakekeeperClient.Projects.Get(t.Context(), resp.ProjectId)
+	project, err := TestLakekeeperClient.Projects.Get(t.Context(), client.WithProject(resp.ProjectId))
 	if err != nil {
 		t.Fatalf("could not get test project: %v", err)
 	}
@@ -83,12 +83,11 @@ func CreateWarehouse(t *testing.T, projectID, keyPrefix string) *managementv1.Ge
 		),
 		acctest.RandString(8),
 	)
-	req.SetProjectId(projectID)
 	req.SetStorageCredential(credential.NewS3AccessKey("minio-root-user", "minio-root-password"))
 	hard := managementv1.TabularDeleteProfileHardAsTabularDeleteProfile(managementv1.NewTabularDeleteProfileHard("hard"))
 	req.SetDeleteProfile(hard)
 
-	w, err := TestLakekeeperClient.Warehouses.Create(t.Context(), req)
+	w, err := TestLakekeeperClient.Warehouses.Create(t.Context(), req, client.WithProject(projectID))
 	if err != nil {
 		t.Fatalf("could not create test warehouse: %v", err)
 	}
@@ -114,13 +113,13 @@ func CreateRole(t *testing.T, projectID string) *managementv1.Role {
 	req := managementv1.NewCreateRoleRequest(acctest.RandString(8))
 	req.SetDescription(acctest.RandString(32))
 
-	role, err := TestLakekeeperClient.Roles.Create(t.Context(), projectID, req)
+	role, err := TestLakekeeperClient.Roles.Create(t.Context(), req, client.WithProject(projectID))
 	if err != nil {
 		t.Fatalf("could not create test role: %v", err)
 	}
 
 	t.Cleanup(func() {
-		if err := TestLakekeeperClient.Roles.Delete(context.Background(), projectID, role.Id); err != nil {
+		if err := TestLakekeeperClient.Roles.Delete(context.Background(), role.Id, client.WithProject(projectID)); err != nil {
 			t.Fatalf("could not cleanup test role: %v", err)
 		}
 	})

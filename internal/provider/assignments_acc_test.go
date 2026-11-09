@@ -26,5 +26,5 @@ func grantAssignments[T any](ctx context.Context, scope assignmentScope[T], assi
 		writes = append(writes, w)
 	}
 
-	return scope.update(ctx, writes, nil)
+	return scope.grant(ctx, writes)
 }

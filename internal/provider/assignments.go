@@ -12,110 +12,118 @@ import (
 	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 )
 
-// assignmentScope reads and updates the direct permission assignments of one
-// Lakekeeper object. T is the generated assignment union of the object type,
-// such as managementv1.WarehouseAssignment.
+// assignmentScope reads, grants and revokes the direct permission assignments
+// of one Lakekeeper object. T is the generated assignment union of the object
+// type, such as managementv1.WarehouseAssignment.
 type assignmentScope[T any] struct {
 	get    func(ctx context.Context) ([]T, error)
-	update func(ctx context.Context, writes, deletes []T) error
+	grant  func(ctx context.Context, assignments []T) error
+	revoke func(ctx context.Context, assignments []T) error
 }
 
 func serverAssignmentScope(client *lakekeeper.Client) assignmentScope[managementv1.ServerAssignment] {
-	api := client.PermissionsOpenfgaAPI
+	p := client.Permissions.Server
 	return assignmentScope[managementv1.ServerAssignment]{
 		get: func(ctx context.Context) ([]managementv1.ServerAssignment, error) {
-			resp, _, err := api.GetServerAssignments(ctx).Execute()
+			resp, err := p.Assignments(ctx, nil)
 			if err != nil {
-				return nil, apiError(err)
+				return nil, err
 			}
 			return resp.Assignments, nil
 		},
-		update: func(ctx context.Context, writes, deletes []managementv1.ServerAssignment) error {
-			_, err := api.UpdateServerAssignments(ctx).UpdateServerAssignmentsRequest(managementv1.UpdateServerAssignmentsRequest{
-				Writes:  writes,
-				Deletes: deletes,
-			}).Execute()
-			return apiError(err)
-		},
+		grant:  p.Grant,
+		revoke: p.Revoke,
 	}
 }
 
 func projectAssignmentScope(client *lakekeeper.Client, projectID string) assignmentScope[managementv1.ProjectAssignment] {
-	api := client.PermissionsOpenfgaAPI
+	p := client.Permissions.Projects
+	scope, scopeErr := inProject(projectID)
 	return assignmentScope[managementv1.ProjectAssignment]{
 		get: func(ctx context.Context) ([]managementv1.ProjectAssignment, error) {
-			resp, _, err := api.GetProjectAssignmentsById(ctx, projectID).Execute()
+			if scopeErr != nil {
+				return nil, scopeErr
+			}
+			resp, err := p.Assignments(ctx, nil, scope)
 			if err != nil {
-				return nil, apiError(err)
+				return nil, err
 			}
 			return resp.Assignments, nil
 		},
-		update: func(ctx context.Context, writes, deletes []managementv1.ProjectAssignment) error {
-			_, err := api.UpdateProjectAssignmentsById(ctx, projectID).UpdateProjectAssignmentsRequest(managementv1.UpdateProjectAssignmentsRequest{
-				Writes:  writes,
-				Deletes: deletes,
-			}).Execute()
-			return apiError(err)
+		grant: func(ctx context.Context, assignments []managementv1.ProjectAssignment) error {
+			if scopeErr != nil {
+				return scopeErr
+			}
+			return p.Grant(ctx, assignments, scope)
+		},
+		revoke: func(ctx context.Context, assignments []managementv1.ProjectAssignment) error {
+			if scopeErr != nil {
+				return scopeErr
+			}
+			return p.Revoke(ctx, assignments, scope)
 		},
 	}
 }
 
 func warehouseAssignmentScope(client *lakekeeper.Client, warehouseID string) assignmentScope[managementv1.WarehouseAssignment] {
-	api := client.PermissionsOpenfgaAPI
+	p := client.Permissions.Warehouses
 	return assignmentScope[managementv1.WarehouseAssignment]{
 		get: func(ctx context.Context) ([]managementv1.WarehouseAssignment, error) {
-			resp, _, err := api.GetWarehouseAssignmentsById(ctx, warehouseID).Execute()
+			resp, err := p.Assignments(ctx, warehouseID, nil)
 			if err != nil {
-				return nil, apiError(err)
+				return nil, err
 			}
 			return resp.Assignments, nil
 		},
-		update: func(ctx context.Context, writes, deletes []managementv1.WarehouseAssignment) error {
-			_, err := api.UpdateWarehouseAssignmentsById(ctx, warehouseID).UpdateWarehouseAssignmentsRequest(managementv1.UpdateWarehouseAssignmentsRequest{
-				Writes:  writes,
-				Deletes: deletes,
-			}).Execute()
-			return apiError(err)
+		grant: func(ctx context.Context, assignments []managementv1.WarehouseAssignment) error {
+			return p.Grant(ctx, warehouseID, assignments)
+		},
+		revoke: func(ctx context.Context, assignments []managementv1.WarehouseAssignment) error {
+			return p.Revoke(ctx, warehouseID, assignments)
 		},
 	}
 }
 
 func roleAssignmentScope(client *lakekeeper.Client, roleID string) assignmentScope[managementv1.RoleAssignment] {
-	api := client.PermissionsOpenfgaAPI
+	p := client.Permissions.Roles
 	return assignmentScope[managementv1.RoleAssignment]{
 		get: func(ctx context.Context) ([]managementv1.RoleAssignment, error) {
-			resp, _, err := api.GetRoleAssignmentsById(ctx, roleID).Execute()
+			resp, err := p.Assignments(ctx, roleID, nil)
 			if err != nil {
-				return nil, apiError(err)
+				return nil, err
 			}
 			return resp.Assignments, nil
 		},
-		update: func(ctx context.Context, writes, deletes []managementv1.RoleAssignment) error {
-			_, err := api.UpdateRoleAssignmentsById(ctx, roleID).UpdateRoleAssignmentsRequest(managementv1.UpdateRoleAssignmentsRequest{
-				Writes:  writes,
-				Deletes: deletes,
-			}).Execute()
-			return apiError(err)
+		grant: func(ctx context.Context, assignments []managementv1.RoleAssignment) error {
+			return p.Grant(ctx, roleID, assignments)
+		},
+		revoke: func(ctx context.Context, assignments []managementv1.RoleAssignment) error {
+			return p.Revoke(ctx, roleID, assignments)
 		},
 	}
 }
 
+// namespaceAssignmentScope uses the generated client: go-lakekeeper has no
+// namespace permissions façade.
 func namespaceAssignmentScope(client *lakekeeper.Client, namespaceID string) assignmentScope[managementv1.NamespaceAssignment] {
 	api := client.PermissionsOpenfgaAPI
+	update := func(ctx context.Context, op string, req managementv1.UpdateNamespaceAssignmentsRequest) error {
+		resp, err := api.UpdateNamespaceAssignmentsById(ctx, namespaceID).UpdateNamespaceAssignmentsRequest(req).Execute()
+		return lakekeeper.WrapAPIError(op, err, resp)
+	}
 	return assignmentScope[managementv1.NamespaceAssignment]{
 		get: func(ctx context.Context) ([]managementv1.NamespaceAssignment, error) {
-			resp, _, err := api.GetNamespaceAssignmentsById(ctx, namespaceID).Execute()
+			out, resp, err := api.GetNamespaceAssignmentsById(ctx, namespaceID).Execute()
 			if err != nil {
-				return nil, apiError(err)
+				return nil, lakekeeper.WrapAPIError("get namespace assignments", err, resp)
 			}
-			return resp.Assignments, nil
+			return out.Assignments, nil
 		},
-		update: func(ctx context.Context, writes, deletes []managementv1.NamespaceAssignment) error {
-			_, err := api.UpdateNamespaceAssignmentsById(ctx, namespaceID).UpdateNamespaceAssignmentsRequest(managementv1.UpdateNamespaceAssignmentsRequest{
-				Writes:  writes,
-				Deletes: deletes,
-			}).Execute()
-			return apiError(err)
+		grant: func(ctx context.Context, assignments []managementv1.NamespaceAssignment) error {
+			return update(ctx, "grant namespace assignments", managementv1.UpdateNamespaceAssignmentsRequest{Writes: assignments})
+		},
+		revoke: func(ctx context.Context, assignments []managementv1.NamespaceAssignment) error {
+			return update(ctx, "revoke namespace assignments", managementv1.UpdateNamespaceAssignmentsRequest{Deletes: assignments})
 		},
 	}
 }
@@ -158,13 +166,12 @@ func (s assignmentScope[T]) relations(ctx context.Context, kind permissions.Prin
 	return relations, nil
 }
 
-// apply grants the added relations to one principal and revokes the removed
-// ones, in a single request. It sends nothing when both lists are empty.
+// apply grants the added relations to one principal, then revokes the removed
+// ones. Granting first keeps the principal's access during the change, which
+// matters when the provider's own identity is the principal. Each side is one
+// request, and an empty side sends nothing. A failed revoke leaves the grants
+// in place; the next refresh shows the remaining difference.
 func (s assignmentScope[T]) apply(ctx context.Context, kind permissions.PrincipalKind, principalID string, added, removed []string) error {
-	if len(added) == 0 && len(removed) == 0 {
-		return nil
-	}
-
 	writes, err := buildAssignments[T](added, kind, principalID)
 	if err != nil {
 		return err
@@ -175,16 +182,21 @@ func (s assignmentScope[T]) apply(ctx context.Context, kind permissions.Principa
 		return err
 	}
 
-	return s.update(ctx, writes, deletes)
-}
-
-// buildAssignments returns nil for no relations, so that the empty side of an
-// update is omitted from the request instead of being sent as an empty list.
-func buildAssignments[T any](relations []string, kind permissions.PrincipalKind, principalID string) ([]T, error) {
-	if len(relations) == 0 {
-		return nil, nil
+	if len(writes) > 0 {
+		if err := s.grant(ctx, writes); err != nil {
+			return err
+		}
 	}
 
+	if len(deletes) > 0 {
+		return s.revoke(ctx, deletes)
+	}
+
+	return nil
+}
+
+// buildAssignments returns the assignments granting relations to one principal.
+func buildAssignments[T any](relations []string, kind permissions.PrincipalKind, principalID string) ([]T, error) {
 	out := make([]T, 0, len(relations))
 	for _, relation := range relations {
 		a, err := permissions.BuildAssignment[T](relation, kind, principalID)

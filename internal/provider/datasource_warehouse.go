@@ -239,9 +239,9 @@ func (d *LakekeeperWarehouseDataSource) Read(ctx context.Context, req datasource
 	}
 
 	// Authorization Properties
-	m, _, err := d.client.PermissionsOpenfgaAPI.GetWarehouseById(ctx, warehouseID).Execute()
+	m, httpResp, err := d.client.PermissionsOpenfgaAPI.GetWarehouseById(ctx, warehouseID).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read authorization properties for warehouse %s, %v", state.Name.ValueString(), apiError(err)))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read authorization properties for warehouse %s, %v", state.Name.ValueString(), lakekeeper.WrapAPIError("get warehouse authorization properties", err, httpResp)))
 		return
 	}
 	state.ManagedAccess = types.BoolValue(m.ManagedAccess)

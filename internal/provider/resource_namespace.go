@@ -165,9 +165,9 @@ func (r *lakekeeperNamespaceResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 	if !state.ManagedAccess.IsNull() {
-		props, _, err := r.client.PermissionsOpenfgaAPI.GetNamespaceById(ctx, state.NamespaceID.ValueString()).Execute()
+		props, httpResp, err := r.client.PermissionsOpenfgaAPI.GetNamespaceById(ctx, state.NamespaceID.ValueString()).Execute()
 		if err != nil {
-			resp.Diagnostics.AddError("Cannot read managed access", apiError(err).Error())
+			resp.Diagnostics.AddError("Cannot read managed access", lakekeeper.WrapAPIError("get namespace", err, httpResp).Error())
 			return
 		}
 		state.ManagedAccess = types.BoolValue(props.ManagedAccess)
@@ -265,8 +265,8 @@ func (r *lakekeeperNamespaceResource) setManagedAccess(ctx context.Context, stat
 	if state.ManagedAccess.IsNull() {
 		return nil
 	}
-	_, err := r.client.PermissionsOpenfgaAPI.SetNamespaceManagedAccess(ctx, state.NamespaceID.ValueString()).
+	resp, err := r.client.PermissionsOpenfgaAPI.SetNamespaceManagedAccess(ctx, state.NamespaceID.ValueString()).
 		SetManagedAccessRequest(*managementv1.NewSetManagedAccessRequest(state.ManagedAccess.ValueBool())).
 		Execute()
-	return apiError(err)
+	return lakekeeper.WrapAPIError("set namespace managed access", err, resp)
 }

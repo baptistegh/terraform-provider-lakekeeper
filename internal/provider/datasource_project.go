@@ -79,7 +79,13 @@ func (d *LakekeeperProjectDataSource) Read(ctx context.Context, req datasource.R
 
 	id := state.ID.ValueString()
 
-	project, err := d.client.Projects.Get(ctx, id)
+	scope, err := inProject(id)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid project ID", err.Error())
+		return
+	}
+
+	project, err := d.client.Projects.Get(ctx, scope)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project %s, %v", id, err))
 		return
