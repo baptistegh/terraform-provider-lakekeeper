@@ -3,9 +3,9 @@ package provider
 import (
 	"fmt"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 // resourceClient returns the Lakekeeper client passed by the provider to a resource.

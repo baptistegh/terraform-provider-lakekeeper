@@ -32,7 +32,7 @@ resource "lakekeeper_namespace_role_assignment" "readers" {
 
 ### Required
 
-- `assignments` (Set of String) Direct permissions for this role. An empty set revokes them. Removing this resource revokes its permissions.
+- `assignments` (Set of String) Direct permissions for this role, among `ownership` `pass_grants` `manage_grants` `describe` `select` `create` `write` `modify` `manage_tags`. An empty set revokes them. Removing this resource revokes its permissions.
 - `namespace_id` (String) Namespace UUID, available as lakekeeper_namespace.example.namespace_id.
 - `project_id` (String) Project containing both the namespace and role.
 - `role_id` (String) Role UUID.

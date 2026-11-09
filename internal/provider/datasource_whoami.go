@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -91,19 +91,19 @@ func (d *LakekeeperWhoamiDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	user, _, err := d.client.UserV1().Whoami(ctx)
+	user, err := d.client.Users.Whoami(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read current user, %v", err))
 		return
 	}
 
-	state.ID = types.StringValue(user.ID)
+	state.ID = types.StringValue(user.Id)
 	state.Name = types.StringValue(user.Name)
 	state.Email = types.StringPointerValue(user.Email)
 	state.UserType = types.StringValue(string(user.UserType))
-	state.CreatedAt = types.StringValue(user.CreatedAt)
-	state.UpdatedAt = types.StringPointerValue(user.UpdatedAt)
-	state.LastUpdatedWith = types.StringValue(user.LastUpdatedWith)
+	state.CreatedAt = timeValue(user.CreatedAt)
+	state.UpdatedAt = timePointerValue(user.UpdatedAt)
+	state.LastUpdatedWith = types.StringValue(string(user.LastUpdatedWith))
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

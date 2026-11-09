@@ -6,11 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -18,6 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -85,26 +85,10 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Schema(ctx context.Context, 
 			"assignments": schema.SetAttribute{
 				ElementType: types.StringType,
 				MarkdownDescription: "List of assignments the role has on this warehouse. values can be " +
-					fmt.Sprintf("`%s` `%s` `%s` `%s` `%s` `%s` `%s`",
-						permissionv1.OwnershipWarehouseAssignment,
-						permissionv1.PassGrantsAdminWarehouseAssignment,
-						permissionv1.ManageGrantsAdminWarehouseAssignment,
-						permissionv1.DescribeWarehouseAssignment,
-						permissionv1.SelectWarehouseAssignment,
-						permissionv1.CreateWarehouseAssignment,
-						permissionv1.ModifyWarehouseAssignment,
-					),
+					enumValuesList(managementv1.AllowedWarehouseRelationEnumValues),
 				Required: true,
 				Validators: []validator.Set{setvalidator.ValueStringsAre(
-					stringvalidator.OneOf(
-						string(permissionv1.OwnershipWarehouseAssignment),
-						string(permissionv1.PassGrantsAdminWarehouseAssignment),
-						string(permissionv1.ManageGrantsAdminWarehouseAssignment),
-						string(permissionv1.DescribeWarehouseAssignment),
-						string(permissionv1.SelectWarehouseAssignment),
-						string(permissionv1.CreateWarehouseAssignment),
-						string(permissionv1.ModifyWarehouseAssignment),
-					)),
+					stringvalidator.OneOf(enumStrings(managementv1.AllowedWarehouseRelationEnumValues)...)),
 				},
 			},
 		},
@@ -126,34 +110,18 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Create(ctx context.Context, 
 		return
 	}
 
-	var opts []*permissionv1.WarehouseAssignment
-
-	for _, v := range plan.Assignments.Elements() {
-		s, ok := v.(types.String)
-		if !ok {
-			resp.Diagnostics.AddError("Error converting model to resource", fmt.Sprintf("Unable to read assignment %s", v.String()))
-			return
-		}
-
-		opts = append(opts, &permissionv1.WarehouseAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Value: plan.RoleID.ValueString(),
-				Type:  permissionv1.RoleType,
-			},
-			Assignment: permissionv1.WarehouseAssignmentType(s.ValueString()),
-		})
+	var assignments []string
+	resp.Diagnostics.Append(plan.Assignments.ElementsAs(ctx, &assignments, false)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	_, err := r.client.PermissionV1().WarehousePermission().Update(ctx, plan.WarehouseID.ValueString(), &permissionv1.UpdateWarehousePermissionsOptions{
-		Writes: opts,
-	})
-	if err != nil {
+	if err := warehouseAssignmentScope(r.client, plan.WarehouseID.ValueString()).apply(ctx, permissions.PrincipalRole, plan.RoleID.ValueString(), assignments, nil); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to write warehouse assignment, %s", err.Error()))
 		return
 	}
 
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s", plan.WarehouseID.ValueString(), plan.RoleID.ValueString()))
-
 	state.WarehouseID = plan.WarehouseID
 	state.RoleID = plan.RoleID
 	state.Assignments = plan.Assignments
@@ -167,40 +135,31 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Read(ctx context.Context, re
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	warehouseID, roleID := splitInternalID(state.ID)
+	objectID, principalID := splitInternalID(state.ID)
 
-	assignments, _, err := r.client.PermissionV1().WarehousePermission().GetAssignments(ctx, warehouseID, nil)
+	relations, err := warehouseAssignmentScope(r.client, objectID).relations(ctx, permissions.PrincipalRole, principalID)
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role assignments, %s", err.Error()))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse assignments, %s", err.Error()))
 		return
 	}
 
-	var elems []attr.Value
-	for _, v := range assignments.Assignments {
-		if v.Assignee.Value == roleID && v.Assignee.Type == permissionv1.RoleType {
-			elems = append(elems, types.StringValue(string(v.Assignment)))
-		}
-	}
-
-	newAssignments, diags := types.SetValue(types.StringType, elems)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	newAssignments, diags := types.SetValueFrom(ctx, types.StringType, relations)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	state.WarehouseID = types.StringValue(warehouseID)
-	state.RoleID = types.StringValue(roleID)
-
+	state.WarehouseID = types.StringValue(objectID)
+	state.RoleID = types.StringValue(principalID)
 	state.Assignments = newAssignments
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Updates updates the resource in-place.
+// Update updates the resource in-place.
 func (r *lakekeeperWarehouseRoleAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state lakekeeperWarehouseRoleAssignmentResourceModel
 
@@ -226,78 +185,37 @@ func (r *lakekeeperWarehouseRoleAssignmentResource) Update(ctx context.Context, 
 
 	added, removed := DiffTypedStrings(stateAssignments, planAssignments)
 
-	var writes []*permissionv1.WarehouseAssignment
-	var deletes []*permissionv1.WarehouseAssignment
+	objectID, principalID := splitInternalID(state.ID)
 
-	for _, v := range added {
-		writes = append(writes, &permissionv1.WarehouseAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Type:  permissionv1.RoleType,
-				Value: plan.RoleID.ValueString(),
-			},
-			Assignment: permissionv1.WarehouseAssignmentType(v.ValueString()),
-		})
-	}
-
-	for _, v := range removed {
-		deletes = append(deletes, &permissionv1.WarehouseAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Type:  permissionv1.RoleType,
-				Value: plan.RoleID.ValueString(),
-			},
-			Assignment: permissionv1.WarehouseAssignmentType(v.ValueString()),
-		})
-	}
-
-	warehouseID, roleID := splitInternalID(state.ID)
-
-	if _, err := r.client.PermissionV1().WarehousePermission().Update(ctx, warehouseID, &permissionv1.UpdateWarehousePermissionsOptions{
-		Writes:  writes,
-		Deletes: deletes,
-	}); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update role assignment, %v", err.Error()))
+	if err := warehouseAssignmentScope(r.client, objectID).apply(ctx, permissions.PrincipalRole, principalID, stringValues(added), stringValues(removed)); err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update warehouse assignment, %v", err.Error()))
 		return
 	}
 
-	state.RoleID = types.StringValue(roleID)
+	state.RoleID = types.StringValue(principalID)
 	state.Assignments = plan.Assignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Deletes removes the resource.
+// Delete removes the resource.
 func (r *lakekeeperWarehouseRoleAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state lakekeeperWarehouseRoleAssignmentResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var assignments []types.String
-	var deletes []*permissionv1.WarehouseAssignment
-
+	var assignments []string
 	resp.Diagnostics.Append(state.Assignments.ElementsAs(ctx, &assignments, false)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	for _, v := range assignments {
-		deletes = append(deletes, &permissionv1.WarehouseAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Value: state.RoleID.ValueString(),
-				Type:  permissionv1.RoleType,
-			},
-			Assignment: permissionv1.WarehouseAssignmentType(v.ValueString()),
-		})
-	}
-
-	if _, err := r.client.PermissionV1().WarehousePermission().Update(ctx, state.WarehouseID.ValueString(), &permissionv1.UpdateWarehousePermissionsOptions{
-		Deletes: deletes,
-	}); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete role assignment, %v", err.Error()))
+	if err := warehouseAssignmentScope(r.client, state.WarehouseID.ValueString()).apply(ctx, permissions.PrincipalRole, state.RoleID.ValueString(), nil, assignments); err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete warehouse assignment, %v", err.Error()))
 	}
 
 	resp.State.RemoveResource(ctx)

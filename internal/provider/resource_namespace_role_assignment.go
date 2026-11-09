@@ -2,13 +2,9 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"regexp"
-	"sort"
 	"strings"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 )
 
 func init() { registerResource(NewLakekeeperNamespaceRoleAssignment) }
@@ -55,8 +54,8 @@ func (r *namespaceRoleAssignmentResource) Schema(_ context.Context, _ resource.S
 			"namespace_id": identity("Namespace UUID, available as lakekeeper_namespace.example.namespace_id."),
 			"role_id":      identity("Role UUID."),
 			"assignments": schema.SetAttribute{Required: true, ElementType: types.StringType,
-				MarkdownDescription: "Direct permissions for this role. An empty set revokes them. Removing this resource revokes its permissions.",
-				Validators:          []validator.Set{setvalidator.ValueStringsAre(stringvalidator.OneOf("ownership", "pass_grants", "manage_grants", "describe", "select", "create", "modify"))},
+				MarkdownDescription: "Direct permissions for this role, among " + enumValuesList(managementv1.AllowedNamespaceRelationEnumValues) + ". An empty set revokes them. Removing this resource revokes its permissions.",
+				Validators:          []validator.Set{setvalidator.ValueStringsAre(stringvalidator.OneOf(enumStrings(managementv1.AllowedNamespaceRelationEnumValues)...))},
 			},
 		},
 	}
@@ -65,79 +64,27 @@ func (r *namespaceRoleAssignmentResource) Configure(_ context.Context, req resou
 	r.client = resourceClient(req, resp)
 }
 
-type namespaceAssignment struct {
-	Type string `json:"type"`
-	Role string `json:"role,omitempty"`
-	User string `json:"user,omitempty"`
-}
-
-func namespaceRequest(ctx context.Context, client *lakekeeper.Client, project, namespace, suffix, method string, body, result any) error {
-	req, err := client.NewRequest(ctx, method, "/permissions/namespace/"+namespace+suffix, body, []core.RequestOptionFunc{core.WithHeader("x-project-id", project)})
-	if err != nil {
-		return err
-	}
-	_, apiErr := client.Do(req, result)
-	if apiErr != nil {
-		return apiErr
-	}
-	return nil
-}
-func namespaceRoleAssignments(ctx context.Context, client *lakekeeper.Client, project, namespace, role string) ([]string, error) {
-	var result struct {
-		Assignments *[]namespaceAssignment `json:"assignments"`
-	}
-	if err := namespaceRequest(ctx, client, project, namespace, "/assignments", "GET", nil, &result); err != nil {
-		return nil, err
-	}
-	if result.Assignments == nil {
-		return nil, fmt.Errorf("namespace assignments response has no assignments list")
-	}
-	found := map[string]bool{}
-	for _, a := range *result.Assignments {
-		if a.Role == role && a.User == "" {
-			found[a.Type] = true
-		}
-	}
-	values := make([]string, 0, len(found))
-	for a := range found {
-		values = append(values, a)
-	}
-	sort.Strings(values)
-	return values, nil
+// namespaceRoleAssignments returns the sorted direct grants of a role on a namespace.
+func namespaceRoleAssignments(ctx context.Context, client *lakekeeper.Client, namespace, role string) ([]string, error) {
+	return namespaceAssignmentScope(client, namespace).relations(ctx, permissions.PrincipalRole, role)
 }
 
 // Reconcile only this role's direct grants. Delete before adding; refresh recovers a partial apply.
-func setNamespaceRoleAssignments(ctx context.Context, client *lakekeeper.Client, project, namespace, role string, desired []string) error {
-	current, err := namespaceRoleAssignments(ctx, client, project, namespace, role)
+func setNamespaceRoleAssignments(ctx context.Context, client *lakekeeper.Client, namespace, role string, desired []string) error {
+	current, err := namespaceRoleAssignments(ctx, client, namespace, role)
 	if err != nil {
 		return err
 	}
-	before, after := map[string]bool{}, map[string]bool{}
-	for _, a := range current {
-		before[a] = true
+
+	added, removed := diffStrings(current, desired)
+	scope := namespaceAssignmentScope(client, namespace)
+	if err := scope.apply(ctx, permissions.PrincipalRole, role, nil, removed); err != nil {
+		return err
 	}
-	for _, a := range desired {
-		after[a] = true
-	}
-	for _, op := range []struct {
-		key      string
-		from, to map[string]bool
-	}{{"deletes", before, after}, {"writes", after, before}} {
-		changes := []namespaceAssignment{}
-		for a := range op.from {
-			if !op.to[a] {
-				changes = append(changes, namespaceAssignment{Type: a, Role: role})
-			}
-		}
-		sort.Slice(changes, func(i, j int) bool { return changes[i].Type < changes[j].Type })
-		if len(changes) > 0 {
-			if err := namespaceRequest(ctx, client, project, namespace, "/assignments", "POST", map[string]any{op.key: changes}, nil); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+
+	return scope.apply(ctx, permissions.PrincipalRole, role, added, nil)
 }
+
 func (r *namespaceRoleAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan namespaceRoleAssignmentModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -145,7 +92,7 @@ func (r *namespaceRoleAssignmentResource) Create(ctx context.Context, req resour
 		return
 	}
 	// Existing direct grants must be imported before this resource can manage them.
-	current, err := namespaceRoleAssignments(ctx, r.client, plan.ProjectID.ValueString(), plan.NamespaceID.ValueString(), plan.RoleID.ValueString())
+	current, err := namespaceRoleAssignments(ctx, r.client, plan.NamespaceID.ValueString(), plan.RoleID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Cannot read namespace grants", err.Error())
 		return
@@ -162,7 +109,7 @@ func (r *namespaceRoleAssignmentResource) Create(ctx context.Context, req resour
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := setNamespaceRoleAssignments(ctx, r.client, plan.ProjectID.ValueString(), plan.NamespaceID.ValueString(), plan.RoleID.ValueString(), desired); err != nil {
+	if err := setNamespaceRoleAssignments(ctx, r.client, plan.NamespaceID.ValueString(), plan.RoleID.ValueString(), desired); err != nil {
 		resp.Diagnostics.AddError("Cannot create namespace grants", err.Error())
 	}
 }
@@ -172,7 +119,7 @@ func (r *namespaceRoleAssignmentResource) Read(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	grants, err := namespaceRoleAssignments(ctx, r.client, state.ProjectID.ValueString(), state.NamespaceID.ValueString(), state.RoleID.ValueString())
+	grants, err := namespaceRoleAssignments(ctx, r.client, state.NamespaceID.ValueString(), state.RoleID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Cannot read namespace grants", err.Error())
 		return
@@ -193,7 +140,7 @@ func (r *namespaceRoleAssignmentResource) Update(ctx context.Context, req resour
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := setNamespaceRoleAssignments(ctx, r.client, plan.ProjectID.ValueString(), plan.NamespaceID.ValueString(), plan.RoleID.ValueString(), desired); err != nil {
+	if err := setNamespaceRoleAssignments(ctx, r.client, plan.NamespaceID.ValueString(), plan.RoleID.ValueString(), desired); err != nil {
 		resp.Diagnostics.AddError("Cannot update namespace grants", err.Error())
 		return
 	}
@@ -205,7 +152,7 @@ func (r *namespaceRoleAssignmentResource) Delete(ctx context.Context, req resour
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := setNamespaceRoleAssignments(ctx, r.client, state.ProjectID.ValueString(), state.NamespaceID.ValueString(), state.RoleID.ValueString(), nil); err != nil {
+	if err := setNamespaceRoleAssignments(ctx, r.client, state.NamespaceID.ValueString(), state.RoleID.ValueString(), nil); err != nil {
 		resp.Diagnostics.AddError("Cannot revoke namespace grants", err.Error())
 		return
 	}

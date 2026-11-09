@@ -22,13 +22,13 @@ func TestAccDataLakekeeperUser_basic(t *testing.T) {
 				Config: fmt.Sprintf(`
 				data "lakekeeper_user" "foo" {
 					id = "%s"
-				}`, user.ID),
+				}`, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "id", rID),
 					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "name", user.Name),
-					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "email", *user.Email),
-					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "created_at", user.CreatedAt),
-					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "last_updated_with", user.LastUpdatedWith),
+					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "email", user.GetEmail()),
+					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "created_at", timeValue(user.CreatedAt).ValueString()),
+					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "last_updated_with", string(user.LastUpdatedWith)),
 					resource.TestCheckResourceAttr("data.lakekeeper_user.foo", "user_type", string(user.UserType)),
 				),
 			},

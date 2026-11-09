@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -47,10 +46,10 @@ func DeleteProfileResourceSchema() rschema.SingleNestedAttribute {
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf(string(profile.HardDeleteProfileType), string(profile.SoftDeleteProfileType)),
+					stringvalidator.OneOf(DeleteProfileTypeHard, DeleteProfileTypeSoft),
 				},
 				Default:             stringdefault.StaticString("hard"),
-				MarkdownDescription: fmt.Sprintf("Type of the delete profile. Can be `%s` or `%s`. Default: `%s`", profile.HardDeleteProfileType, profile.SoftDeleteProfileType, profile.HardDeleteProfileType),
+				MarkdownDescription: fmt.Sprintf("Type of the delete profile. Can be `%s` or `%s`. Default: `%s`", DeleteProfileTypeHard, DeleteProfileTypeSoft, DeleteProfileTypeHard),
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -75,13 +74,13 @@ func DeleteProfileDatasourceSchema() dschema.SingleNestedAttribute {
 			"type": dschema.StringAttribute{
 				Computed: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf(string(profile.HardDeleteProfileType), string(profile.SoftDeleteProfileType)),
+					stringvalidator.OneOf(DeleteProfileTypeHard, DeleteProfileTypeSoft),
 				},
-				MarkdownDescription: fmt.Sprintf("Type of the delete profile. Can be `%s` or `%s`", profile.HardDeleteProfileType, profile.SoftDeleteProfileType),
+				MarkdownDescription: fmt.Sprintf("Type of the delete profile. Can be `%s` or `%s`", DeleteProfileTypeHard, DeleteProfileTypeSoft),
 			},
 			"expiration_seconds": dschema.Int32Attribute{
 				Computed:            true,
-				MarkdownDescription: fmt.Sprintf("When the types is `%s`. Entity will be deleted after `expiration_seconds`. Default is `3600`", profile.SoftDeleteProfileType),
+				MarkdownDescription: fmt.Sprintf("When the types is `%s`. Entity will be deleted after `expiration_seconds`. Default is `3600`", DeleteProfileTypeSoft),
 			},
 		},
 		Validators: []validator.Object{deleteProfileValidator{}},

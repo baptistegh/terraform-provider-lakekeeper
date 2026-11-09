@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"strings"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -15,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 
 	"github.com/apache/iceberg-go/catalog"
 )
@@ -164,18 +165,12 @@ func (r *lakekeeperNamespaceResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 	if !state.ManagedAccess.IsNull() {
-		var props struct {
-			Managed *bool `json:"managed-access"`
-		}
-		if err := namespaceRequest(ctx, r.client, state.ProjectID.ValueString(), state.NamespaceID.ValueString(), "", "GET", nil, &props); err != nil {
-			resp.Diagnostics.AddError("Cannot read managed access", err.Error())
+		props, _, err := r.client.PermissionsOpenfgaAPI.GetNamespaceById(ctx, state.NamespaceID.ValueString()).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError("Cannot read managed access", apiError(err).Error())
 			return
 		}
-		if props.Managed == nil {
-			resp.Diagnostics.AddError("Cannot read managed access", "Response has no managed-access field")
-			return
-		}
-		state.ManagedAccess = types.BoolValue(*props.Managed)
+		state.ManagedAccess = types.BoolValue(props.ManagedAccess)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -270,5 +265,8 @@ func (r *lakekeeperNamespaceResource) setManagedAccess(ctx context.Context, stat
 	if state.ManagedAccess.IsNull() {
 		return nil
 	}
-	return namespaceRequest(ctx, r.client, state.ProjectID.ValueString(), state.NamespaceID.ValueString(), "/managed-access", "POST", map[string]bool{"managed-access": state.ManagedAccess.ValueBool()}, nil)
+	_, err := r.client.PermissionsOpenfgaAPI.SetNamespaceManagedAccess(ctx, state.NamespaceID.ValueString()).
+		SetManagedAccessRequest(*managementv1.NewSetManagedAccessRequest(state.ManagedAccess.ValueBool())).
+		Execute()
+	return apiError(err)
 }

@@ -3,16 +3,15 @@ package provider
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"slices"
 	"strings"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 var (
@@ -85,26 +84,20 @@ func readExistingNamespace(ctx context.Context, client *lakekeeper.Client, proje
 			return "", false, fmt.Errorf("invalid namespace path")
 		}
 	}
-	w, _, err := client.WarehouseV1(project).Get(ctx, warehouse)
+	w, err := client.Warehouses.Get(ctx, warehouse)
 	if err != nil {
 		return "", false, err
 	}
-	if w.ID != warehouse || w.ProjectID != project || !w.IsActive() {
+	if w.Id != warehouse || w.ProjectId != project || w.Status != managementv1.WAREHOUSESTATUS_ACTIVE {
 		return "", false, fmt.Errorf("warehouse is inactive or does not belong to the expected project")
 	}
 	// Use the verified UUID directly, including for nested namespaces. A warehouse
 	// rename or a replacement with the same name cannot redirect this lookup.
-	req, err := client.NewRequest(ctx, http.MethodGet, "/", nil, []core.RequestOptionFunc{core.WithHeader("x-project-id", project)})
-	if err != nil {
-		return "", false, err
-	}
-	req.URL.Path = strings.TrimSuffix(client.BaseURL().Path, "/management/v1") + "/catalog/v1/" + warehouse + "/namespaces/" + strings.Join(parts, "\x1f")
-	req.URL.RawPath = ""
 	var result struct {
 		Namespace  []string          `json:"namespace"`
 		Properties map[string]string `json:"properties"`
 	}
-	if _, err := client.Do(req, &result); err != nil {
+	if err := catalogGet(ctx, client, project, warehouse+"/namespaces/"+strings.Join(parts, "\x1f"), &result); err != nil {
 		return "", false, err
 	}
 	if !slices.Equal(result.Namespace, parts) {
@@ -114,14 +107,9 @@ func readExistingNamespace(ctx context.Context, client *lakekeeper.Client, proje
 	if _, err := uuid.Parse(id); err != nil {
 		return "", false, fmt.Errorf("catalog returned an invalid namespace_id")
 	}
-	var props struct {
-		Managed *bool `json:"managed-access"`
+	props, _, err := client.PermissionsOpenfgaAPI.GetNamespaceById(ctx, id).Execute()
+	if err != nil {
+		return "", false, apiError(err)
 	}
-	if err := namespaceRequest(ctx, client, project, id, "", http.MethodGet, nil, &props); err != nil {
-		return "", false, err
-	}
-	if props.Managed == nil {
-		return "", false, fmt.Errorf("response has no managed-access field")
-	}
-	return id, *props.Managed, nil
+	return id, props.ManagedAccess, nil
 }

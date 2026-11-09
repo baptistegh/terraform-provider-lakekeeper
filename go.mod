@@ -17,21 +17,19 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.31.0
 	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
+	github.com/lakekeeper/go-lakekeeper v0.1.1-0.20261109105634-026472b87e30
 	github.com/terraform-community-providers/terraform-plugin-framework-utils v0.4.0
 	golang.org/x/oauth2 v0.37.0
 )
 
-require (
-	github.com/baptistegh/go-lakekeeper v0.0.23
-	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
-)
+require github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.4.0 // indirect
 	4d63.com/gochecknoglobals v0.2.2 // indirect
 	cloud.google.com/go v0.123.0 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
-	github.com/andybalholm/brotli v1.2.3 // indirect
+	github.com/andybalholm/brotli v1.2.7 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
 	github.com/apache/thrift v0.24.0 // indirect
@@ -88,7 +86,7 @@ require (
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/renameio/v2 v2.0.2 // indirect
 	github.com/hashicorp/go-version v1.9.0 // indirect
-	github.com/klauspost/compress v1.19.2 // indirect
+	github.com/klauspost/compress v1.20.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.29 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect

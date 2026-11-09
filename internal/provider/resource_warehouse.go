@@ -7,11 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/sdk"
 
@@ -192,9 +189,9 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								Optional: true,
 								Computed: true,
 								Validators: []validator.String{
-									stringvalidator.OneOf(string(profile.S3CompatFlavor), string(profile.AWSFlavor)),
+									stringvalidator.OneOf(string(managementv1.S3FLAVOR_S3_COMPAT), string(managementv1.S3FLAVOR_AWS)),
 								},
-								MarkdownDescription: fmt.Sprintf("S3 flavor to use. Defaults to `%s`. One of `%s` `%s`", profile.AWSFlavor, profile.S3CompatFlavor, profile.AWSFlavor),
+								MarkdownDescription: fmt.Sprintf("S3 flavor to use. Defaults to `%s`. One of `%s` `%s`", managementv1.S3FLAVOR_AWS, managementv1.S3FLAVOR_S3_COMPAT, managementv1.S3FLAVOR_AWS),
 								PlanModifiers: []planmodifier.String{
 									stringplanmodifier.UseStateForUnknown(),
 								},
@@ -220,12 +217,12 @@ func (r *lakekeeperWarehouseResource) Schema(ctx context.Context, req resource.S
 								Computed: true,
 								Validators: []validator.String{
 									stringvalidator.OneOf(
-										string(profile.AutoSigningURLStyle),
-										string(profile.PathSigningURLStyle),
-										string(profile.VirtualHostSigningURLStyle),
+										string(managementv1.S3URLSTYLEDETECTIONMODE_AUTO),
+										string(managementv1.S3URLSTYLEDETECTIONMODE_PATH),
+										string(managementv1.S3URLSTYLEDETECTIONMODE_VIRTUAL_HOST),
 									),
 								},
-								MarkdownDescription: fmt.Sprintf("S3 URL style detection mode for remote signing. One of `%s`, `%s`, `%s`. Default: `%s`.", profile.AutoSigningURLStyle, profile.PathSigningURLStyle, profile.VirtualHostSigningURLStyle, profile.AutoSigningURLStyle),
+								MarkdownDescription: fmt.Sprintf("S3 URL style detection mode for remote signing. One of `%s`, `%s`, `%s`. Default: `%s`.", managementv1.S3URLSTYLEDETECTIONMODE_AUTO, managementv1.S3URLSTYLEDETECTIONMODE_PATH, managementv1.S3URLSTYLEDETECTIONMODE_VIRTUAL_HOST, managementv1.S3URLSTYLEDETECTIONMODE_AUTO),
 								PlanModifiers: []planmodifier.String{
 									stringplanmodifier.UseStateForUnknown(),
 								},
@@ -492,7 +489,9 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	w, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).Create(ctx, opts)
+	opts.SetProjectId(state.ProjectID.ValueString())
+
+	w, err := r.client.Warehouses.Create(ctx, opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred",
 			fmt.Sprintf("Unable to create warehouse, %v", err))
@@ -508,8 +507,8 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 	// orphaned (created in Lakekeeper, absent from state). Recording the ID here
 	// makes such a failure recoverable: the next apply updates/reads the existing
 	// warehouse instead of re-creating it.
-	state.ID = types.StringValue(state.ProjectID.ValueString() + "/" + w.ID)
-	state.WarehouseID = types.StringValue(w.ID)
+	state.ID = types.StringValue(state.ProjectID.ValueString() + "/" + w.Id)
+	state.WarehouseID = types.StringValue(w.Id)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -517,25 +516,25 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 
 	// set protection
 	if state.Protected.ValueBool() {
-		_, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).SetWarehouseProtection(ctx, w.ID, &managementv1.SetProtectionOptions{Protected: state.Protected.ValueBool()})
+		_, err := r.client.Warehouses.SetProtection(ctx, w.Id, managementv1.NewSetProtectionRequest(state.Protected.ValueBool()))
 		if err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred.",
-				fmt.Sprintf("Unable to set protection to %t for warehouse %s, %v", state.Protected.ValueBool(), w.ID, err),
+				fmt.Sprintf("Unable to set protection to %t for warehouse %s, %v", state.Protected.ValueBool(), w.Id, err),
 			)
 		}
 	}
 
 	// set inactive
 	if !state.Active.ValueBool() {
-		_, err := r.client.WarehouseV1(state.ProjectID.ValueString()).Deactivate(ctx, w.ID)
+		err := r.client.Warehouses.Deactivate(ctx, w.Id)
 		if err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred.",
-				fmt.Sprintf("Unable to deactivate warehouse %s, %v", w.ID, err),
+				fmt.Sprintf("Unable to deactivate warehouse %s, %v", w.Id, err),
 			)
 		}
 	}
 
-	warehouse, _, err := r.client.WarehouseV1(state.ProjectID.ValueString()).Get(ctx, w.ID)
+	warehouse, err := r.client.Warehouses.Get(ctx, w.Id)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred",
 			fmt.Sprintf("Unable to read warehouse, %v", err))
@@ -543,9 +542,9 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 	}
 
 	if !state.ManagedAccess.IsNull() {
-		httpResp, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(ctx, warehouse.ID, &permissionv1.SetWarehouseManagedAccessOptions{
-			ManagedAccess: state.ManagedAccess.ValueBool(),
-		})
+		httpResp, err := r.client.PermissionsOpenfgaAPI.SetWarehouseManagedAccess(ctx, warehouse.Id).
+			SetManagedAccessRequest(*managementv1.NewSetManagedAccessRequest(state.ManagedAccess.ValueBool())).
+			Execute()
 		if err != nil {
 			// The managed-access endpoint only exists when the server runs an
 			// authorization backend (e.g. OpenFGA); on an `allowall` backend it
@@ -554,10 +553,10 @@ func (r *lakekeeperWarehouseResource) Create(ctx context.Context, req resource.C
 			// allowall clusters. Any other error is real.
 			if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 				resp.Diagnostics.AddWarning("Managed access not supported by server",
-					fmt.Sprintf("Warehouse %s created; skipping managed_access (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouse.ID))
+					fmt.Sprintf("Warehouse %s created; skipping managed_access (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouse.Id))
 			} else {
 				resp.Diagnostics.AddError("Lakekeeper API error occurred",
-					fmt.Sprintf("Unable to set managed access, %v", err))
+					fmt.Sprintf("Unable to set managed access, %v", apiError(err)))
 				return
 			}
 		}
@@ -584,7 +583,7 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	projectID, warehouseID := splitInternalID(state.ID)
-	warehouse, _, err := r.client.WarehouseV1(projectID).Get(ctx, warehouseID)
+	warehouse, err := r.client.Warehouses.Get(ctx, warehouseID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s in project %s, %s", warehouseID, projectID, err))
 		return
@@ -602,13 +601,13 @@ func (r *lakekeeperWarehouseResource) Read(ctx context.Context, req resource.Rea
 	// refreshed from the warehouse settings) instead of erroring — otherwise Read
 	// (and therefore plan/refresh/import) is impossible on an allowall cluster.
 	// Note the prior code also dereferenced a nil `m` on error; guard that too.
-	m, httpResp, err := r.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, warehouse.ID)
+	m, httpResp, err := r.client.PermissionsOpenfgaAPI.GetWarehouseById(ctx, warehouse.Id).Execute()
 	if err != nil {
 		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.Diagnostics.AddWarning("Managed access not supported by server",
 				fmt.Sprintf("Warehouse %s: skipping managed_access read (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouseID))
 		} else {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, err))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s authorization properties in project %s, %s", warehouseID, projectID, apiError(err)))
 			return
 		}
 	} else if m != nil {
@@ -633,12 +632,12 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 	projectID, warehouseID := splitInternalID(state.ID)
 
 	if plan.Active.ValueBool() {
-		if _, err := r.client.WarehouseV1(projectID).Activate(ctx, warehouseID); err != nil {
+		if err := r.client.Warehouses.Activate(ctx, warehouseID); err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to activate warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
 	} else {
-		if _, err := r.client.WarehouseV1(projectID).Deactivate(ctx, warehouseID); err != nil {
+		if err := r.client.Warehouses.Deactivate(ctx, warehouseID); err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to deactivate warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
@@ -646,9 +645,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 
 	// Rename the warehouse if the name field is different
 	if plan.Name.ValueString() != state.Name.ValueString() {
-		if _, err := r.client.WarehouseV1(projectID).Rename(ctx, warehouseID, &managementv1.RenameWarehouseOptions{
-			NewName: plan.Name.ValueString(),
-		}); err != nil {
+		if _, err := r.client.Warehouses.Rename(ctx, warehouseID, managementv1.NewRenameWarehouseRequest(plan.Name.ValueString())); err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to rename warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
@@ -656,7 +653,7 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 
 	// Set warehouse protection if the protected field is different
 	if plan.Protected.ValueBool() != state.Protected.ValueBool() {
-		if _, _, err := r.client.WarehouseV1(projectID).SetWarehouseProtection(ctx, warehouseID, &managementv1.SetProtectionOptions{Protected: plan.Protected.ValueBool()}); err != nil {
+		if _, err := r.client.Warehouses.SetProtection(ctx, warehouseID, managementv1.NewSetProtectionRequest(plan.Protected.ValueBool())); err != nil {
 			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set protection for warehouse %s in project %s, %v", warehouseID, projectID, err))
 			return
 		}
@@ -671,40 +668,42 @@ func (r *lakekeeperWarehouseResource) Update(ctx context.Context, req resource.U
 
 	// Update the delete profile
 	if !plan.DeleteProfile.Type.Equal(state.DeleteProfile.Type) || !plan.DeleteProfile.ExpirationSeconds.Equal(state.DeleteProfile.ExpirationSeconds) {
-		if _, err := r.client.WarehouseV1(projectID).UpdateDeleteProfile(ctx, warehouseID, &managementv1.UpdateDeleteProfileOptions{
-			DeleteProfile: *opts.DeleteProfile,
-		}); err != nil {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update delete profile for warehouse %s in project %s, %v", warehouseID, projectID, err))
+		if _, _, err := r.client.WarehouseAPI.UpdateWarehouseDeleteProfile(ctx, warehouseID).
+			UpdateWarehouseDeleteProfileRequest(*managementv1.NewUpdateWarehouseDeleteProfileRequest(*opts.DeleteProfile)).
+			Execute(); err != nil {
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update delete profile for warehouse %s in project %s, %v", warehouseID, projectID, apiError(err)))
 			return
 		}
 	}
 
 	// Update the storage profile and its storage credential
-	if _, err := r.client.WarehouseV1(projectID).UpdateStorageProfile(ctx, warehouseID, &managementv1.UpdateStorageProfileOptions{
-		StorageProfile:    opts.StorageProfile,
-		StorageCredential: &opts.StorageCredential,
-	}); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update storage profile for warehouse %s in project %s, %v", warehouseID, projectID, err))
+	if _, _, err := r.client.WarehouseAPI.UpdateStorageProfile(ctx, warehouseID).
+		UpdateWarehouseStorageRequest(managementv1.UpdateWarehouseStorageRequest{
+			StorageProfile:    opts.StorageProfile,
+			StorageCredential: opts.StorageCredential,
+		}).
+		Execute(); err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update storage profile for warehouse %s in project %s, %v", warehouseID, projectID, apiError(err)))
 		return
 	}
 
 	// Update the authorization property. As in Create, tolerate a 404 from the
 	// managed-access endpoint (server without an authz backend, e.g. allowall).
-	if httpResp, err := r.client.PermissionV1().WarehousePermission().SetManagedAccess(ctx, warehouseID, &permissionv1.SetWarehouseManagedAccessOptions{
-		ManagedAccess: plan.ManagedAccess.ValueBool(),
-	}); err != nil {
+	if httpResp, err := r.client.PermissionsOpenfgaAPI.SetWarehouseManagedAccess(ctx, warehouseID).
+		SetManagedAccessRequest(*managementv1.NewSetManagedAccessRequest(plan.ManagedAccess.ValueBool())).
+		Execute(); err != nil {
 		if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
 			resp.Diagnostics.AddWarning("Managed access not supported by server",
 				fmt.Sprintf("Skipping managed_access update for warehouse %s (endpoint returned 404 — the server's authorization backend does not support managed access, e.g. allowall).", warehouseID))
 		} else {
-			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set authorization properties for warehouse %s in project %s, %v", warehouseID, projectID, err))
+			resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to set authorization properties for warehouse %s in project %s, %v", warehouseID, projectID, apiError(err)))
 			return
 		}
 	}
 	state.ManagedAccess = plan.ManagedAccess
 
 	// Refresh the state with the updated warehouse settings
-	warehouse, _, err := r.client.WarehouseV1(projectID).Get(ctx, warehouseID)
+	warehouse, err := r.client.Warehouses.Get(ctx, warehouseID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s in project %s, %v", warehouseID, projectID, err))
 		return
@@ -732,12 +731,8 @@ func (r *lakekeeperWarehouseResource) Delete(ctx context.Context, req resource.D
 
 	projectID, warehouseID := splitInternalID(state.ID)
 
-	opts := managementv1.DeleteWarehouseOptions{
-		Force: core.Ptr(true),
-	}
-
-	if _, err := r.client.WarehouseV1(projectID).Delete(ctx, warehouseID, &opts); err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete warehouse %s in project %s, %v", warehouseID, projectID, err))
+	if _, err := r.client.WarehouseAPI.DeleteWarehouse(ctx, warehouseID).Force(true).Execute(); err != nil {
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete warehouse %s in project %s, %v", warehouseID, projectID, apiError(err)))
 		return
 	}
 

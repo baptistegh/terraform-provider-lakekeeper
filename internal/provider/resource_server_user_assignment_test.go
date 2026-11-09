@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"testing"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -30,10 +30,10 @@ func TestAccLakekeeperServerUserAssignment_basic(t *testing.T) {
 						user_id = "%s"
 						assignments = ["operator"]
 					}
-				`, user.ID),
+				`, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.ID),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.Id),
 					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "assignments.0", "operator"),
 				),
 			},
@@ -50,10 +50,10 @@ func TestAccLakekeeperServerUserAssignment_basic(t *testing.T) {
 						user_id = "%s"
 						assignments = ["admin"]
 					}
-				`, user.ID),
+				`, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.ID),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.Id),
 					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "assignments.0", "admin"),
 				),
 			},
@@ -70,10 +70,10 @@ func TestAccLakekeeperServerUserAssignment_basic(t *testing.T) {
 						user_id = "%s"
 						assignments = ["admin", "operator"]
 					}
-				`, user.ID),
+				`, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.ID),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.Id),
 					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "assignments.0", "admin"),
 					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "assignments.1", "operator"),
 				),
@@ -91,10 +91,10 @@ func TestAccLakekeeperServerUserAssignment_basic(t *testing.T) {
 						user_id = "%s"
 						assignments = []
 					}
-				`, user.ID),
+				`, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.ID),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "id", user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "user_id", user.Id),
 					resource.TestCheckResourceAttr("lakekeeper_server_user_assignment.test", "assignments.#", "0"),
 				),
 			},
@@ -114,15 +114,13 @@ func testAccCheckLakekeeperServerUserAssignmentDestroy(s *terraform.State) error
 			continue
 		}
 
-		assignments, _, err := testutil.TestLakekeeperClient.PermissionV1().ServerPermission().GetAssignments(context.Background(), nil)
+		relations, err := serverAssignmentScope(testutil.TestLakekeeperClient).relations(context.Background(), permissions.PrincipalUser, rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("could not list server assignments to check destroy, %w", err)
 		}
 
-		for _, v := range assignments.Assignments {
-			if v.Assignee.Value == rs.Primary.ID && v.Assignee.Type == permissionv1.UserType {
-				return fmt.Errorf("server assignment still exists")
-			}
+		if len(relations) > 0 {
+			return fmt.Errorf("server assignment still exists")
 		}
 	}
 

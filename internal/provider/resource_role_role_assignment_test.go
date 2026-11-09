@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"testing"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,8 +20,8 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 
 	project := testutil.CreateProject(t)
 
-	assignee := testutil.CreateRole(t, project.ID)
-	role := testutil.CreateRole(t, project.ID)
+	assignee := testutil.CreateRole(t, project.ProjectId)
+	role := testutil.CreateRole(t, project.ProjectId)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -34,11 +34,11 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 						assignee_id = "%s"
 						assignments = ["ownership"]
 					}
-				`, role.ID, assignee.ID),
+				`, role.Id, assignee.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.ID+"/"+assignee.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.ID),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.Id+"/"+assignee.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.Id),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.#", "1"),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.0", "ownership"),
 				),
@@ -57,11 +57,11 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 						assignee_id = "%s"
 						assignments = ["assignee"]
 					}
-				`, role.ID, assignee.ID),
+				`, role.Id, assignee.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.ID+"/"+assignee.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.ID),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.Id+"/"+assignee.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.Id),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.#", "1"),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.0", "assignee"),
 				),
@@ -80,11 +80,11 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 						assignee_id = "%s"
 						assignments = ["ownership", "assignee"]
 					}
-				`, role.ID, assignee.ID),
+				`, role.Id, assignee.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.ID+"/"+assignee.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.ID),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.Id+"/"+assignee.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.Id),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.#", "2"),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.0", "assignee"),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.1", "ownership"),
@@ -104,7 +104,7 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 						assignee_id = "%s"
 						assignments = ["ownership"]
 					}
-				`, project.ID, role.ID, assignee.ID),
+				`, project.ProjectId, role.Id, assignee.Id),
 				ExpectError: regexp.MustCompile("Attribute role_id must be a role UUID and NOT include the project UUID"),
 			},
 			{
@@ -114,7 +114,7 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 						assignee_id = "%s/%s"
 						assignments = ["ownership"]
 					}
-				`, role.ID, project.ID, assignee.ID),
+				`, role.Id, project.ProjectId, assignee.Id),
 				ExpectError: regexp.MustCompile("Attribute assignee_id must be a role UUID and NOT include the project UUID"),
 			},
 			// delete all assignments
@@ -125,11 +125,11 @@ func TestAccLakekeeperRoleRoleAssignment_basic(t *testing.T) {
 						assignee_id = "%s"
 						assignments = []
 					}
-				`, role.ID, assignee.ID),
+				`, role.Id, assignee.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.ID+"/"+assignee.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.ID),
-					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.ID),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "id", role.Id+"/"+assignee.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "role_id", role.Id),
+					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignee_id", assignee.Id),
 					resource.TestCheckResourceAttr("lakekeeper_role_role_assignment.test", "assignments.#", "0"),
 				),
 			},
@@ -151,15 +151,13 @@ func testAccCheckLakekeeperRoleRoleAssignmentDestroy(s *terraform.State) error {
 
 		roleID, assigneeID := splitInternalID(types.StringValue(rs.Primary.ID))
 
-		assignments, _, err := testutil.TestLakekeeperClient.PermissionV1().RolePermission().GetAssignments(context.Background(), roleID, nil)
+		relations, err := roleAssignmentScope(testutil.TestLakekeeperClient, roleID).relations(context.Background(), permissions.PrincipalRole, assigneeID)
 		if err != nil {
 			return fmt.Errorf("could not list project assignments to check destroy, %w", err)
 		}
 
-		for _, v := range assignments.Assignments {
-			if v.Assignee.Value == assigneeID && v.Assignee.Type == permissionv1.RoleType {
-				return fmt.Errorf("project assignment still exists")
-			}
+		if len(relations) > 0 {
+			return fmt.Errorf("project assignment still exists")
 		}
 	}
 

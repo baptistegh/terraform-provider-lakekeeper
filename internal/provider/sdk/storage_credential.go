@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/credential"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	"github.com/lakekeeper/go-lakekeeper/pkg/storage/credential"
 )
 
 type (
 	StorageCredsModel interface {
-		AsSDK() (credential.CredentialSettings, error)
+		AsSDK() (managementv1.StorageCredential, error)
 		IsEmpty() bool
 	}
 
@@ -67,64 +68,63 @@ var (
 	_ StorageCredsModel = (*GCSServiceAccountKeyCredsModel)(nil)
 )
 
-func (m *S3AccessKeyCredsModel) AsSDK() (credential.CredentialSettings, error) {
+func (m *S3AccessKeyCredsModel) AsSDK() (managementv1.StorageCredential, error) {
 	if m.AccessKeyID.IsNull() || m.AccessKeyID.IsUnknown() {
-		return nil, errors.New("access_key_id is required")
+		return managementv1.StorageCredential{}, errors.New("access_key_id is required")
 	}
 
 	if m.SecretAccessKey.IsNull() || m.SecretAccessKey.IsUnknown() {
-		return nil, errors.New("secret_access_key is required")
+		return managementv1.StorageCredential{}, errors.New("secret_access_key is required")
 	}
-
-	opts := []credential.S3CredentialAccessKeyOptions{}
 
 	if m.ExternalID.ValueString() != "" {
-		opts = append(opts, credential.WithExternalID(m.ExternalID.ValueString()))
+		return credential.NewS3AccessKeyWithExternalID(
+			m.AccessKeyID.ValueString(),
+			m.SecretAccessKey.ValueString(),
+			m.ExternalID.ValueString(),
+		), nil
 	}
 
-	creds := credential.NewS3CredentialAccessKey(
+	return credential.NewS3AccessKey(
 		m.AccessKeyID.ValueString(),
 		m.SecretAccessKey.ValueString(),
-		opts...,
-	)
-
-	return creds, nil
+	), nil
 }
 
 func (m *S3AccessKeyCredsModel) IsEmpty() bool {
 	return m == nil
 }
 
-func (m *AWSSystemIdentityCredsModel) AsSDK() (credential.CredentialSettings, error) {
+func (m *AWSSystemIdentityCredsModel) AsSDK() (managementv1.StorageCredential, error) {
 	if m.ExternalID.IsNull() || m.ExternalID.IsUnknown() {
-		return nil, errors.New("external_id is required")
+		return managementv1.StorageCredential{}, errors.New("external_id is required")
 	}
 
-	return credential.NewS3CredentialSystemIdentity(m.ExternalID.ValueString()), nil
+	return credential.NewS3AwsSystemIdentityWithExternalID(m.ExternalID.ValueString()), nil
 }
 
 func (m *AWSSystemIdentityCredsModel) IsEmpty() bool {
 	return m == nil
 }
 
-func (m *CloudflareR2CredsModel) AsSDK() (credential.CredentialSettings, error) {
+func (m *CloudflareR2CredsModel) AsSDK() (managementv1.StorageCredential, error) {
 	if m.AccessKeyID.IsNull() || m.AccessKeyID.IsUnknown() {
-		return nil, errors.New("access_key_id is required")
+		return managementv1.StorageCredential{}, errors.New("access_key_id is required")
 	}
 
 	if m.SecretAccessKey.IsNull() || m.SecretAccessKey.IsUnknown() {
-		return nil, errors.New("secret_access_key is required")
+		return managementv1.StorageCredential{}, errors.New("secret_access_key is required")
 	}
 
 	if m.AccountID.IsNull() || m.AccountID.IsUnknown() {
-		return nil, errors.New("account_id is required")
+		return managementv1.StorageCredential{}, errors.New("account_id is required")
 	}
 
 	if m.Token.IsNull() || m.Token.IsUnknown() {
-		return nil, errors.New("token is required")
+		return managementv1.StorageCredential{}, errors.New("token is required")
 	}
 
-	return credential.NewCloudflareR2Credential(
+	return credential.NewS3CloudflareR2(
 		m.AccessKeyID.ValueString(),
 		m.SecretAccessKey.ValueString(),
 		m.AccountID.ValueString(),
@@ -136,23 +136,23 @@ func (m *CloudflareR2CredsModel) IsEmpty() bool {
 	return m == nil
 }
 
-func (m *AZClientCredentialsCredsModel) AsSDK() (credential.CredentialSettings, error) {
+func (m *AZClientCredentialsCredsModel) AsSDK() (managementv1.StorageCredential, error) {
 	if m.ClientID.IsNull() || m.ClientID.IsUnknown() {
-		return nil, errors.New("client_id is required")
+		return managementv1.StorageCredential{}, errors.New("client_id is required")
 	}
 
 	if m.ClientSecret.IsNull() || m.ClientSecret.IsUnknown() {
-		return nil, errors.New("client_secret is required")
+		return managementv1.StorageCredential{}, errors.New("client_secret is required")
 	}
 
 	if m.TenantID.IsNull() || m.TenantID.IsUnknown() {
-		return nil, errors.New("tenant_id is required")
+		return managementv1.StorageCredential{}, errors.New("tenant_id is required")
 	}
 
-	return credential.NewAZCredentialClientCredentials(
+	return credential.NewAZClientCredentials(
+		m.TenantID.ValueString(),
 		m.ClientID.ValueString(),
 		m.ClientSecret.ValueString(),
-		m.TenantID.ValueString(),
 	), nil
 }
 
@@ -160,12 +160,12 @@ func (m *AZClientCredentialsCredsModel) IsEmpty() bool {
 	return m == nil
 }
 
-func (m *AZSharedAccessKeyCredsModel) AsSDK() (credential.CredentialSettings, error) {
+func (m *AZSharedAccessKeyCredsModel) AsSDK() (managementv1.StorageCredential, error) {
 	if m.Key.IsNull() || m.Key.IsUnknown() {
-		return nil, errors.New("key is required")
+		return managementv1.StorageCredential{}, errors.New("key is required")
 	}
 
-	return credential.NewAZCredentialSharedAccessKey(m.Key.ValueString()), nil
+	return credential.NewAZSharedAccessKey(m.Key.ValueString()), nil
 
 }
 
@@ -173,34 +173,48 @@ func (m *AZSharedAccessKeyCredsModel) IsEmpty() bool {
 	return m == nil
 }
 
-func (m *AzureSystemIdentityCredsModel) AsSDK() (credential.CredentialSettings, error) {
-	return credential.NewAZCredentialManagedIdentity(), nil
+func (m *AzureSystemIdentityCredsModel) AsSDK() (managementv1.StorageCredential, error) {
+	return credential.NewAZManagedIdentity(), nil
 }
 
 func (m *AzureSystemIdentityCredsModel) IsEmpty() bool {
 	return m == nil
 }
 
-func (m *GCSServiceAccountKeyCredsModel) AsSDK() (credential.CredentialSettings, error) {
+func (m *GCSServiceAccountKeyCredsModel) AsSDK() (managementv1.StorageCredential, error) {
 	if m.Key.IsNull() || m.Key.IsUnknown() {
-		return nil, errors.New("key is required")
+		return managementv1.StorageCredential{}, errors.New("key is required")
 	}
 
-	creds := credential.GCSServiceKey{}
-
-	if err := json.Unmarshal([]byte(m.Key.ValueString()), &creds); err != nil {
-		return nil, err
+	// Keys issued before Google added universe_domain lack it, while the
+	// Lakekeeper API requires it. Default it to the public Google Cloud universe.
+	fields := map[string]any{}
+	if err := json.Unmarshal([]byte(m.Key.ValueString()), &fields); err != nil {
+		return managementv1.StorageCredential{}, err
+	}
+	if _, ok := fields["universe_domain"]; !ok {
+		fields["universe_domain"] = defaultGCSUniverseDomain
 	}
 
-	return credential.NewGCSCredentialServiceAccountKey(creds), nil
+	raw, err := json.Marshal(fields)
+	if err != nil {
+		return managementv1.StorageCredential{}, err
+	}
+
+	creds := managementv1.GcsServiceKey{}
+	if err := json.Unmarshal(raw, &creds); err != nil {
+		return managementv1.StorageCredential{}, err
+	}
+
+	return credential.NewGCSServiceAccountKey(creds), nil
 }
 
 func (m *GCSServiceAccountKeyCredsModel) IsEmpty() bool {
 	return m == nil
 }
 
-func (m *GCPSystemIdentityCredsModel) AsSDK() (credential.CredentialSettings, error) {
-	return credential.NewGCSCredentialSystemIdentity(), nil
+func (m *GCPSystemIdentityCredsModel) AsSDK() (managementv1.StorageCredential, error) {
+	return credential.NewGCSSystemIdentity(), nil
 }
 
 func (m *GCPSystemIdentityCredsModel) IsEmpty() bool {

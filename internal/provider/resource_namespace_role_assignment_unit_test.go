@@ -4,15 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 )
+
+// testNamespaceAssignment is the wire format of a namespace assignment.
+type testNamespaceAssignment struct {
+	Type string `json:"type"`
+	Role string `json:"role,omitempty"`
+	User string `json:"user,omitempty"`
+}
 
 func TestNamespaceRoleAssignmentReconcile(t *testing.T) {
 	for _, tc := range []struct {
@@ -24,10 +31,10 @@ func TestNamespaceRoleAssignmentReconcile(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
-			grants := []namespaceAssignment{{Type: "ownership", Role: "target"}, {Type: "select", Role: "other"}, {Type: "select", User: "oidc~alice"}}
+			grants := []testNamespaceAssignment{{Type: "ownership", Role: "target"}, {Type: "select", Role: "other"}, {Type: "select", User: "oidc~alice"}}
 			operations := []string{}
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Path != "/management/v1/permissions/namespace/ns/assignments" || r.Header.Get("x-project-id") != "project" {
+				if r.URL.Path != "/management/v1/permissions/namespace/ns/assignments" {
 					t.Errorf("wrong scope %s", r.URL.Path)
 					w.WriteHeader(400)
 					return
@@ -37,7 +44,7 @@ func TestNamespaceRoleAssignmentReconcile(t *testing.T) {
 					_ = json.NewEncoder(w).Encode(map[string]any{"assignments": grants})
 					return
 				}
-				var body map[string][]namespaceAssignment
+				var body map[string][]testNamespaceAssignment
 				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 					t.Fatal(err)
 				}
@@ -55,7 +62,7 @@ func TestNamespaceRoleAssignmentReconcile(t *testing.T) {
 						if op == "writes" {
 							grants = append(grants, a)
 						} else {
-							next := []namespaceAssignment{}
+							next := []testNamespaceAssignment{}
 							for _, v := range grants {
 								if v != a {
 									next = append(next, v)
@@ -68,18 +75,18 @@ func TestNamespaceRoleAssignmentReconcile(t *testing.T) {
 				w.WriteHeader(204)
 			}))
 			defer server.Close()
-			client, err := lakekeeper.NewClient(ctx, "test", server.URL, lakekeeper.WithoutRetries())
+			client, err := lakekeeper.New(ctx, server.URL, "test", lakekeeper.WithoutRetries())
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = setNamespaceRoleAssignments(ctx, client, "project", "ns", "target", tc.desired)
+			err = setNamespaceRoleAssignments(ctx, client, "ns", "target", tc.desired)
 			if (err != nil) != tc.failWrite {
 				t.Fatalf("error=%v", err)
 			}
 			if operations[0] != "deletes" {
 				t.Fatal("must revoke before granting")
 			}
-			current, err := namespaceRoleAssignments(ctx, client, "project", "ns", "target")
+			current, err := namespaceRoleAssignments(ctx, client, "ns", "target")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -90,12 +97,12 @@ func TestNamespaceRoleAssignmentReconcile(t *testing.T) {
 			if len(current) != len(expected) {
 				t.Fatalf("current %v expected %v", current, expected)
 			}
-			if !reflect.DeepEqual(grants[:2], []namespaceAssignment{{Type: "select", Role: "other"}, {Type: "select", User: "oidc~alice"}}) {
+			if !reflect.DeepEqual(grants[:2], []testNamespaceAssignment{{Type: "select", Role: "other"}, {Type: "select", User: "oidc~alice"}}) {
 				t.Fatalf("unrelated grants changed: %v", grants)
 			}
 			if !tc.failWrite {
 				operations = nil
-				if err := setNamespaceRoleAssignments(ctx, client, "project", "ns", "target", tc.desired); err != nil {
+				if err := setNamespaceRoleAssignments(ctx, client, "ns", "target", tc.desired); err != nil {
 					t.Fatal(err)
 				}
 				if len(operations) != 0 {
@@ -122,11 +129,11 @@ func TestNamespaceAssignmentReadFailure(t *testing.T) {
 				_, _ = w.Write([]byte(tc.body))
 			}))
 			defer s.Close()
-			c, e := lakekeeper.NewClient(context.Background(), "test", s.URL, lakekeeper.WithoutRetries())
+			c, e := lakekeeper.New(context.Background(), s.URL, "test", lakekeeper.WithoutRetries())
 			if e != nil {
 				t.Fatal(e)
 			}
-			if e := setNamespaceRoleAssignments(context.Background(), c, "p", "n", "r", nil); e == nil {
+			if e := setNamespaceRoleAssignments(context.Background(), c, "n", "r", nil); e == nil {
 				t.Fatal("read failure accepted")
 			}
 			if writes != 0 {
@@ -154,7 +161,7 @@ func TestNamespaceAssignmentResourceState(t *testing.T) {
 				w.WriteHeader(204)
 			}))
 			defer s.Close()
-			client, err := lakekeeper.NewClient(ctx, "test", s.URL, lakekeeper.WithoutRetries())
+			client, err := lakekeeper.New(ctx, s.URL, "test", lakekeeper.WithoutRetries())
 			if err != nil {
 				t.Fatal(err)
 			}

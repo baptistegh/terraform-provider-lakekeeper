@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	v1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	v1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -123,62 +123,67 @@ func (d *LakekeeperRoleDataSource) Read(ctx context.Context, req datasource.Read
 	if state.RoleID.IsNull() {
 		role, err = findRoleByName(ctx, d.client, projectID, state.Name.ValueString())
 	} else {
-		role, _, err = d.client.RoleV1(projectID).Get(ctx, id)
+		role, err = d.client.Roles.Get(ctx, projectID, id)
 	}
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role %s in project %s, %v", id, projectID, err))
 		return
 	}
-	if role.ProjectID != projectID {
+	if role.ProjectId != projectID {
 		resp.Diagnostics.AddError("Role project mismatch", "The returned role does not belong to the requested project.")
 		return
 	}
 
-	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
-	state.RoleID = types.StringValue(role.ID)
-	state.ProjectID = types.StringValue(role.ProjectID)
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectId, role.Id))
+	state.RoleID = types.StringValue(role.Id)
+	state.ProjectID = types.StringValue(role.ProjectId)
 	if state.Name.IsNull() {
 		state.Name = types.StringValue(role.Name)
 	}
-	state.CreatedAt = types.StringValue(role.CreatedAt)
+	state.CreatedAt = timeValue(role.CreatedAt)
 
-	state.Description = types.StringPointerValue(role.Description)
-	state.UpdatedAt = types.StringPointerValue(role.UpdatedAt)
+	state.Description = types.StringPointerValue(role.Description.Get())
+	state.UpdatedAt = timePointerValue(role.UpdatedAt.Get())
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 }
 
 func findRoleByName(ctx context.Context, client *lakekeeper.Client, projectID, name string) (*v1.Role, error) {
-	opts := &v1.ListRolesOptions{Name: &name}
+	// The role list has no name filter, so page through every role of the project.
+	pageToken := ""
 	seenTokens := map[string]bool{}
 	var match *v1.Role
 	for {
-		page, _, err := client.RoleV1(projectID).List(ctx, opts)
+		list := client.RoleAPI.ListRoles(ctx).XProjectId(projectID)
+		if pageToken != "" {
+			list = list.PageToken(pageToken)
+		}
+		page, _, err := list.Execute()
 		if err != nil {
-			return nil, fmt.Errorf("list roles in project %s: %w", projectID, err)
+			return nil, fmt.Errorf("list roles in project %s: %w", projectID, apiError(err))
 		}
 		for _, role := range page.Roles {
-			if role.ProjectID != projectID {
+			if role.ProjectId != projectID {
 				return nil, fmt.Errorf("role list returned a role from another project")
 			}
 			if !strings.EqualFold(role.Name, name) {
 				continue
 			}
-			if match != nil && match.ID != role.ID {
+			if match != nil && match.Id != role.Id {
 				return nil, fmt.Errorf("multiple roles named %q in project %s; use role_id", name, projectID)
 			}
-			match = role
+			match = &role
 		}
-		if page.NextPageToken == nil || *page.NextPageToken == "" {
+		token := page.GetNextPageToken()
+		if token == "" {
 			break
 		}
-		token := *page.NextPageToken
 		if seenTokens[token] {
 			return nil, fmt.Errorf("role list repeated a page token")
 		}
 		seenTokens[token] = true
-		opts.PageToken = &token
+		pageToken = token
 	}
 	if match == nil {
 		return nil, fmt.Errorf("no role named %q in project %s", name, projectID)

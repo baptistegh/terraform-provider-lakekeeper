@@ -150,7 +150,7 @@ func TestAccLakekeeperRole_project(t *testing.T) {
 				  name = "%s"
 				  project_id = "%s"
 				}
-				`, rName, rName, project.ID),
+				`, rName, rName, project.ProjectId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("lakekeeper_role.foo", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_role.foo", "project_id", "00000000-0000-0000-0000-000000000000"),
@@ -159,7 +159,7 @@ func TestAccLakekeeperRole_project(t *testing.T) {
 					resource.TestCheckResourceAttrSet("lakekeeper_role.foo", "role_id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_role.foo", "created_at"),
 					resource.TestCheckResourceAttr("lakekeeper_role.toto", "name", rName),
-					resource.TestCheckResourceAttr("lakekeeper_role.toto", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_role.toto", "project_id", project.ProjectId),
 					resource.TestCheckNoResourceAttr("lakekeeper_role.toto", "description"),
 					resource.TestCheckResourceAttrSet("lakekeeper_role.toto", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_role.toto", "role_id"),
@@ -191,7 +191,7 @@ func testAccCheckLakekeeperRoleDestroy(s *terraform.State) error {
 
 		projectID, roleID := splitInternalID(types.StringValue(rs.Primary.ID))
 
-		_, _, err := testutil.TestLakekeeperClient.RoleV1(projectID).Get(context.Background(), roleID)
+		_, err := testutil.TestLakekeeperClient.Roles.Get(context.Background(), projectID, roleID)
 		if err == nil {
 			return fmt.Errorf("Role with id %s still exists", rs.Primary.ID)
 		}

@@ -7,7 +7,8 @@ import (
 	"slices"
 	"testing"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -24,20 +25,8 @@ func TestAccDataLakekeeperProjectUserAccess_basic(t *testing.T) {
 	user := testutil.CreateUser(t, fmt.Sprintf("oidc~%s", acctest.RandString(8)))
 
 	// assignment
-	if _, err := testutil.TestLakekeeperClient.PermissionV1().ProjectPermission().Update(
-		t.Context(),
-		project.ID,
-		&permissionv1.UpdateProjectPermissionsOptions{
-			Writes: []*permissionv1.ProjectAssignment{
-				{
-					Assignee: permissionv1.UserOrRole{
-						Type:  permissionv1.UserType,
-						Value: user.ID,
-					},
-					Assignment: permissionv1.AdminProjectAssignment,
-				},
-			},
-		},
+	if err := grantAssignments(t.Context(), projectAssignmentScope(testutil.TestLakekeeperClient, project.ProjectId),
+		testAssignment{permissions.PrincipalUser, user.Id, string(managementv1.PROJECTRELATION_PROJECT_ADMIN)},
 	); err != nil {
 		t.Fatalf("could not create project access, %v", err)
 	}
@@ -50,11 +39,11 @@ func TestAccDataLakekeeperProjectUserAccess_basic(t *testing.T) {
 				data "lakekeeper_project_user_access" "foo" {
 					project_id = "%s"
 					user_id = "%s"
-				}`, project.ID, user.ID),
+				}`, project.ProjectId, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "id", fmt.Sprintf("%s/%s", project.ID, user.ID)),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "project_id", project.ID),
-					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "user_id", user.ID),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "id", fmt.Sprintf("%s/%s", project.ProjectId, user.Id)),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "project_id", project.ProjectId),
+					resource.TestCheckResourceAttr("data.lakekeeper_project_user_access.foo", "user_id", user.Id),
 					resource.TestCheckResourceAttrSet("data.lakekeeper_project_user_access.foo", "allowed_actions.#"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -66,23 +55,23 @@ func TestAccDataLakekeeperProjectUserAccess_basic(t *testing.T) {
 						knownvalue.SetPartial([]knownvalue.Check{
 							knownvalue.StringFunc(func(v string) error {
 								if !slices.Contains([]string{
-									string(permissionv1.CreateRole),
-									string(permissionv1.CreateWarehouse),
-									string(permissionv1.DeleteProject),
-									string(permissionv1.RenameProject),
-									string(permissionv1.ListWarehouses),
-									string(permissionv1.ListRoles),
-									string(permissionv1.SearchRoles),
-									string(permissionv1.ReadProjectAssignments),
-									string(permissionv1.GrantProjectRoleCreator),
-									string(permissionv1.GrantProjectCreate),
-									string(permissionv1.GrantProjectDescribe),
-									string(permissionv1.GrantProjectModify),
-									string(permissionv1.GrantProjectSelet),
-									string(permissionv1.GrantProjectAdmin),
-									string(permissionv1.GrantSecurityAdmin),
-									string(permissionv1.GrantDataAdmin),
-									string(permissionv1.GetProjectEndpointStatistics),
+									"create_role",
+									"create_warehouse",
+									"delete",
+									"rename",
+									"list_warehouses",
+									"list_roles",
+									"search_roles",
+									"read_assignments",
+									"grant_role_creator",
+									"grant_create",
+									"grant_describe",
+									"grant_modify",
+									"grant_select",
+									"grant_project_admin",
+									"grant_security_admin",
+									"grant_data_admin",
+									"get_endpoint_statistics",
 								}, v) {
 									return fmt.Errorf("%s is not an allowed action", v)
 								}

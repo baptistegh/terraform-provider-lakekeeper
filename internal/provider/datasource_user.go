@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -69,7 +69,7 @@ func (d *LakekeeperUserDataSource) Schema(_ context.Context, _ datasource.Schema
 				Computed:            true,
 			},
 			"user_type": schema.StringAttribute{
-				MarkdownDescription: fmt.Sprintf("The type of the user (`%s` or `%s`)", managementv1.HumanUserType, managementv1.ApplicationUserType),
+				MarkdownDescription: fmt.Sprintf("The type of the user (`%s` or `%s`)", managementv1.USERTYPE_HUMAN, managementv1.USERTYPE_APPLICATION),
 				Computed:            true,
 			},
 			"created_at": schema.StringAttribute{
@@ -104,19 +104,13 @@ func (d *LakekeeperUserDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	user, _, err := d.client.UserV1().Get(ctx, state.ID.ValueString())
+	user, err := d.client.Users.Get(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read user %s, %v", state.ID.ValueString(), err))
 		return
 	}
 
-	state.ID = types.StringValue(user.ID)
-	state.Name = types.StringValue(user.Name)
-	state.Email = types.StringPointerValue(user.Email)
-	state.UserType = types.StringValue(string(user.UserType))
-	state.CreatedAt = types.StringValue(user.CreatedAt)
-	state.UpdatedAt = types.StringPointerValue(user.UpdatedAt)
-	state.LastUpdatedWith = types.StringValue(user.LastUpdatedWith)
+	refreshUserState(&state, user)
 
 	diags := resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)

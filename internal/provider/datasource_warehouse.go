@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/sdk"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -232,16 +232,16 @@ func (d *LakekeeperWarehouseDataSource) Read(ctx context.Context, req datasource
 
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s", projectID, warehouseID))
 
-	warehouse, _, err := d.client.WarehouseV1(projectID).Get(ctx, warehouseID)
+	warehouse, err := d.client.Warehouses.Get(ctx, warehouseID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read warehouse %s, %v", state.Name.ValueString(), err))
 		return
 	}
 
 	// Authorization Properties
-	m, _, err := d.client.PermissionV1().WarehousePermission().GetAuthzProperties(ctx, warehouseID)
+	m, _, err := d.client.PermissionsOpenfgaAPI.GetWarehouseById(ctx, warehouseID).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read authorization properties for warehouse %s, %v", state.Name.ValueString(), err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read authorization properties for warehouse %s, %v", state.Name.ValueString(), apiError(err)))
 		return
 	}
 	state.ManagedAccess = types.BoolValue(m.ManagedAccess)

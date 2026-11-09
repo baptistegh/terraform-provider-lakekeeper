@@ -28,7 +28,7 @@ resource "lakekeeper_project_role_assignment" "data_analysts" {
 
 ### Required
 
-- `assignments` (Set of String) List of project assignments for this role. values can be `project_admin` `security_admin` `data_admin` `role_creator` `describe` `select` `create` `modify`
+- `assignments` (Set of String) List of project assignments for this role. values can be `project_admin` `security_admin` `data_admin` `role_creator` `tag_creator` `describe` `select` `create` `write` `modify`
 - `project_id` (String) The ID of the project.
 - `role_id` (String) The ID of the role.
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -113,7 +113,7 @@ func (d *lakekeeperServerInfoDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 	// Make API call to read applications
-	serverInfo, _, err := d.client.ServerV1().Info(ctx)
+	serverInfo, err := d.client.Server.Info(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server infos, %v", err.Error()))
 		return
@@ -121,11 +121,11 @@ func (d *lakekeeperServerInfoDataSource) Read(ctx context.Context, req datasourc
 
 	state.AuthzBackend = types.StringValue(serverInfo.AuthzBackend)
 	state.Bootstrapped = types.BoolValue(serverInfo.Bootstrapped)
-	state.DefaultProjectID = types.StringValue(serverInfo.DefaultProjectID)
-	state.AWSSystemIdentitiesEnabled = types.BoolValue(serverInfo.AWSSystemIdentitiesEnabled)
+	state.DefaultProjectID = types.StringValue(serverInfo.GetDefaultProjectId())
+	state.AWSSystemIdentitiesEnabled = types.BoolValue(serverInfo.AwsSystemIdentitiesEnabled)
 	state.AzureSystemIdentitiesEnabled = types.BoolValue(serverInfo.AzureSystemIdentitiesEnabled)
-	state.GCPSystemIdentitiesEnabled = types.BoolValue(serverInfo.GCPSystemIdentitiesEnabled)
-	state.ServerID = types.StringValue(serverInfo.ServerID)
+	state.GCPSystemIdentitiesEnabled = types.BoolValue(serverInfo.GcpSystemIdentitiesEnabled)
+	state.ServerID = types.StringValue(serverInfo.ServerId)
 	state.Version = types.StringValue(serverInfo.Version)
 	state.Queues = flattenQueues(serverInfo.Queues)
 

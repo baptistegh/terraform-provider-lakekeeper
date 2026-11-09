@@ -82,7 +82,7 @@ func testAccCheckLakekeeperProjectDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, _, err := testutil.TestLakekeeperClient.ProjectV1().Get(context.Background(), rs.Primary.ID)
+		_, err := testutil.TestLakekeeperClient.Projects.Get(context.Background(), rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("Project with id %s still exists", rs.Primary.ID)
 		}

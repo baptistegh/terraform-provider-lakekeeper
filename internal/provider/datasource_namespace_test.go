@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 func TestExistingNamespaceRead(t *testing.T) {
@@ -23,7 +23,8 @@ func TestExistingNamespaceRead(t *testing.T) {
 		t.Run(scenario, func(t *testing.T) {
 			catalogReads := 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.Method != http.MethodGet || r.Header.Get("x-project-id") != project {
+				// Only the catalog API scopes requests by project header.
+				if r.Method != http.MethodGet || (strings.HasPrefix(r.URL.Path, "/catalog/") && r.Header.Get("x-project-id") != project) {
 					t.Errorf("unexpected method or project: %s %s", r.Method, r.URL.Path)
 				}
 				w.Header().Set("Content-Type", "application/json")
@@ -39,7 +40,11 @@ func TestExistingNamespaceRead(t *testing.T) {
 					if scenario == "inactive" {
 						status = "inactive"
 					}
-					_ = json.NewEncoder(w).Encode(map[string]any{"id": id, "project-id": p, "name": "renamed-warehouse", "status": status})
+					_ = json.NewEncoder(w).Encode(map[string]any{
+						"id": id, "warehouse-id": id, "project-id": p, "name": "renamed-warehouse", "status": status,
+						"protected": false, "allowed-format-versions": []int{1, 2}, "delete-profile": map[string]any{"type": "hard"},
+						"storage-profile": map[string]any{"type": "s3", "bucket": "bucket", "region": "local", "sts-enabled": false},
+					})
 				case "/catalog/v1/" + warehouse + "/namespaces/operational\x1flims\x1finventory\x1fgold":
 					catalogReads++
 					if scenario == "missing namespace" || scenario == "forbidden" {
@@ -60,7 +65,7 @@ func TestExistingNamespaceRead(t *testing.T) {
 					}
 					_ = json.NewEncoder(w).Encode(map[string]any{"namespace": parts, "properties": map[string]string{"namespace_id": id}})
 				case "/management/v1/permissions/namespace/" + namespace:
-					body := map[string]bool{}
+					body := map[string]bool{"managed-access-inherited": false}
 					if scenario != "missing managed access" {
 						body["managed-access"] = true
 					}
@@ -72,7 +77,7 @@ func TestExistingNamespaceRead(t *testing.T) {
 			}))
 			defer server.Close()
 			ctx := context.Background()
-			client, err := lakekeeper.NewClient(ctx, "test", server.URL, lakekeeper.WithoutRetries())
+			client, err := lakekeeper.New(ctx, server.URL, "test", lakekeeper.WithoutRetries())
 			if err != nil {
 				t.Fatal(err)
 			}

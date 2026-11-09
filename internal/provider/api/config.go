@@ -5,16 +5,22 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
+	"github.com/lakekeeper/go-lakekeeper/pkg/core"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
+
+// managementAPIPath is the path prefix of the Lakekeeper management API.
+const managementAPIPath = "/management/v1"
 
 type Config struct {
 	BaseURL          string
@@ -39,7 +45,59 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 		return nil, errors.New("no OIDC Server URI configured, either use the `oidc_server_uri` provider argument or set it as `LAKEKEEPER_AUTH_URL` environment variable")
 	}
 
-	// Configure TLS/SSL
+	transport, err := c.newTransport()
+	if err != nil {
+		return nil, err
+	}
+
+	oauthConfig := &clientcredentials.Config{
+		ClientID:     c.ClientID,
+		ClientSecret: c.ClientSecret,
+		TokenURL:     c.AuthURL,
+		Scopes:       c.Scopes,
+	}
+
+	// configure context for OAuth client
+	oauthCtx := context.Background()
+	httpClient := &http.Client{Timeout: 2 * time.Second}
+	oauthCtx = context.WithValue(oauthCtx, oauth2.HTTPClient, httpClient)
+
+	authSource := &core.OAuthClientCredentialsAuthSource{
+		TokenSource: oauthConfig.TokenSource(oauthCtx),
+	}
+
+	var opts []lakekeeper.Option
+	if c.UserAgent != "" {
+		opts = append(opts, lakekeeper.WithUserAgent(c.UserAgent))
+	}
+
+	// The client adds the management API path itself. Accept an endpoint that
+	// already includes it, as earlier provider versions did.
+	baseURL := strings.TrimSuffix(strings.TrimRight(c.BaseURL, "/"), managementAPIPath)
+
+	// Bootstrap is not requested through lakekeeper.WithInitialBootstrap: the
+	// client runs it during construction, before the TLS transport below is
+	// installed, so it would ignore the configured CA file and insecure mode.
+	client, err := lakekeeper.NewWithAuthSource(ctx, baseURL, authSource, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	// The client has no option to supply a transport, so replace the HTTP
+	// client of the shared configuration. Every API service reads it per request.
+	client.GetConfig().HTTPClient = newHTTPClient(transport, authSource)
+
+	if c.InitialBootstrap {
+		if err := bootstrap(ctx, client); err != nil {
+			return nil, fmt.Errorf("bootstrap: %w", err)
+		}
+	}
+
+	return client, nil
+}
+
+// newTransport returns an HTTP transport honoring the CA file and insecure settings.
+func (c *Config) newTransport() (*http.Transport, error) {
 	tlsConfig := &tls.Config{}
 
 	// If a CACertFile has been specified, use that for cert validation
@@ -63,42 +121,39 @@ func (c *Config) NewLakekeeperClient(ctx context.Context) (*lakekeeper.Client, e
 	t.TLSClientConfig = tlsConfig
 	t.MaxIdleConnsPerHost = 100
 
-	opts := []lakekeeper.ClientOptionFunc{
-		lakekeeper.WithHTTPClient(
-			&http.Client{
-				Transport: t,
-			},
-		),
+	return t, nil
+}
+
+// newHTTPClient authenticates every request through authSource and retries
+// failed requests with the retryablehttp defaults.
+func newHTTPClient(transport http.RoundTripper, authSource core.AuthSource) *http.Client {
+	retry := retryablehttp.NewClient()
+	retry.HTTPClient = &http.Client{
+		Transport: &core.AuthRoundTripper{
+			Base:       transport,
+			AuthSource: authSource,
+		},
 	}
+	retry.Logger = nil
 
-	if c.InitialBootstrap {
-		opts = append(opts, lakekeeper.WithInitialBootstrapV1Enabled(
-			true, true, core.Ptr(managementv1.ApplicationUserType),
-		))
-	}
+	return retry.StandardClient()
+}
 
-	if c.UserAgent != "" {
-		opts = append(opts, lakekeeper.WithUserAgent(c.UserAgent))
-	}
-
-	oauthConfig := &clientcredentials.Config{
-		ClientID:     c.ClientID,
-		ClientSecret: c.ClientSecret,
-		TokenURL:     c.AuthURL,
-		Scopes:       c.Scopes,
-	}
-
-	// configure context for OAuth client
-	oauthCtx := context.Background()
-	httpClient := &http.Client{Timeout: 2 * time.Second}
-	oauthCtx = context.WithValue(oauthCtx, oauth2.HTTPClient, httpClient)
-
-	client, err := lakekeeper.NewAuthSourceClient(ctx, &core.OAuthTokenSource{
-		TokenSource: oauthConfig.TokenSource(oauthCtx),
-	}, c.BaseURL, opts...)
+// bootstrap bootstraps the server as an operator application, unless it is
+// already bootstrapped.
+func bootstrap(ctx context.Context, client *lakekeeper.Client) error {
+	info, _, err := client.ServerAPI.GetServerInfo(ctx).Execute()
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("server info: %w", err)
+	}
+	if info.Bootstrapped {
+		return nil
 	}
 
-	return client, nil
+	req := managementv1.NewBootstrapRequest(true)
+	req.SetIsOperator(true)
+	req.SetUserType(managementv1.USERTYPE_APPLICATION)
+
+	_, err = client.ServerAPI.Bootstrap(ctx).BootstrapRequest(*req).Execute()
+	return err
 }

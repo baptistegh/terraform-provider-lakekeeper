@@ -9,13 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
-	"github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/storage/profile"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
 )
 
-func (m *lakekeeperWarehouseResourceModel) toWarehouseCreateRequest() (*managementv1.CreateWarehouseOptions, error) {
-	req := managementv1.CreateWarehouseOptions{
-		Name: m.Name.ValueString(),
+func (m *lakekeeperWarehouseResourceModel) toWarehouseCreateRequest() (*managementv1.CreateWarehouseRequest, error) {
+	req := managementv1.CreateWarehouseRequest{
+		WarehouseName: m.Name.ValueString(),
 	}
 
 	if m.StorageProfile == nil {
@@ -31,13 +30,13 @@ func (m *lakekeeperWarehouseResourceModel) toWarehouseCreateRequest() (*manageme
 	if err != nil {
 		return nil, err
 	}
-	req.StorageProfile = storage.AsProfile()
+	req.StorageProfile = storage
 
 	creds, err := s.CredentialAsSDK()
 	if err != nil {
 		return nil, err
 	}
-	req.StorageCredential = creds.AsCredential()
+	req.SetStorageCredential(creds)
 
 	if m.DeleteProfile != nil {
 		settings, err := m.DeleteProfileSettings()
@@ -48,7 +47,7 @@ func (m *lakekeeperWarehouseResourceModel) toWarehouseCreateRequest() (*manageme
 			return nil, errors.New("delete profile is empty")
 		}
 
-		req.DeleteProfile = settings.AsProfile()
+		req.DeleteProfile = settings
 	}
 
 	return &req, nil
@@ -57,21 +56,16 @@ func (m *lakekeeperWarehouseResourceModel) toWarehouseCreateRequest() (*manageme
 // TODO: refactor RefreshFromSettings on datasource and resource
 // because these functions are almost identical
 
-func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.Warehouse, plan *lakekeeperWarehouseResourceModel) diag.Diagnostics {
-	m.ID = types.StringValue(w.ProjectID + "/" + w.ID)
-	m.WarehouseID = types.StringValue(w.ID)
-	m.ProjectID = types.StringValue(w.ProjectID)
+func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.GetWarehouseResponse, plan *lakekeeperWarehouseResourceModel) diag.Diagnostics {
+	m.ID = types.StringValue(w.ProjectId + "/" + w.Id)
+	m.WarehouseID = types.StringValue(w.Id)
+	m.ProjectID = types.StringValue(w.ProjectId)
 	m.Protected = types.BoolValue(w.Protected)
-	m.Active = types.BoolValue(w.IsActive())
+	m.Active = types.BoolValue(w.Status == managementv1.WAREHOUSESTATUS_ACTIVE)
 	m.Name = types.StringValue(w.Name)
 
 	diags := diag.Diagnostics{}
 	const errorMessage = "Error refreshing warehouse state"
-
-	if w.StorageProfile.StorageSettings == nil {
-		diags.AddError(errorMessage, "Storage profile must be defined")
-		return diags
-	}
 
 	var oldProfile sdk.StorageProfileModel
 	if plan != nil && plan.StorageProfile != nil {
@@ -124,42 +118,21 @@ func (m *lakekeeperWarehouseResourceModel) RefreshFromSettings(w *managementv1.W
 		diags.AddError(errorMessage, "Incorrect storage profile type")
 	}
 
-	if w.DeleteProfile == nil || w.DeleteProfile.DeleteProfileSettings == nil {
-		m.DeleteProfile = nil
-	} else {
-		switch deleteProfile := w.DeleteProfile.DeleteProfileSettings.(type) {
-		case *profile.TabularDeleteProfileSoft:
-			m.DeleteProfile = &sdk.DeleteProfileModel{
-				Type:              types.StringValue("soft"),
-				ExpirationSeconds: types.Int32Value(deleteProfile.ExpirationSeconds),
-			}
-		case *profile.TabularDeleteProfileHard:
-			m.DeleteProfile = &sdk.DeleteProfileModel{
-				Type: types.StringValue("hard"),
-			}
-		default:
-			diags.AddError(errorMessage, fmt.Sprintf("Incorrect delete profile type: %T, valid: [soft,hard]", deleteProfile))
-		}
-	}
+	m.DeleteProfile = deleteProfileModelFromSDK(w.DeleteProfile)
 
 	return diags
 }
 
-func (m *lakekeeperWarehouseDataSourceModel) RefreshDataSourceFromSettings(w *managementv1.Warehouse) diag.Diagnostics {
-	m.ID = types.StringValue(w.ProjectID + "/" + w.ID)
-	m.WarehouseID = types.StringValue(w.ID)
-	m.ProjectID = types.StringValue(w.ProjectID)
+func (m *lakekeeperWarehouseDataSourceModel) RefreshDataSourceFromSettings(w *managementv1.GetWarehouseResponse) diag.Diagnostics {
+	m.ID = types.StringValue(w.ProjectId + "/" + w.Id)
+	m.WarehouseID = types.StringValue(w.Id)
+	m.ProjectID = types.StringValue(w.ProjectId)
 	m.Protected = types.BoolValue(w.Protected)
-	m.Active = types.BoolValue(w.IsActive())
+	m.Active = types.BoolValue(w.Status == managementv1.WAREHOUSESTATUS_ACTIVE)
 	m.Name = types.StringValue(w.Name)
 
 	diags := diag.Diagnostics{}
 	const errorMessage = "Error refreshing warehouse state"
-
-	if w.StorageProfile.StorageSettings == nil {
-		diags.AddError(errorMessage, "Storage profile must be defined")
-		return diags
-	}
 
 	storageProfile, err := sdk.StorageProfileModelFromSDK(w.StorageProfile)
 	if err != nil {
@@ -189,42 +162,49 @@ func (m *lakekeeperWarehouseDataSourceModel) RefreshDataSourceFromSettings(w *ma
 		diags.AddError(errorMessage, fmt.Sprintf("Incorrect storage profile type, got %T", storageProfile))
 	}
 
-	if w.DeleteProfile == nil || w.DeleteProfile.DeleteProfileSettings == nil {
-		m.DeleteProfile = nil
-	} else {
-		switch deleteProfile := w.DeleteProfile.DeleteProfileSettings.(type) {
-		case *profile.TabularDeleteProfileSoft:
-			m.DeleteProfile = &sdk.DeleteProfileModel{
-				Type:              types.StringValue("soft"),
-				ExpirationSeconds: types.Int32Value(deleteProfile.ExpirationSeconds),
-			}
-		case *profile.TabularDeleteProfileHard:
-			m.DeleteProfile = &sdk.DeleteProfileModel{
-				Type: types.StringValue("hard"),
-			}
-		default:
-			diags.AddError(errorMessage, fmt.Sprintf("Incorrect delete profile type: %T, valid: [soft,hard]", deleteProfile))
-		}
-	}
+	m.DeleteProfile = deleteProfileModelFromSDK(w.DeleteProfile)
 
 	return diags
 }
 
-func (m *lakekeeperWarehouseResourceModel) DeleteProfileSettings() (profile.DeleteProfileSettings, error) {
+func (m *lakekeeperWarehouseResourceModel) DeleteProfileSettings() (*managementv1.TabularDeleteProfile, error) {
 	if m.DeleteProfile == nil {
 		return nil, nil
 	}
 
+	hard := managementv1.TabularDeleteProfileHardAsTabularDeleteProfile(managementv1.NewTabularDeleteProfileHard(sdk.DeleteProfileTypeHard))
+
 	if m.DeleteProfile.Type.IsNull() || m.DeleteProfile.Type.IsUnknown() {
-		return profile.NewTabularDeleteProfileHard(), nil
+		return &hard, nil
 	}
 
 	switch m.DeleteProfile.Type.ValueString() {
-	case "soft":
-		return profile.NewTabularDeleteProfileSoft(m.DeleteProfile.ExpirationSeconds.ValueInt32()), nil
-	case "hard":
-		return profile.NewTabularDeleteProfileHard(), nil
+	case sdk.DeleteProfileTypeSoft:
+		soft := managementv1.TabularDeleteProfileSoftAsTabularDeleteProfile(managementv1.NewTabularDeleteProfileSoft(
+			int64(m.DeleteProfile.ExpirationSeconds.ValueInt32()),
+			sdk.DeleteProfileTypeSoft,
+		))
+		return &soft, nil
+	case sdk.DeleteProfileTypeHard:
+		return &hard, nil
 	default:
 		return nil, fmt.Errorf("incorrect delete profile definition, type must be [soft,hard]")
+	}
+}
+
+// deleteProfileModelFromSDK converts a tabular delete profile, or returns nil when none is set.
+func deleteProfileModelFromSDK(p managementv1.TabularDeleteProfile) *sdk.DeleteProfileModel {
+	switch {
+	case p.TabularDeleteProfileSoft != nil:
+		return &sdk.DeleteProfileModel{
+			Type:              types.StringValue(sdk.DeleteProfileTypeSoft),
+			ExpirationSeconds: types.Int32Value(int32(p.TabularDeleteProfileSoft.ExpirationSeconds)),
+		}
+	case p.TabularDeleteProfileHard != nil:
+		return &sdk.DeleteProfileModel{
+			Type: types.StringValue(sdk.DeleteProfileTypeHard),
+		}
+	default:
+		return nil
 	}
 }

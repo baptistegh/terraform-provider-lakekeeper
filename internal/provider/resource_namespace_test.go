@@ -22,7 +22,7 @@ func TestAccLakekeeperNamespace_basic(t *testing.T) {
 	project := testutil.CreateProject(t)
 
 	keyPrefix := fmt.Sprintf("key-prefix-%d", rand.Int())
-	warehouse := testutil.CreateWarehouse(t, project.ID, keyPrefix)
+	warehouse := testutil.CreateWarehouse(t, project.ProjectId, keyPrefix)
 
 	rName := acctest.RandString(8)
 
@@ -37,10 +37,10 @@ func TestAccLakekeeperNamespace_basic(t *testing.T) {
 					warehouse_name = "%s"
 					name = "%s"
 				}
-				`, project.ID, warehouse.Name, rName),
+				`, project.ProjectId, warehouse.Name, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_namespace.this", "id", fmt.Sprintf("%s/%s/%s", project.ID, warehouse.Name, rName)),
-					resource.TestCheckResourceAttr("lakekeeper_namespace.this", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_namespace.this", "id", fmt.Sprintf("%s/%s/%s", project.ProjectId, warehouse.Name, rName)),
+					resource.TestCheckResourceAttr("lakekeeper_namespace.this", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_namespace.this", "warehouse_name", warehouse.Name),
 					resource.TestCheckResourceAttr("lakekeeper_namespace.this", "name", rName),
 				),

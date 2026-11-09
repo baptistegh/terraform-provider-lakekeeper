@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
-	"github.com/baptistegh/go-lakekeeper/pkg/core"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -68,25 +67,7 @@ func (d *LakekeeperProjectUserAccessDataSource) Schema(_ context.Context, _ data
 			},
 			"allowed_actions": schema.SetAttribute{
 				MarkdownDescription: `List of the user's allowed actions on the project. The possible values are ` +
-					fmt.Sprintf(
-						"`%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s`",
-						permissionv1.CreateWarehouse,
-						permissionv1.DeleteProject,
-						permissionv1.RenameProject,
-						permissionv1.ListWarehouses,
-						permissionv1.CreateRole,
-						permissionv1.ListRoles,
-						permissionv1.SearchRoles,
-						permissionv1.ReadProjectAssignments,
-						permissionv1.GrantProjectRoleCreator,
-						permissionv1.GrantProjectCreate,
-						permissionv1.GrantProjectDescribe,
-						permissionv1.GrantProjectModify,
-						permissionv1.GrantProjectSelet,
-						permissionv1.GrantProjectAdmin,
-						permissionv1.GrantSecurityAdmin,
-						permissionv1.GrantDataAdmin,
-					),
+					enumValuesList(managementv1.AllowedProjectActionEnumValues),
 				Computed:    true,
 				ElementType: types.StringType,
 			},
@@ -112,15 +93,17 @@ func (d *LakekeeperProjectUserAccessDataSource) Read(ctx context.Context, req da
 
 	state.ID = types.StringValue(fmt.Sprintf("%s/%s", state.ProjectID.ValueString(), state.UserID.ValueString()))
 
-	access, _, err := d.client.PermissionV1().ProjectPermission().GetAccess(ctx, state.ProjectID.ValueString(), &permissionv1.GetProjectAccessOptions{
-		PrincipalUser: core.Ptr(state.UserID.ValueString()),
-	})
+	// The access endpoint is deprecated in favor of the authorizer-actions
+	// endpoint, which only returns OpenFGA relations.
+	access, _, err := d.client.PermissionsOpenfgaAPI.GetProjectAccessById(ctx, state.ProjectID.ValueString()).
+		PrincipalUser(state.UserID.ValueString()).
+		Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read acess for user %s on project %s, %v", state.UserID.ValueString(), state.ID.ValueString(), err))
+		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read acess for user %s on project %s, %v", state.UserID.ValueString(), state.ID.ValueString(), apiError(err)))
 		return
 	}
 
-	actions, diags := types.SetValueFrom(ctx, types.StringType, access.AllowedActions)
+	actions, diags := types.SetValueFrom(ctx, types.StringType, enumStrings(access.AllowedActions))
 	if diags.HasError() {
 		resp.Diagnostics = append(resp.Diagnostics, diags...)
 		return

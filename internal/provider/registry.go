@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -57,4 +59,62 @@ func DiffTypedStrings(oldList, newList []types.String) (added, removed []types.S
 	}
 
 	return
+}
+
+// enumValuesList formats enum values as a space-separated list of Markdown code spans.
+func enumValuesList[T ~string](values []T) string {
+	quoted := make([]string, 0, len(values))
+	for _, v := range values {
+		quoted = append(quoted, "`"+string(v)+"`")
+	}
+
+	return strings.Join(quoted, " ")
+}
+
+// enumStrings returns enum values as plain strings.
+func enumStrings[T ~string](values []T) []string {
+	out := make([]string, 0, len(values))
+	for _, v := range values {
+		out = append(out, string(v))
+	}
+
+	return out
+}
+
+// timeValue returns t as an RFC 3339 string value.
+func timeValue(t time.Time) types.String {
+	return types.StringValue(t.Format(time.RFC3339Nano))
+}
+
+// timePointerValue returns t as an RFC 3339 string value, or a null value when t is nil.
+func timePointerValue(t *time.Time) types.String {
+	if t == nil {
+		return types.StringNull()
+	}
+
+	return timeValue(*t)
+}
+
+// diffStrings returns the sorted, distinct values of newList missing from
+// oldList (added) and of oldList missing from newList (removed).
+func diffStrings(oldList, newList []string) (added, removed []string) {
+	missing := func(from, in []string) []string {
+		present := make(map[string]bool, len(in))
+		for _, v := range in {
+			present[v] = true
+		}
+
+		out := []string{}
+		for _, v := range from {
+			if !present[v] {
+				present[v] = true
+				out = append(out, v)
+			}
+		}
+		sort.Strings(out)
+
+		return out
+	}
+
+	return missing(newList, oldList), missing(oldList, newList)
 }

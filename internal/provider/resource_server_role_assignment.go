@@ -4,11 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -16,6 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -70,10 +70,10 @@ func (r *lakekeeperServerRoleAssignmentResource) Schema(ctx context.Context, req
 			},
 			"assignments": schema.SetAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: fmt.Sprintf("List of server assignments for this role. values can be `%s` or `%s`", permissionv1.AdminServerAssignment, permissionv1.OperatorServerAssignment),
+				MarkdownDescription: fmt.Sprintf("List of server assignments for this role. values can be `%s` or `%s`", managementv1.SERVERRELATION_ADMIN, managementv1.SERVERRELATION_OPERATOR),
 				Required:            true,
 				Validators: []validator.Set{setvalidator.ValueStringsAre(
-					stringvalidator.OneOf(string(permissionv1.AdminServerAssignment), string(permissionv1.OperatorServerAssignment)),
+					stringvalidator.OneOf(string(managementv1.SERVERRELATION_ADMIN), string(managementv1.SERVERRELATION_OPERATOR)),
 				)},
 			},
 		},
@@ -95,28 +95,13 @@ func (r *lakekeeperServerRoleAssignmentResource) Create(ctx context.Context, req
 		return
 	}
 
-	var opts []*permissionv1.ServerAssignment
-
-	for _, v := range plan.Assignments.Elements() {
-		s, ok := v.(types.String)
-		if !ok {
-			resp.Diagnostics.AddError("Error converting model to resource", fmt.Sprintf("Unable to read assignment %s", v.String()))
-			return
-		}
-
-		opts = append(opts, &permissionv1.ServerAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Value: plan.RoleID.ValueString(),
-				Type:  permissionv1.RoleType,
-			},
-			Assignment: permissionv1.ServerAssignmentType(s.ValueString()),
-		})
+	var assignments []string
+	resp.Diagnostics.Append(plan.Assignments.ElementsAs(ctx, &assignments, false)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	_, err := r.client.PermissionV1().ServerPermission().Update(ctx, &permissionv1.UpdateServerPermissionsOptions{
-		Writes: opts,
-	})
-	if err != nil {
+	if err := serverAssignmentScope(r.client).apply(ctx, permissions.PrincipalRole, plan.RoleID.ValueString(), assignments, nil); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to write server assignment, %s", err.Error()))
 		return
 	}
@@ -134,27 +119,21 @@ func (r *lakekeeperServerRoleAssignmentResource) Read(ctx context.Context, req r
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	assignments, _, err := r.client.PermissionV1().ServerPermission().GetAssignments(ctx, nil)
+	principalID := state.RoleID.ValueString()
+
+	relations, err := serverAssignmentScope(r.client).relations(ctx, permissions.PrincipalRole, principalID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read server assignments, %s", err.Error()))
 		return
 	}
 
-	var elems []attr.Value
-	for _, v := range assignments.Assignments {
-		if v.Assignee.Value == state.RoleID.ValueString() && v.Assignee.Type == permissionv1.RoleType {
-			elems = append(elems, types.StringValue(string(v.Assignment)))
-		}
-	}
-
-	newAssignments, diags := types.SetValue(types.StringType, elems)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	newAssignments, diags := types.SetValueFrom(ctx, types.StringType, relations)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -163,7 +142,7 @@ func (r *lakekeeperServerRoleAssignmentResource) Read(ctx context.Context, req r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Updates updates the resource in-place.
+// Update updates the resource in-place.
 func (r *lakekeeperServerRoleAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state lakekeeperServerRoleAssignmentResourceModel
 
@@ -189,74 +168,36 @@ func (r *lakekeeperServerRoleAssignmentResource) Update(ctx context.Context, req
 
 	added, removed := DiffTypedStrings(stateAssignments, planAssignments)
 
-	var writes []*permissionv1.ServerAssignment
-	var deletes []*permissionv1.ServerAssignment
+	principalID := state.RoleID.ValueString()
 
-	for _, v := range added {
-		writes = append(writes, &permissionv1.ServerAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Type:  permissionv1.RoleType,
-				Value: plan.RoleID.ValueString(),
-			},
-			Assignment: permissionv1.ServerAssignmentType(v.ValueString()),
-		})
-	}
-
-	for _, v := range removed {
-		deletes = append(deletes, &permissionv1.ServerAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Type:  permissionv1.RoleType,
-				Value: plan.RoleID.ValueString(),
-			},
-			Assignment: permissionv1.ServerAssignmentType(v.ValueString()),
-		})
-	}
-
-	if _, err := r.client.PermissionV1().ServerPermission().Update(ctx, &permissionv1.UpdateServerPermissionsOptions{
-		Writes:  writes,
-		Deletes: deletes,
-	}); err != nil {
+	if err := serverAssignmentScope(r.client).apply(ctx, permissions.PrincipalRole, principalID, stringValues(added), stringValues(removed)); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update server assignment, %v", err.Error()))
 		return
 	}
 
+	state.RoleID = types.StringValue(principalID)
 	state.Assignments = plan.Assignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Deletes removes the resource.
+// Delete removes the resource.
 func (r *lakekeeperServerRoleAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state lakekeeperServerRoleAssignmentResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var assignments []types.String
-	var deletes []*permissionv1.ServerAssignment
-
+	var assignments []string
 	resp.Diagnostics.Append(state.Assignments.ElementsAs(ctx, &assignments, false)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	for _, v := range assignments {
-		deletes = append(deletes, &permissionv1.ServerAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Value: state.RoleID.ValueString(),
-				Type:  permissionv1.RoleType,
-			},
-			Assignment: permissionv1.ServerAssignmentType(v.ValueString()),
-		})
-	}
-
-	if _, err := r.client.PermissionV1().ServerPermission().Update(ctx, &permissionv1.UpdateServerPermissionsOptions{
-		Deletes: deletes,
-	}); err != nil {
+	if err := serverAssignmentScope(r.client).apply(ctx, permissions.PrincipalRole, state.RoleID.ValueString(), nil, assignments); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete server assignment, %v", err.Error()))
 	}
 

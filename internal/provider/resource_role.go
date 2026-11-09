@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	managementv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -119,25 +119,25 @@ func (r *lakekeeperRoleResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	opts := managementv1.CreateRoleOptions{
-		Name:        state.Name.ValueString(),
-		Description: state.Description.ValueStringPointer(),
+	opts := managementv1.NewCreateRoleRequest(state.Name.ValueString())
+	if description := state.Description.ValueStringPointer(); description != nil {
+		opts.SetDescription(*description)
 	}
 
-	role, _, err := r.client.RoleV1(state.ProjectID.ValueString()).Create(ctx, &opts)
+	role, err := r.client.Roles.Create(ctx, state.ProjectID.ValueString(), opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to create role, %v", err))
 		return
 	}
 
-	state.RoleID = types.StringValue(role.ID)
-	state.ProjectID = types.StringValue(role.ProjectID)
+	state.RoleID = types.StringValue(role.Id)
+	state.ProjectID = types.StringValue(role.ProjectId)
 
-	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectId, role.Id))
 
-	state.CreatedAt = types.StringValue(role.CreatedAt)
-	state.UpdatedAt = types.StringPointerValue(role.UpdatedAt)
-	state.Description = types.StringPointerValue(role.Description)
+	state.CreatedAt = timeValue(role.CreatedAt)
+	state.UpdatedAt = timePointerValue(role.UpdatedAt.Get())
+	state.Description = types.StringPointerValue(role.Description.Get())
 
 	// Log the creation of the resource
 	tflog.Debug(ctx, "created a role", map[string]any{
@@ -160,22 +160,22 @@ func (r *lakekeeperRoleResource) Read(ctx context.Context, req resource.ReadRequ
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	role, _, err := r.client.RoleV1(projectID).Get(ctx, roleID)
+	role, err := r.client.Roles.Get(ctx, projectID, roleID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read role %s in project %s, %v", roleID, projectID, err))
 		return
 	}
 
-	state.RoleID = types.StringValue(role.ID)
-	state.ProjectID = types.StringValue(role.ProjectID)
+	state.RoleID = types.StringValue(role.Id)
+	state.ProjectID = types.StringValue(role.ProjectId)
 
-	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectId, role.Id))
 
 	state.Name = types.StringValue(role.Name)
-	state.CreatedAt = types.StringValue(role.CreatedAt)
+	state.CreatedAt = timeValue(role.CreatedAt)
 
-	state.Description = types.StringPointerValue(role.Description)
-	state.UpdatedAt = types.StringPointerValue(role.UpdatedAt)
+	state.Description = types.StringPointerValue(role.Description.Get())
+	state.UpdatedAt = timePointerValue(role.UpdatedAt.Get())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -202,25 +202,25 @@ func (r *lakekeeperRoleResource) Update(ctx context.Context, req resource.Update
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	opts := managementv1.UpdateRoleOptions{
-		Name:        plan.Name.ValueString(),
-		Description: plan.Description.ValueStringPointer(),
+	opts := managementv1.NewUpdateRoleRequest(plan.Name.ValueString())
+	if description := plan.Description.ValueStringPointer(); description != nil {
+		opts.SetDescription(*description)
 	}
 
-	role, _, err := r.client.RoleV1(projectID).Update(ctx, roleID, &opts)
+	role, err := r.client.Roles.Update(ctx, projectID, roleID, opts)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update role %s in project %s, %v", roleID, projectID, err))
 		return
 	}
 
-	state.RoleID = types.StringValue(role.ID)
-	state.ProjectID = types.StringValue(role.ProjectID)
+	state.RoleID = types.StringValue(role.Id)
+	state.ProjectID = types.StringValue(role.ProjectId)
 	state.Name = types.StringValue(role.Name)
-	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectID, role.ID))
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", role.ProjectId, role.Id))
 
-	state.CreatedAt = types.StringValue(role.CreatedAt)
-	state.UpdatedAt = types.StringPointerValue(role.UpdatedAt)
-	state.Description = types.StringPointerValue(role.Description)
+	state.CreatedAt = timeValue(role.CreatedAt)
+	state.UpdatedAt = timePointerValue(role.UpdatedAt.Get())
+	state.Description = types.StringPointerValue(role.Description.Get())
 
 	// Log the creation of the resource
 	tflog.Debug(ctx, "created a role", map[string]any{
@@ -243,7 +243,7 @@ func (r *lakekeeperRoleResource) Delete(ctx context.Context, req resource.Delete
 
 	projectID, roleID := splitInternalID(state.ID)
 
-	_, err := r.client.RoleV1(projectID).Delete(ctx, roleID)
+	err := r.client.Roles.Delete(ctx, projectID, roleID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete role %s in project %s, %v", roleID, projectID, err))
 		return

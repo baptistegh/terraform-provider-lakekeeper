@@ -7,7 +7,8 @@ import (
 	"slices"
 	"testing"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -21,26 +22,14 @@ func TestAccDataLakekeeperWarehouseRoleAccess_basic(t *testing.T) {
 
 	project := testutil.CreateProject(t)
 
-	role := testutil.CreateRole(t, project.ID)
+	role := testutil.CreateRole(t, project.ProjectId)
 
 	keyPrefix := acctest.RandString(8)
-	warehouse := testutil.CreateWarehouse(t, project.ID, keyPrefix)
+	warehouse := testutil.CreateWarehouse(t, project.ProjectId, keyPrefix)
 
 	// assignment
-	if _, err := testutil.TestLakekeeperClient.PermissionV1().WarehousePermission().Update(
-		t.Context(),
-		warehouse.ID,
-		&permissionv1.UpdateWarehousePermissionsOptions{
-			Writes: []*permissionv1.WarehouseAssignment{
-				{
-					Assignee: permissionv1.UserOrRole{
-						Type:  permissionv1.RoleType,
-						Value: role.ID,
-					},
-					Assignment: permissionv1.CreateWarehouseAssignment,
-				},
-			},
-		},
+	if err := grantAssignments(t.Context(), warehouseAssignmentScope(testutil.TestLakekeeperClient, warehouse.Id),
+		testAssignment{permissions.PrincipalRole, role.Id, string(managementv1.WAREHOUSERELATION_CREATE)},
 	); err != nil {
 		t.Fatalf("could not create warehouse access, %v", err)
 	}
@@ -53,11 +42,11 @@ func TestAccDataLakekeeperWarehouseRoleAccess_basic(t *testing.T) {
 				data "lakekeeper_warehouse_role_access" "foo" {
 					warehouse_id = "%s"
 					role_id = "%s"
-				}`, warehouse.ID, role.ID),
+				}`, warehouse.Id, role.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "id", fmt.Sprintf("%s/%s", warehouse.ID, role.ID)),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "warehouse_id", warehouse.ID),
-					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "role_id", role.ID),
+					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "id", fmt.Sprintf("%s/%s", warehouse.Id, role.Id)),
+					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "warehouse_id", warehouse.Id),
+					resource.TestCheckResourceAttr("data.lakekeeper_warehouse_role_access.foo", "role_id", role.Id),
 					resource.TestCheckResourceAttrSet("data.lakekeeper_warehouse_role_access.foo", "allowed_actions.#"),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -69,14 +58,14 @@ func TestAccDataLakekeeperWarehouseRoleAccess_basic(t *testing.T) {
 						knownvalue.SetPartial([]knownvalue.Check{
 							knownvalue.StringFunc(func(v string) error {
 								if !slices.Contains([]string{
-									string(permissionv1.CreateNamespace),
-									string(permissionv1.GetConfig),
-									string(permissionv1.GetMetadata),
-									string(permissionv1.ListNamespaces),
-									string(permissionv1.IncludeInList),
-									string(permissionv1.ListDeletedTabulars),
-									string(permissionv1.GetAllTasks),
-									string(permissionv1.GetWarehouseEndpointStatistics),
+									"create_namespace",
+									"get_config",
+									"get_metadata",
+									"list_namespaces",
+									"include_in_list",
+									"list_deleted_tabulars",
+									"get_all_tasks",
+									"get_endpoint_statistics",
 								}, v) {
 									return fmt.Errorf("%s is not an allowed action", v)
 								}

@@ -31,7 +31,7 @@ func TestProvider_OIDCAuth(t *testing.T) {
 		if r.URL.Path == "/management/v1/bootstrap" && r.Method == "POST" {
 			bootstrapCall = true
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotModified)
+			w.WriteHeader(http.StatusNoContent)
 		}
 		if r.URL.Path == "/management/v1/info" && r.Method == "GET" {
 			serverInfoCall = true
@@ -39,7 +39,8 @@ func TestProvider_OIDCAuth(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 			// nolint - don't need to err check writing the response in the test
 			w.Write([]byte(`{
-				"version":"0.9.1",
+				"version":"0.15.0",
+				"lakekeeper-version":"0.15.0",
 				"bootstrapped":false,
 				"server-id":"00000000-0000-0000-0000-000000000000",
 				"default-project-id":"00000000-0000-0000-0000-000000000000",
@@ -47,7 +48,9 @@ func TestProvider_OIDCAuth(t *testing.T) {
 				"aws-system-identities-enabled":false,
 				"azure-system-identities-enabled":false,
 				"gcp-system-identities-enabled":false,
-				"queues":["tabular_expiration","tabular_purge"]
+				"queues":["tabular_expiration","tabular_purge"],
+				"managed-role-providers":[],
+				"license-status":{"issuer":null,"audience":"lakekeeper-core","license-type":"Apache-2.0","valid":true}
 			}`)) // nolint - don't need to err check writing the response in the test
 		}
 		if r.URL.Path == "/token" && r.Method == "POST" {

@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 func TestRoleNameLookup(t *testing.T) {
@@ -20,20 +20,20 @@ func TestRoleNameLookup(t *testing.T) {
 		pages     []string
 		wantError string
 	}{
-		{"exact", []string{`{"roles":[{"id":"r","project-id":"p","name":"target"}]}`}, ""},
-		{"different case", []string{`{"roles":[{"id":"r","project-id":"p","name":"Target"}]}`}, ""},
+		{"exact", []string{`{"roles":[{"id":"r","project-id":"p","name":"target","ident":"target","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}]}`}, ""},
+		{"different case", []string{`{"roles":[{"id":"r","project-id":"p","name":"Target","ident":"Target","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}]}`}, ""},
 		{"missing", []string{`{"roles":[]}`}, "no role"},
-		{"prefix is not exact", []string{`{"roles":[{"id":"r","project-id":"p","name":"target-extra"}]}`}, "no role"},
-		{"other project", []string{`{"roles":[{"id":"r","project-id":"other","name":"target"}]}`}, "another project"},
-		{"second page", []string{`{"roles":[],"next-page-token":"next"}`, `{"roles":[{"id":"r","project-id":"p","name":"target"}]}`}, ""},
-		{"ambiguous across pages", []string{`{"roles":[{"id":"r","project-id":"p","name":"target"}],"next-page-token":"next"}`, `{"roles":[{"id":"s","project-id":"p","name":"target"}]}`}, "multiple roles"},
+		{"prefix is not exact", []string{`{"roles":[{"id":"r","project-id":"p","name":"target-extra","ident":"target-extra","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}]}`}, "no role"},
+		{"other project", []string{`{"roles":[{"id":"r","project-id":"other","name":"target","ident":"target","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}]}`}, "another project"},
+		{"second page", []string{`{"roles":[],"next-page-token":"next"}`, `{"roles":[{"id":"r","project-id":"p","name":"target","ident":"target","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}]}`}, ""},
+		{"ambiguous across pages", []string{`{"roles":[{"id":"r","project-id":"p","name":"target","ident":"target","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}],"next-page-token":"next"}`, `{"roles":[{"id":"s","project-id":"p","name":"target","ident":"target","provider-id":"lakekeeper","source-id":"s","created-at":"2026-10-30T10:00:00Z"}]}`}, "multiple roles"},
 		{"repeated token", []string{`{"roles":[],"next-page-token":"next"}`, `{"roles":[],"next-page-token":"next"}`}, "repeated"},
-		{"later page fails", []string{`{"roles":[{"id":"r","project-id":"p","name":"target"}],"next-page-token":"next"}`, "error"}, "list roles"},
+		{"later page fails", []string{`{"roles":[{"id":"r","project-id":"p","name":"target","ident":"target","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}],"next-page-token":"next"}`, "error"}, "list roles"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			calls := 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.Method != "GET" || r.URL.Path != "/management/v1/role" || r.Header.Get("x-project-id") != "p" || r.URL.Query().Get("name") != "target" {
+				if r.Method != "GET" || r.URL.Path != "/management/v1/role" || r.Header.Get("x-project-id") != "p" {
 					t.Errorf("unexpected request %s %s", r.Method, r.URL)
 				}
 				if calls > 0 && r.URL.Query().Get("pageToken") != "next" {
@@ -55,7 +55,7 @@ func TestRoleNameLookup(t *testing.T) {
 				_, _ = w.Write([]byte(page))
 			}))
 			defer server.Close()
-			client, err := lakekeeper.NewClient(t.Context(), "test", server.URL, lakekeeper.WithoutRetries())
+			client, err := lakekeeper.New(t.Context(), server.URL, "test", lakekeeper.WithoutRetries())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -64,7 +64,7 @@ func TestRoleNameLookup(t *testing.T) {
 				if err == nil || !strings.Contains(err.Error(), tc.wantError) {
 					t.Fatalf("wanted %q, got %v", tc.wantError, err)
 				}
-			} else if err != nil || role.ID != "r" {
+			} else if err != nil || role.Id != "r" {
 				t.Fatalf("role=%v err=%v", role, err)
 			}
 		})
@@ -74,7 +74,7 @@ func TestRoleNameLookup(t *testing.T) {
 func TestRoleReadByIDAndName(t *testing.T) {
 	for _, byName := range []bool{false, true} {
 		t.Run(fmt.Sprint(byName), func(t *testing.T) {
-			roleJSON := `{"id":"r","project-id":"p","name":"target","created-at":"2026-10-30T10:00:00Z"}`
+			roleJSON := `{"id":"r","project-id":"p","name":"target","ident":"target","provider-id":"lakekeeper","source-id":"r","created-at":"2026-10-30T10:00:00Z"}`
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				if byName {
@@ -90,7 +90,7 @@ func TestRoleReadByIDAndName(t *testing.T) {
 				}
 			}))
 			defer server.Close()
-			client, err := lakekeeper.NewClient(t.Context(), "test", server.URL, lakekeeper.WithoutRetries())
+			client, err := lakekeeper.New(t.Context(), server.URL, "test", lakekeeper.WithoutRetries())
 			if err != nil {
 				t.Fatal(err)
 			}

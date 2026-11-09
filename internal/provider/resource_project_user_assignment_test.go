@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"testing"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/testutil"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -34,11 +34,11 @@ func TestAccLakekeeperProjectUserAssignment_basic(t *testing.T) {
 						user_id = "%s"
 						assignments = ["project_admin"]
 					}
-				`, project.ID, user.ID),
+				`, project.ProjectId, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ID+"/"+user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.ID),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ProjectId+"/"+user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ProjectId),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.Id),
 					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.#", "1"),
 					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.0", "project_admin"),
 				),
@@ -57,11 +57,11 @@ func TestAccLakekeeperProjectUserAssignment_basic(t *testing.T) {
 						user_id = "%s"
 						assignments = ["role_creator"]
 					}
-				`, project.ID, user.ID),
+				`, project.ProjectId, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ID+"/"+user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.ID),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ProjectId+"/"+user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ProjectId),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.Id),
 					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.#", "1"),
 					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.0", "role_creator"),
 				),
@@ -78,14 +78,15 @@ func TestAccLakekeeperProjectUserAssignment_basic(t *testing.T) {
 					resource "lakekeeper_project_user_assignment" "test" {
 						project_id = "%s"
 						user_id = "%s"
-						assignments = ["role_creator", "select"]
+						assignments = ["role_creator", "select", "tag_creator"]
 					}
-				`, project.ID, user.ID),
+				`, project.ProjectId, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ID+"/"+user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.#", "2"),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ProjectId+"/"+user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ProjectId),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.#", "3"),
+					resource.TestCheckTypeSetElemAttr("lakekeeper_project_user_assignment.test", "assignments.*", "tag_creator"),
 					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.0", "role_creator"),
 					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.1", "select"),
 				),
@@ -104,11 +105,11 @@ func TestAccLakekeeperProjectUserAssignment_basic(t *testing.T) {
 						user_id = "%s"
 						assignments = []
 					}
-				`, project.ID, user.ID),
+				`, project.ProjectId, user.Id),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ID+"/"+user.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ID),
-					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.ID),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "id", project.ProjectId+"/"+user.Id),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "project_id", project.ProjectId),
+					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "user_id", user.Id),
 					resource.TestCheckResourceAttr("lakekeeper_project_user_assignment.test", "assignments.#", "0"),
 				),
 			},
@@ -130,15 +131,13 @@ func testAccCheckLakekeeperProjectUserAssignmentDestroy(s *terraform.State) erro
 
 		projectID, userID := splitInternalID(types.StringValue(rs.Primary.ID))
 
-		assignments, _, err := testutil.TestLakekeeperClient.PermissionV1().ProjectPermission().GetAssignments(context.Background(), projectID, nil)
+		relations, err := projectAssignmentScope(testutil.TestLakekeeperClient, projectID).relations(context.Background(), permissions.PrincipalUser, userID)
 		if err != nil {
 			return fmt.Errorf("could not list project assignments to check destroy, %w", err)
 		}
 
-		for _, v := range assignments.Assignments {
-			if v.Assignee.Value == userID && v.Assignee.Type == permissionv1.UserType {
-				return fmt.Errorf("project assignment still exists")
-			}
+		if len(relations) > 0 {
+			return fmt.Errorf("project assignment still exists")
 		}
 	}
 

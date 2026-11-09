@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/baptistegh/terraform-provider-lakekeeper/internal/provider/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -82,18 +82,18 @@ func (d *LakekeeperWarehouseAssignmentsDataSource) Read(ctx context.Context, req
 	id := state.ID.ValueString()
 	state.ID = types.StringValue(id)
 
-	assignments, _, err := d.client.PermissionV1().WarehousePermission().GetAssignments(ctx, id, nil)
+	rows, err := warehouseAssignmentScope(d.client, id).rows(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read assignments for warehouse %s, %v", state.ID.ValueString(), err))
 		return
 	}
 
-	state.Assignments = make([]sdk.Assignment, len(assignments.Assignments))
-	for i, a := range assignments.Assignments {
+	state.Assignments = make([]sdk.Assignment, len(rows))
+	for i, row := range rows {
 		state.Assignments[i] = sdk.Assignment{
-			AssigneeID:   types.StringValue(a.Assignee.Value),
-			AssigneeType: types.StringValue(string(a.Assignee.Type)),
-			Assignment:   types.StringValue(string(a.Assignment)),
+			AssigneeID:   types.StringValue(row.PrincipalID),
+			AssigneeType: types.StringValue(row.PrincipalType),
+			Assignment:   types.StringValue(row.Relation),
 		}
 	}
 

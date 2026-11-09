@@ -47,11 +47,11 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 						}
 					}	
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.s3", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.s3", "warehouse_id"),
-					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "active", "true"),
@@ -99,11 +99,11 @@ func TestAccLakekeeperWarehouse_basic(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.s3", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.s3", "warehouse_id"),
-					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.s3", "active", "true"),
@@ -153,11 +153,11 @@ func TestAccLakekeeperWarehouse_GCS_SystemIdentity(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID, rBucket, rPrefix),
+				`, rName, project.ProjectId, rBucket, rPrefix),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.gcs_system_identity", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.gcs_system_identity", "warehouse_id"),
-					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_system_identity", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_system_identity", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_system_identity", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_system_identity", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_system_identity", "active", "true"),
@@ -212,11 +212,11 @@ func TestAccLakekeeperWarehouse_GCS_ServiceAccountKey(t *testing.T) {
 							}
 						}
 					}
-				`, rName, project.ID, rBucket, rPrefix),
+				`, rName, project.ProjectId, rBucket, rPrefix),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.gcs_service_account_key", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.gcs_service_account_key", "warehouse_id"),
-					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_service_account_key", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_service_account_key", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_service_account_key", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_service_account_key", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.gcs_service_account_key", "active", "true"),
@@ -267,11 +267,11 @@ func TestAccLakekeeperWarehouse_ADLS_SharedAccessKey(t *testing.T) {
 						}
 					}	
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.adls", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.adls", "warehouse_id"),
-					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "active", "true"),
@@ -325,11 +325,11 @@ func TestAccLakekeeperWarehouse_ADLS_ClientCredentials(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.adls", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.adls", "warehouse_id"),
-					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "active", "true"),
@@ -381,11 +381,11 @@ func TestAccLakekeeperWarehouse_ADLS_SystemIdentity(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.adls", "id"),
 					resource.TestCheckResourceAttrSet("lakekeeper_warehouse.adls", "warehouse_id"),
-					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "project_id", project.ID),
+					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "project_id", project.ProjectId),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "name", rName),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "protected", "false"),
 					resource.TestCheckResourceAttr("lakekeeper_warehouse.adls", "active", "true"),
@@ -446,7 +446,7 @@ func TestAccLakekeeperWarehouse_MultipleStorage(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				ExpectError: regexp.MustCompile("Incorrect Warehouse creation request"),
 			},
 		},
@@ -486,7 +486,7 @@ func TestAccLakekeeperWarehouse_MultipleCreds(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				ExpectError: regexp.MustCompile("Incorrect Warehouse creation request"),
 			},
 		},
@@ -520,7 +520,7 @@ func TestAccLakekeeperWarehouse_IncorrectStorageFamily(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				ExpectError: regexp.MustCompile("Incorrect Warehouse creation request"),
 			},
 		},
@@ -542,7 +542,7 @@ func TestAccLakekeeperWarehouse_NoStorageProfile(t *testing.T) {
 					name = "%s"
 					project_id = "%s"
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				ExpectError: regexp.MustCompile("Missing required argument"),
 			},
 			{
@@ -552,7 +552,7 @@ func TestAccLakekeeperWarehouse_NoStorageProfile(t *testing.T) {
 					project_id = "%s"
 					storage_profile = {}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				ExpectError: regexp.MustCompile("Incorrect Warehouse creation request"),
 			},
 		},
@@ -581,7 +581,7 @@ func TestAccLakekeeperWarehouse_NoCreds(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				ExpectError: regexp.MustCompile("Incorrect attribute value type"),
 			},
 			{
@@ -598,7 +598,7 @@ func TestAccLakekeeperWarehouse_NoCreds(t *testing.T) {
 						}
 					}
 				}
-				`, rName, project.ID),
+				`, rName, project.ProjectId),
 				ExpectError: regexp.MustCompile("Incorrect Warehouse creation request"),
 			},
 		},
@@ -611,8 +611,8 @@ func testAccCheckLakekeeperWarehouseDestroy(s *terraform.State) error {
 			continue
 		}
 
-		projectID, warehouseID := splitInternalID(types.StringValue(rs.Primary.ID))
-		if _, _, err := testutil.TestLakekeeperClient.WarehouseV1(projectID).Get(context.Background(), warehouseID); err == nil {
+		_, warehouseID := splitInternalID(types.StringValue(rs.Primary.ID))
+		if _, err := testutil.TestLakekeeperClient.Warehouses.Get(context.Background(), warehouseID); err == nil {
 			return fmt.Errorf("Warehouse with id %s still exists", rs.Primary.ID)
 		}
 		return nil

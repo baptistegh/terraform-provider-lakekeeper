@@ -3,9 +3,9 @@ package provider
 import (
 	"testing"
 
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
 )
 
 func TestResourceClient(t *testing.T) {

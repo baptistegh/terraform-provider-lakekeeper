@@ -22,10 +22,10 @@ func TestAccDataLakekeeperProject_basic(t *testing.T) {
 				data "lakekeeper_project" "foo" {
 				  id = "%s"
 				}
-				`, project.ID),
+				`, project.ProjectId),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.lakekeeper_project.foo", "id", project.ID),
-					resource.TestCheckResourceAttr("data.lakekeeper_project.foo", "name", project.Name),
+					resource.TestCheckResourceAttr("data.lakekeeper_project.foo", "id", project.ProjectId),
+					resource.TestCheckResourceAttr("data.lakekeeper_project.foo", "name", project.ProjectName),
 				),
 			},
 		},

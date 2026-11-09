@@ -28,7 +28,7 @@ resource "lakekeeper_project_user_assignment" "john_doe" {
 
 ### Required
 
-- `assignments` (Set of String) List of project assignments for this user. values can be `project_admin` `security_admin` `data_admin` `role_creator` `describe` `select` `create` `modify`
+- `assignments` (Set of String) List of project assignments for this user. values can be `project_admin` `security_admin` `data_admin` `role_creator` `tag_creator` `describe` `select` `create` `write` `modify`
 - `project_id` (String) The ID of the project.
 - `user_id` (String) The ID of the user.
 

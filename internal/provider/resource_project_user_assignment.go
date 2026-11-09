@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	permissionv1 "github.com/baptistegh/go-lakekeeper/pkg/apis/management/v1/permission"
-	lakekeeper "github.com/baptistegh/go-lakekeeper/pkg/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -17,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	managementv1 "github.com/lakekeeper/go-lakekeeper/pkg/apis/management/v1"
+	lakekeeper "github.com/lakekeeper/go-lakekeeper/pkg/client"
+	"github.com/lakekeeper/go-lakekeeper/pkg/permissions"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -78,28 +78,10 @@ func (r *lakekeeperProjectUserAssignmentResource) Schema(ctx context.Context, re
 			"assignments": schema.SetAttribute{
 				ElementType: types.StringType,
 				MarkdownDescription: "List of project assignments for this user. values can be " +
-					fmt.Sprintf("`%s` `%s` `%s` `%s` `%s` `%s` `%s` `%s`",
-						permissionv1.AdminProjectAssignment,
-						permissionv1.SecurityAdminProjectAssignment,
-						permissionv1.DataAdminProjectAssignment,
-						permissionv1.RoleCreatorProjectAssignment,
-						permissionv1.DescribeProjectAssignment,
-						permissionv1.SelectProjectAssignment,
-						permissionv1.CreateProjectAssignment,
-						permissionv1.ModifyProjectAssignment,
-					),
+					enumValuesList(managementv1.AllowedProjectRelationEnumValues),
 				Required: true,
 				Validators: []validator.Set{setvalidator.ValueStringsAre(
-					stringvalidator.OneOf(
-						string(permissionv1.AdminProjectAssignment),
-						string(permissionv1.SecurityAdminProjectAssignment),
-						string(permissionv1.DataAdminProjectAssignment),
-						string(permissionv1.RoleCreatorProjectAssignment),
-						string(permissionv1.DescribeProjectAssignment),
-						string(permissionv1.SelectProjectAssignment),
-						string(permissionv1.CreateProjectAssignment),
-						string(permissionv1.ModifyProjectAssignment),
-					),
+					stringvalidator.OneOf(enumStrings(managementv1.AllowedProjectRelationEnumValues)...),
 				)},
 			},
 		},
@@ -121,38 +103,18 @@ func (r *lakekeeperProjectUserAssignmentResource) Create(ctx context.Context, re
 		return
 	}
 
-	projectID := plan.ProjectID.ValueString()
-	userID := plan.UserID.ValueString()
-
-	id := fmt.Sprintf("%s/%s", projectID, userID)
-
-	var opts []*permissionv1.ProjectAssignment
-
-	for _, v := range plan.Assignments.Elements() {
-		s, ok := v.(types.String)
-		if !ok {
-			resp.Diagnostics.AddError("Error converting model to resource", fmt.Sprintf("Unable to read assignment %s", v.String()))
-			return
-		}
-
-		opts = append(opts, &permissionv1.ProjectAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Value: plan.UserID.ValueString(),
-				Type:  permissionv1.UserType,
-			},
-			Assignment: permissionv1.ProjectAssignmentType(s.ValueString()),
-		})
+	var assignments []string
+	resp.Diagnostics.Append(plan.Assignments.ElementsAs(ctx, &assignments, false)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	_, err := r.client.PermissionV1().ProjectPermission().Update(ctx, projectID, &permissionv1.UpdateProjectPermissionsOptions{
-		Writes: opts,
-	})
-	if err != nil {
+	if err := projectAssignmentScope(r.client, plan.ProjectID.ValueString()).apply(ctx, permissions.PrincipalUser, plan.UserID.ValueString(), assignments, nil); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to write project assignment, %s", err.Error()))
 		return
 	}
 
-	state.ID = types.StringValue(id)
+	state.ID = types.StringValue(fmt.Sprintf("%s/%s", plan.ProjectID.ValueString(), plan.UserID.ValueString()))
 	state.ProjectID = plan.ProjectID
 	state.UserID = plan.UserID
 	state.Assignments = plan.Assignments
@@ -166,40 +128,31 @@ func (r *lakekeeperProjectUserAssignmentResource) Read(ctx context.Context, req 
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	projectID, userID := splitInternalID(state.ID)
+	objectID, principalID := splitInternalID(state.ID)
 
-	assignments, _, err := r.client.PermissionV1().ProjectPermission().GetAssignments(ctx, projectID, nil)
+	relations, err := projectAssignmentScope(r.client, objectID).relations(ctx, permissions.PrincipalUser, principalID)
 	if err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to read project assignments, %s", err.Error()))
 		return
 	}
 
-	var elems []attr.Value
-	for _, v := range assignments.Assignments {
-		if v.Assignee.Value == userID && v.Assignee.Type == permissionv1.UserType {
-			elems = append(elems, types.StringValue(string(v.Assignment)))
-		}
-	}
-
-	newAssignments, diags := types.SetValue(types.StringType, elems)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
+	newAssignments, diags := types.SetValueFrom(ctx, types.StringType, relations)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	state.UserID = types.StringValue(userID)
-	state.ProjectID = types.StringValue(projectID)
+	state.ProjectID = types.StringValue(objectID)
+	state.UserID = types.StringValue(principalID)
 	state.Assignments = newAssignments
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Updates updates the resource in-place.
+// Update updates the resource in-place.
 func (r *lakekeeperProjectUserAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state lakekeeperProjectUserAssignmentResourceModel
 
@@ -225,74 +178,36 @@ func (r *lakekeeperProjectUserAssignmentResource) Update(ctx context.Context, re
 
 	added, removed := DiffTypedStrings(stateAssignments, planAssignments)
 
-	var writes []*permissionv1.ProjectAssignment
-	var deletes []*permissionv1.ProjectAssignment
+	objectID, principalID := splitInternalID(state.ID)
 
-	for _, v := range added {
-		writes = append(writes, &permissionv1.ProjectAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Type:  permissionv1.UserType,
-				Value: plan.UserID.ValueString(),
-			},
-			Assignment: permissionv1.ProjectAssignmentType(v.ValueString()),
-		})
-	}
-
-	for _, v := range removed {
-		deletes = append(deletes, &permissionv1.ProjectAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Type:  permissionv1.UserType,
-				Value: plan.UserID.ValueString(),
-			},
-			Assignment: permissionv1.ProjectAssignmentType(v.ValueString()),
-		})
-	}
-
-	if _, err := r.client.PermissionV1().ProjectPermission().Update(ctx, plan.ProjectID.ValueString(), &permissionv1.UpdateProjectPermissionsOptions{
-		Writes:  writes,
-		Deletes: deletes,
-	}); err != nil {
+	if err := projectAssignmentScope(r.client, objectID).apply(ctx, permissions.PrincipalUser, principalID, stringValues(added), stringValues(removed)); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to update project assignment, %v", err.Error()))
 		return
 	}
 
+	state.UserID = types.StringValue(principalID)
 	state.Assignments = plan.Assignments
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Deletes removes the resource.
+// Delete removes the resource.
 func (r *lakekeeperProjectUserAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state lakekeeperProjectUserAssignmentResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var assignments []types.String
-	var deletes []*permissionv1.ProjectAssignment
-
+	var assignments []string
 	resp.Diagnostics.Append(state.Assignments.ElementsAs(ctx, &assignments, false)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	for _, v := range assignments {
-		deletes = append(deletes, &permissionv1.ProjectAssignment{
-			Assignee: permissionv1.UserOrRole{
-				Value: state.UserID.ValueString(),
-				Type:  permissionv1.UserType,
-			},
-			Assignment: permissionv1.ProjectAssignmentType(v.ValueString()),
-		})
-	}
-
-	if _, err := r.client.PermissionV1().ProjectPermission().Update(ctx, state.ProjectID.ValueString(), &permissionv1.UpdateProjectPermissionsOptions{
-		Deletes: deletes,
-	}); err != nil {
+	if err := projectAssignmentScope(r.client, state.ProjectID.ValueString()).apply(ctx, permissions.PrincipalUser, state.UserID.ValueString(), nil, assignments); err != nil {
 		resp.Diagnostics.AddError("Lakekeeper API error occurred", fmt.Sprintf("Unable to delete project assignment, %v", err.Error()))
 	}
 
