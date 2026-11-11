@@ -6,6 +6,8 @@ description: |-
 
 # Lakekeeper Provider
 
+~> **Deprecated:** this provider has moved to [`lakekeeper/lakekeeper`](https://registry.terraform.io/providers/lakekeeper/lakekeeper/latest) and will receive no further updates under `baptistegh/lakekeeper`. Change your `source` to `"lakekeeper/lakekeeper"`, then run `terraform state replace-provider baptistegh/lakekeeper lakekeeper/lakekeeper` and `terraform init -upgrade`. Source code and issues: [lakekeeper/terraform-provider-lakekeeper](https://github.com/lakekeeper/terraform-provider-lakekeeper).
+
 > **⚠️ Preview Status Notice**
 > 
 > This provider is currently in **preview** and under active development. It is **not production-ready** and should not be used in production environments.
