@@ -1,6 +1,28 @@
 # Changelog
 
 
+## [0.4.13](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.12...v0.4.13) (2026-11-11)
+
+
+### Features
+
+* add project, warehouse and namespace list data sources ([#335](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/335)) ([b137695](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/b1376954b4e556ceb9d73cba59c47a58ae0375f9))
+* resolve roles by exact project-scoped name ([#334](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/334)) ([a822f39](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/a822f39da695f80f6756e43a601d3e83989d19c0))
+
+
+### Bug Fixes
+
+* deprecate provider in favor of lakekeeper/lakekeeper ([#342](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/342)) ([eaf8a45](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/eaf8a45b0cbf45c438c7a8db2d2aca7bcdc3d6a8))
+* **deps:** update module golang.org/x/oauth2 to v0.38.0 ([#339](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/339)) ([e94bd18](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/e94bd180cf8f8443b16b3bf48a1e35a955e25560))
+
+
+### Miscellaneous Chores
+
+* add aggregate status checks for unit and acceptance tests ([#340](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/340)) ([626694a](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/626694affeb2a457d86e71a89c5fa48c8264e356))
+* **deps:** update dependency terraform to v1.17.1 ([#332](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/332)) ([fe1d9ef](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/fe1d9efd4ce3177a9840ce6204d8cf23ef29ee90))
+* **deps:** update quay.io/keycloak/keycloak docker tag to v26.8.2 ([#336](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/336)) ([8da98f5](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/8da98f57140efd5d8b08b4a6b393d20e8f93f6df))
+* return a diagnostic on unexpected provider data in Configure ([#337](https://github.com/baptistegh/terraform-provider-lakekeeper/issues/337)) ([d19f43b](https://github.com/baptistegh/terraform-provider-lakekeeper/commit/d19f43b28c13e3c4c6d3b391e6ae1f42139441d3))
+
 ## [0.4.12](https://github.com/baptistegh/terraform-provider-lakekeeper/compare/v0.4.11...v0.4.12) (2026-10-24)
 
 
