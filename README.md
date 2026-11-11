@@ -1,11 +1,40 @@
 # Terraform Provider for Lakekeeper
 
 [![docs](https://img.shields.io/static/v1?label=Docs&message=terraform-provider-lakekeeper&color=5c4ee5)](https://registry.terraform.io/providers/baptistegh/lakekeeper/latest/docs)
-[![docs](https://img.shields.io/badge/status-preview-orange)](https://github.com/baptistegh/terraform-provider-lakekeeper/releases)
+[![status](https://img.shields.io/badge/status-archived-red)](https://github.com/lakekeeper/terraform-provider-lakekeeper)
 [![Nightly Acceptance Tests](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/nightly.yml/badge.svg)](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/nightly.yml)
 [![Tests](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/test.yml/badge.svg)](https://github.com/baptistegh/terraform-provider-lakekeeper/actions/workflows/test.yml)
 
 Terraform provider for [Lakekeeper](https://docs.lakekeeper.io/).
+
+> [!WARNING]
+> **This repository is archived and no longer maintained.**
+>
+> The provider has moved to **[lakekeeper/terraform-provider-lakekeeper](https://github.com/lakekeeper/terraform-provider-lakekeeper)** and is now published on the registry as **[`lakekeeper/lakekeeper`](https://registry.terraform.io/providers/lakekeeper/lakekeeper/latest)**.
+> No further releases, fixes or reviews will happen here. Please open issues and pull requests on the new repository.
+
+## Migrating from `baptistegh/lakekeeper`
+
+1. Update the provider source in your configuration:
+
+   ```terraform
+   terraform {
+     required_providers {
+       lakekeeper = {
+         source = "lakekeeper/lakekeeper"
+       }
+     }
+   }
+   ```
+
+2. Point your existing state at the new provider address, then reinitialize:
+
+   ```sh
+   terraform state replace-provider baptistegh/lakekeeper lakekeeper/lakekeeper
+   terraform init -upgrade
+   ```
+
+   With OpenTofu, use `tofu` instead of `terraform` in the commands above.
 
 > [!IMPORTANT]  
 > **⚠️ Preview Status Notice**
@@ -23,6 +52,7 @@ Terraform provider for [Lakekeeper](https://docs.lakekeeper.io/).
 
 - [Terraform Provider for Lakekeeper](#terraform-provider-for-lakekeeper)
   - [Table of Contents](#table-of-contents)
+  - [Migrating from `baptistegh/lakekeeper`](#migrating-from-baptistegh-lakekeeper)
   - [Documentation](#documentation)
   - [Installation](#installation)
   - [Supported Versions](#supported-versions)

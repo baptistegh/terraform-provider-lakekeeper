@@ -102,6 +102,14 @@ func (p *LakekeeperProvider) Schema(ctx context.Context, req provider.SchemaRequ
 }
 
 func (p *LakekeeperProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	resp.Diagnostics.AddWarning(
+		"Provider baptistegh/lakekeeper is deprecated",
+		"This provider has moved to lakekeeper/lakekeeper and will receive no further updates under baptistegh/lakekeeper. "+
+			"Change the source in your required_providers block to \"lakekeeper/lakekeeper\", then run "+
+			"`terraform state replace-provider baptistegh/lakekeeper lakekeeper/lakekeeper` followed by `terraform init -upgrade`. "+
+			"See https://github.com/lakekeeper/terraform-provider-lakekeeper for details.",
+	)
+
 	var config LakekeeperProviderModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
